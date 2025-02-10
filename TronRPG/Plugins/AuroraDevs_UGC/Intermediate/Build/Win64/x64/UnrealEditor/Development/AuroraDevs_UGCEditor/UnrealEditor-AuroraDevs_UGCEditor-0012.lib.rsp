@@ -1,0 +1,15 @@
+/NOLOGO
+/errorReport:prompt
+/MACHINE:x64
+/SUBSYSTEM:WINDOWS
+/DEF
+/NAME:"UnrealEditor-AuroraDevs_UGCEditor-0012.dll"
+/IGNORE:4221
+/NODEFAULTLIB
+"D:\UnrealProject\RPG\Intermediate\Build\Win64\x64\RPGEditor\Development\UnrealEd\SharedPCH.UnrealEd.Project.ValApi.Cpp20.h.obj"
+"D:\UnrealProject\RPG\Plugins\AuroraDevs_UGC\Intermediate\Build\Win64\x64\UnrealEditor\Development\AuroraDevs_UGCEditor\AuroraDevs_UGCEditor.init.gen.cpp.obj"
+"D:\UnrealProject\RPG\Plugins\AuroraDevs_UGC\Intermediate\Build\Win64\x64\UnrealEditor\Development\AuroraDevs_UGCEditor\UGC_EditorNodes.gen.cpp.obj"
+"D:\UnrealProject\RPG\Plugins\AuroraDevs_UGC\Intermediate\Build\Win64\x64\UnrealEditor\Development\AuroraDevs_UGCEditor\AuroraDevs_UGCEditor.cpp.obj"
+"D:\UnrealProject\RPG\Plugins\AuroraDevs_UGC\Intermediate\Build\Win64\x64\UnrealEditor\Development\AuroraDevs_UGCEditor\UGC_EditorNodes.cpp.obj"
+"D:\UnrealProject\RPG\Plugins\AuroraDevs_UGC\Intermediate\Build\Win64\x64\UnrealEditor\Development\AuroraDevs_UGCEditor\Default.rc2.res"
+/OUT:"D:\UnrealProject\RPG\Plugins\AuroraDevs_UGC\Intermediate\Build\Win64\x64\UnrealEditor\Development\AuroraDevs_UGCEditor\UnrealEditor-AuroraDevs_UGCEditor-0012.lib"

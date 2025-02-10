@@ -1,0 +1,40 @@
+{
+    "Version": "1.2",
+    "Data": {
+        "Source": "d:\\unrealproject\\rpg5\\plugins\\electronicnodes\\source\\electronicnodes\\private\\popup\\enupdatepopup.cpp",
+        "ProvidedModule": "",
+        "PCH": "d:\\unrealproject\\rpg5\\intermediate\\build\\win64\\x64\\rpgeditor\\development\\unrealed\\sharedpch.unrealed.project.valapi.cpp20.inclorderunreal5_4.h.pch",
+        "Includes": [
+            "d:\\unrealproject\\rpg5\\plugins\\electronicnodes\\intermediate\\build\\win64\\x64\\unrealeditor\\development\\electronicnodes\\definitions.electronicnodes.h",
+            "d:\\unrealproject\\rpg5\\plugins\\electronicnodes\\source\\electronicnodes\\private\\popup\\enupdatepopup.h",
+            "d:\\unreal\\unreal\\ue_5.5\\engine\\source\\runtime\\slate\\public\\framework\\text\\slatehyperlinkrun.h",
+            "d:\\unreal\\unreal\\ue_5.5\\engine\\source\\runtime\\slate\\public\\framework\\text\\ilayoutblock.h",
+            "d:\\unreal\\unreal\\ue_5.5\\engine\\source\\runtime\\slate\\public\\framework\\text\\irunrenderer.h",
+            "d:\\unreal\\unreal\\ue_5.5\\engine\\source\\runtime\\slate\\public\\framework\\text\\islaterun.h",
+            "d:\\unreal\\unreal\\ue_5.5\\engine\\source\\editor\\editorstyle\\public\\editorstyleset.h",
+            "d:\\unrealproject\\rpg5\\plugins\\electronicnodes\\source\\electronicnodes\\private\\popup\\enupdateconfig.h",
+            "d:\\unrealproject\\rpg5\\plugins\\electronicnodes\\intermediate\\build\\win64\\unrealeditor\\inc\\electronicnodes\\uht\\enupdateconfig.generated.h",
+            "d:\\unreal\\unreal\\ue_5.5\\engine\\source\\runtime\\slate\\public\\widgets\\text\\srichtextblock.h",
+            "d:\\unreal\\unreal\\ue_5.5\\engine\\source\\runtime\\slate\\public\\framework\\text\\itextdecorator.h",
+            "d:\\unreal\\unreal\\ue_5.5\\engine\\source\\runtime\\slate\\public\\framework\\text\\textdecorators.h",
+            "d:\\unreal\\unreal\\ue_5.5\\engine\\source\\runtime\\slate\\public\\framework\\text\\slatewidgetrun.h",
+            "d:\\unreal\\unreal\\ue_5.5\\engine\\source\\runtime\\slate\\public\\framework\\text\\slatetextlayoutfactory.h",
+            "d:\\unreal\\unreal\\ue_5.5\\engine\\source\\runtime\\slate\\public\\framework\\text\\slatetextlayout.h",
+            "d:\\unreal\\unreal\\ue_5.5\\engine\\source\\runtime\\webbrowser\\public\\swebbrowser.h",
+            "d:\\unreal\\unreal\\ue_5.5\\engine\\source\\runtime\\webbrowser\\public\\swebbrowserview.h",
+            "d:\\unreal\\unreal\\ue_5.5\\engine\\source\\runtime\\slate\\public\\widgets\\sviewport.h",
+            "d:\\unreal\\unreal\\ue_5.5\\engine\\source\\runtime\\webbrowser\\public\\iwebbrowsersingleton.h",
+            "d:\\unreal\\unreal\\ue_5.5\\engine\\source\\runtime\\webbrowser\\public\\iwebbrowserresourceloader.h",
+            "d:\\unreal\\unreal\\ue_5.5\\engine\\source\\runtime\\projects\\public\\interfaces\\ipluginmanager.h",
+            "d:\\unreal\\unreal\\ue_5.5\\engine\\source\\runtime\\projects\\public\\plugindescriptor.h",
+            "d:\\unreal\\unreal\\ue_5.5\\engine\\source\\runtime\\projects\\public\\custombuildsteps.h",
+            "d:\\unreal\\unreal\\ue_5.5\\engine\\source\\runtime\\projects\\public\\localizationdescriptor.h",
+            "d:\\unreal\\unreal\\ue_5.5\\engine\\source\\runtime\\projects\\public\\moduledescriptor.h",
+            "d:\\unreal\\unreal\\ue_5.5\\engine\\source\\runtime\\projects\\public\\plugindisalloweddescriptor.h",
+            "d:\\unreal\\unreal\\ue_5.5\\engine\\source\\runtime\\projects\\public\\pluginreferencedescriptor.h",
+            "d:\\unreal\\unreal\\ue_5.5\\engine\\source\\runtime\\projects\\public\\versescope.h"
+        ],
+        "ImportedModules": [],
+        "ImportedHeaderUnits": []
+    }
+}

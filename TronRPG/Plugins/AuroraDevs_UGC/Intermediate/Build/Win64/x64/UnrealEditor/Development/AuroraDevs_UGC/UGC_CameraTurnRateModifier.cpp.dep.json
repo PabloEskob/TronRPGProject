@@ -1,0 +1,37 @@
+{
+    "Version": "1.2",
+    "Data": {
+        "Source": "d:\\unrealproject\\rpg\\plugins\\auroradevs_ugc\\source\\auroradevs_ugc\\private\\input\\ugc_cameraturnratemodifier.cpp",
+        "ProvidedModule": "",
+        "PCH": "d:\\unrealproject\\rpg\\intermediate\\build\\win64\\x64\\rpgeditor\\development\\unrealed\\sharedpch.unrealed.project.valapi.cpp20.inclorderunreal5_4.h.pch",
+        "Includes": [
+            "d:\\unrealproject\\rpg\\plugins\\auroradevs_ugc\\intermediate\\build\\win64\\x64\\unrealeditor\\development\\auroradevs_ugc\\definitions.auroradevs_ugc.h",
+            "d:\\unrealproject\\rpg\\plugins\\auroradevs_ugc\\source\\auroradevs_ugc\\public\\input\\ugc_cameraturnratemodifier.h",
+            "d:\\unreal\\unreal\\ue_5.5\\engine\\plugins\\enhancedinput\\source\\enhancedinput\\public\\inputmodifiers.h",
+            "d:\\unreal\\unreal\\ue_5.5\\engine\\plugins\\enhancedinput\\source\\enhancedinput\\public\\inputactionvalue.h",
+            "d:\\unreal\\unreal\\ue_5.5\\engine\\plugins\\enhancedinput\\intermediate\\build\\win64\\unrealeditor\\inc\\enhancedinput\\uht\\inputactionvalue.generated.h",
+            "d:\\unreal\\unreal\\ue_5.5\\engine\\plugins\\enhancedinput\\intermediate\\build\\win64\\unrealeditor\\inc\\enhancedinput\\uht\\inputmodifiers.generated.h",
+            "d:\\unrealproject\\rpg\\plugins\\auroradevs_ugc\\intermediate\\build\\win64\\unrealeditor\\inc\\auroradevs_ugc\\uht\\ugc_cameraturnratemodifier.generated.h",
+            "d:\\unreal\\unreal\\ue_5.5\\engine\\plugins\\enhancedinput\\source\\enhancedinput\\public\\enhancedinputsubsystems.h",
+            "d:\\unreal\\unreal\\ue_5.5\\engine\\plugins\\enhancedinput\\source\\enhancedinput\\public\\enhancedinputsubsysteminterface.h",
+            "d:\\unreal\\unreal\\ue_5.5\\engine\\plugins\\enhancedinput\\source\\enhancedinput\\public\\enhancedplayerinput.h",
+            "d:\\unreal\\unreal\\ue_5.5\\engine\\source\\runtime\\engine\\classes\\gameframework\\playerinput.h",
+            "d:\\unreal\\unreal\\ue_5.5\\engine\\source\\runtime\\engine\\public\\gesturerecognizer.h",
+            "d:\\unreal\\unreal\\ue_5.5\\engine\\source\\runtime\\engine\\public\\keystate.h",
+            "d:\\unreal\\unreal\\ue_5.5\\engine\\intermediate\\build\\win64\\unrealeditor\\inc\\engine\\uht\\playerinput.generated.h",
+            "d:\\unreal\\unreal\\ue_5.5\\engine\\plugins\\enhancedinput\\source\\enhancedinput\\public\\inputaction.h",
+            "d:\\unreal\\unreal\\ue_5.5\\engine\\plugins\\enhancedinput\\source\\enhancedinput\\public\\inputtriggers.h",
+            "d:\\unreal\\unreal\\ue_5.5\\engine\\plugins\\enhancedinput\\intermediate\\build\\win64\\unrealeditor\\inc\\enhancedinput\\uht\\inputtriggers.generated.h",
+            "d:\\unreal\\unreal\\ue_5.5\\engine\\plugins\\enhancedinput\\intermediate\\build\\win64\\unrealeditor\\inc\\enhancedinput\\uht\\inputaction.generated.h",
+            "d:\\unreal\\unreal\\ue_5.5\\engine\\plugins\\enhancedinput\\intermediate\\build\\win64\\unrealeditor\\inc\\enhancedinput\\uht\\enhancedplayerinput.generated.h",
+            "d:\\unreal\\unreal\\ue_5.5\\engine\\plugins\\enhancedinput\\source\\enhancedinput\\public\\playermappablekeyslot.h",
+            "d:\\unreal\\unreal\\ue_5.5\\engine\\plugins\\enhancedinput\\intermediate\\build\\win64\\unrealeditor\\inc\\enhancedinput\\uht\\playermappablekeyslot.generated.h",
+            "d:\\unreal\\unreal\\ue_5.5\\engine\\plugins\\enhancedinput\\intermediate\\build\\win64\\unrealeditor\\inc\\enhancedinput\\uht\\enhancedinputsubsysteminterface.generated.h",
+            "d:\\unreal\\unreal\\ue_5.5\\engine\\plugins\\enhancedinput\\intermediate\\build\\win64\\unrealeditor\\inc\\enhancedinput\\uht\\enhancedinputsubsystems.generated.h",
+            "d:\\unrealproject\\rpg\\plugins\\auroradevs_ugc\\source\\auroradevs_ugc\\public\\camera\\ugc_playercameramanager.h",
+            "d:\\unrealproject\\rpg\\plugins\\auroradevs_ugc\\intermediate\\build\\win64\\unrealeditor\\inc\\auroradevs_ugc\\uht\\ugc_playercameramanager.generated.h"
+        ],
+        "ImportedModules": [],
+        "ImportedHeaderUnits": []
+    }
+}

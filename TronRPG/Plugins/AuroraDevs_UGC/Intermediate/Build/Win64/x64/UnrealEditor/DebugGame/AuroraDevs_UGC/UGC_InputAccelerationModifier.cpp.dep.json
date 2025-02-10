@@ -1,0 +1,19 @@
+{
+    "Version": "1.2",
+    "Data": {
+        "Source": "d:\\unrealproject\\rpg\\plugins\\auroradevs_ugc\\source\\auroradevs_ugc\\private\\input\\ugc_inputaccelerationmodifier.cpp",
+        "ProvidedModule": "",
+        "PCH": "d:\\unrealproject\\rpg\\intermediate\\build\\win64\\x64\\rpgeditor\\debuggame\\unrealed\\sharedpch.unrealed.project.nonoptimized.valapi.cpp20.inclorderunreal5_4.h.pch",
+        "Includes": [
+            "d:\\unrealproject\\rpg\\plugins\\auroradevs_ugc\\intermediate\\build\\win64\\x64\\unrealeditor\\debuggame\\auroradevs_ugc\\definitions.auroradevs_ugc.h",
+            "d:\\unrealproject\\rpg\\plugins\\auroradevs_ugc\\source\\auroradevs_ugc\\public\\input\\ugc_inputaccelerationmodifier.h",
+            "d:\\unreal\\unreal\\ue_5.5\\engine\\plugins\\enhancedinput\\source\\enhancedinput\\public\\inputmodifiers.h",
+            "d:\\unreal\\unreal\\ue_5.5\\engine\\plugins\\enhancedinput\\source\\enhancedinput\\public\\inputactionvalue.h",
+            "d:\\unreal\\unreal\\ue_5.5\\engine\\plugins\\enhancedinput\\intermediate\\build\\win64\\unrealeditor\\inc\\enhancedinput\\uht\\inputactionvalue.generated.h",
+            "d:\\unreal\\unreal\\ue_5.5\\engine\\plugins\\enhancedinput\\intermediate\\build\\win64\\unrealeditor\\inc\\enhancedinput\\uht\\inputmodifiers.generated.h",
+            "d:\\unrealproject\\rpg\\plugins\\auroradevs_ugc\\intermediate\\build\\win64\\unrealeditor\\inc\\auroradevs_ugc\\uht\\ugc_inputaccelerationmodifier.generated.h"
+        ],
+        "ImportedModules": [],
+        "ImportedHeaderUnits": []
+    }
+}

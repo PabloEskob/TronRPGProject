@@ -1,0 +1,12 @@
+/NOLOGO
+/errorReport:prompt
+/MACHINE:x64
+/SUBSYSTEM:WINDOWS
+/DEF
+/NAME:"UnrealEditor-ElectronicNodes-Win64-DebugGame.dll"
+/IGNORE:4221
+/NODEFAULTLIB
+"D:\UnrealProject\RPG\Intermediate\Build\Win64\x64\RPGEditor\DebugGame\UnrealEd\SharedPCH.UnrealEd.Project.NonOptimized.ValApi.Cpp20.InclOrderUnreal5_4.h.obj"
+"D:\UnrealProject\RPG\Plugins\ElectronicNodes\Intermediate\Build\Win64\x64\UnrealEditor\DebugGame\ElectronicNodes\Module.ElectronicNodes.cpp.obj"
+"D:\UnrealProject\RPG\Plugins\ElectronicNodes\Intermediate\Build\Win64\x64\UnrealEditor\DebugGame\ElectronicNodes\Default.rc2.res"
+/OUT:"D:\UnrealProject\RPG\Plugins\ElectronicNodes\Intermediate\Build\Win64\x64\UnrealEditor\DebugGame\ElectronicNodes\UnrealEditor-ElectronicNodes-Win64-DebugGame.lib"
