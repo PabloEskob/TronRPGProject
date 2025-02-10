@@ -1,0 +1,13 @@
+/NOLOGO
+/errorReport:prompt
+/MACHINE:x64
+/SUBSYSTEM:WINDOWS
+/DEF
+/NAME:"UnrealEditor-TronRPG.dll"
+/IGNORE:4221
+/NODEFAULTLIB
+"D:\UnrealProject\TronRPGProject\TronRPG\Intermediate\Build\Win64\x64\TronRPGEditor\Development\UnrealEd\SharedPCH.UnrealEd.Project.ValApi.Cpp20.h.obj"
+"D:\UnrealProject\TronRPGProject\TronRPG\Intermediate\Build\Win64\x64\UnrealEditor\Development\TronRPG\TronRPG.cpp.obj"
+"D:\UnrealProject\TronRPGProject\TronRPG\Intermediate\Build\Win64\x64\UnrealEditor\Development\TronRPG\PerModuleInline.gen.cpp.obj"
+"D:\UnrealProject\TronRPGProject\TronRPG\Intermediate\Build\Win64\x64\UnrealEditor\Development\TronRPG\Default.rc2.res"
+/OUT:"D:\UnrealProject\TronRPGProject\TronRPG\Intermediate\Build\Win64\x64\UnrealEditor\Development\TronRPG\UnrealEditor-TronRPG.lib"

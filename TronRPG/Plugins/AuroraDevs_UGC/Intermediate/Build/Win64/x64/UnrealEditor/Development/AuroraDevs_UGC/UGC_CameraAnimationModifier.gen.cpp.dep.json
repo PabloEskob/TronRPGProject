@@ -1,0 +1,20 @@
+{
+    "Version": "1.2",
+    "Data": {
+        "Source": "d:\\unrealproject\\rpg\\plugins\\auroradevs_ugc\\intermediate\\build\\win64\\unrealeditor\\inc\\auroradevs_ugc\\uht\\ugc_cameraanimationmodifier.gen.cpp",
+        "ProvidedModule": "",
+        "PCH": "d:\\unrealproject\\rpg\\intermediate\\build\\win64\\x64\\rpgeditor\\development\\unrealed\\sharedpch.unrealed.project.valapi.cpp20.inclorderunreal5_4.h.pch",
+        "Includes": [
+            "d:\\unrealproject\\rpg\\plugins\\auroradevs_ugc\\intermediate\\build\\win64\\x64\\unrealeditor\\development\\auroradevs_ugc\\definitions.auroradevs_ugc.h",
+            "d:\\unrealproject\\rpg\\plugins\\auroradevs_ugc\\source\\auroradevs_ugc\\public\\camera\\modifiers\\ugc_cameraanimationmodifier.h",
+            "d:\\unreal\\unreal\\ue_5.5\\engine\\plugins\\cameras\\enginecameras\\source\\enginecameras\\legacy\\cameraanimationcameramodifier.h",
+            "d:\\unreal\\unreal\\ue_5.5\\engine\\plugins\\cameras\\enginecameras\\source\\enginecameras\\public\\animations\\cameraanimationcameramodifier.h",
+            "d:\\unreal\\unreal\\ue_5.5\\engine\\source\\runtime\\engine\\classes\\camera\\cameramodifier.h",
+            "d:\\unreal\\unreal\\ue_5.5\\engine\\intermediate\\build\\win64\\unrealeditor\\inc\\engine\\uht\\cameramodifier.generated.h",
+            "d:\\unreal\\unreal\\ue_5.5\\engine\\plugins\\cameras\\enginecameras\\intermediate\\build\\win64\\unrealeditor\\inc\\enginecameras\\uht\\cameraanimationcameramodifier.generated.h",
+            "d:\\unrealproject\\rpg\\plugins\\auroradevs_ugc\\intermediate\\build\\win64\\unrealeditor\\inc\\auroradevs_ugc\\uht\\ugc_cameraanimationmodifier.generated.h"
+        ],
+        "ImportedModules": [],
+        "ImportedHeaderUnits": []
+    }
+}
