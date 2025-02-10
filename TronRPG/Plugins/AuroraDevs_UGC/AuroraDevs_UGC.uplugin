@@ -28,7 +28,8 @@
 				"Engine",
 				"GameplayCameras",
 				"EnhancedInput",
-				"TemplateSequence"
+				"TemplateSequence",
+				"EngineCameras"
 			]
 		},
 		{

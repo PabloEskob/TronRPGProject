@@ -1,13 +1,13 @@
 {
     "Version": "1.2",
     "Data": {
-        "Source": "d:\\unrealproject\\rpg\\plugins\\auroradevs_ugc\\source\\auroradevs_ugc\\private\\camera\\methods\\ugc_ifocustargetmethod.cpp",
+        "Source": "d:\\unrealproject\\tronrpgproject\\tronrpg\\plugins\\auroradevs_ugc\\source\\auroradevs_ugc\\private\\camera\\methods\\ugc_ifocustargetmethod.cpp",
         "ProvidedModule": "",
-        "PCH": "d:\\unrealproject\\rpg\\intermediate\\build\\win64\\x64\\rpgeditor\\development\\unrealed\\sharedpch.unrealed.project.valapi.cpp20.inclorderunreal5_4.h.pch",
+        "PCH": "d:\\unrealproject\\tronrpgproject\\tronrpg\\intermediate\\build\\win64\\x64\\tronrpgeditor\\development\\unrealed\\sharedpch.unrealed.project.valapi.cpp20.h.pch",
         "Includes": [
-            "d:\\unrealproject\\rpg\\plugins\\auroradevs_ugc\\intermediate\\build\\win64\\x64\\unrealeditor\\development\\auroradevs_ugc\\definitions.auroradevs_ugc.h",
-            "d:\\unrealproject\\rpg\\plugins\\auroradevs_ugc\\source\\auroradevs_ugc\\public\\camera\\methods\\ugc_ifocustargetmethod.h",
-            "d:\\unrealproject\\rpg\\plugins\\auroradevs_ugc\\intermediate\\build\\win64\\unrealeditor\\inc\\auroradevs_ugc\\uht\\ugc_ifocustargetmethod.generated.h"
+            "d:\\unrealproject\\tronrpgproject\\tronrpg\\plugins\\auroradevs_ugc\\intermediate\\build\\win64\\x64\\unrealeditor\\development\\auroradevs_ugc\\definitions.auroradevs_ugc.h",
+            "d:\\unrealproject\\tronrpgproject\\tronrpg\\plugins\\auroradevs_ugc\\source\\auroradevs_ugc\\public\\camera\\methods\\ugc_ifocustargetmethod.h",
+            "d:\\unrealproject\\tronrpgproject\\tronrpg\\plugins\\auroradevs_ugc\\intermediate\\build\\win64\\unrealeditor\\inc\\auroradevs_ugc\\uht\\ugc_ifocustargetmethod.generated.h"
         ],
         "ImportedModules": [],
         "ImportedHeaderUnits": []

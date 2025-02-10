@@ -1,11 +1,11 @@
 {
     "Version": "1.2",
     "Data": {
-        "Source": "d:\\unrealproject\\rpg\\plugins\\auroradevs_ugc\\intermediate\\build\\win64\\x64\\unrealeditor\\development\\auroradevs_ugc\\permoduleinline.gen.cpp",
+        "Source": "d:\\unrealproject\\tronrpgproject\\tronrpg\\plugins\\auroradevs_ugc\\intermediate\\build\\win64\\x64\\unrealeditor\\development\\auroradevs_ugc\\permoduleinline.gen.cpp",
         "ProvidedModule": "",
-        "PCH": "d:\\unrealproject\\rpg\\intermediate\\build\\win64\\x64\\rpgeditor\\development\\unrealed\\sharedpch.unrealed.project.valapi.cpp20.inclorderunreal5_4.h.pch",
+        "PCH": "d:\\unrealproject\\tronrpgproject\\tronrpg\\intermediate\\build\\win64\\x64\\tronrpgeditor\\development\\unrealed\\sharedpch.unrealed.project.valapi.cpp20.h.pch",
         "Includes": [
-            "d:\\unrealproject\\rpg\\plugins\\auroradevs_ugc\\intermediate\\build\\win64\\x64\\unrealeditor\\development\\auroradevs_ugc\\definitions.auroradevs_ugc.h",
+            "d:\\unrealproject\\tronrpgproject\\tronrpg\\plugins\\auroradevs_ugc\\intermediate\\build\\win64\\x64\\unrealeditor\\development\\auroradevs_ugc\\definitions.auroradevs_ugc.h",
             "d:\\unreal\\unreal\\ue_5.5\\engine\\source\\runtime\\core\\public\\hal\\permoduleinline.inl"
         ],
         "ImportedModules": [],

@@ -1,12 +1,12 @@
-"D:\UnrealProject\RPG5\Plugins\AuroraDevs_UGC\Intermediate\Build\Win64\UnrealEditor\Inc\AuroraDevs_UGC\UHT\AuroraDevs_UGC.init.gen.cpp"
-/FI"D:\UnrealProject\RPG5\Intermediate\Build\Win64\x64\RPGEditor\Development\UnrealEd\SharedPCH.UnrealEd.Project.ValApi.Cpp20.InclOrderUnreal5_4.h"
-/FI"D:\UnrealProject\RPG5\Plugins\AuroraDevs_UGC\Intermediate\Build\Win64\x64\UnrealEditor\Development\AuroraDevs_UGC\Definitions.AuroraDevs_UGC.h"
-/Yu"D:\UnrealProject\RPG5\Intermediate\Build\Win64\x64\RPGEditor\Development\UnrealEd\SharedPCH.UnrealEd.Project.ValApi.Cpp20.InclOrderUnreal5_4.h"
-/Fp"D:\UnrealProject\RPG5\Intermediate\Build\Win64\x64\RPGEditor\Development\UnrealEd\SharedPCH.UnrealEd.Project.ValApi.Cpp20.InclOrderUnreal5_4.h.pch"
-/Fo"D:\UnrealProject\RPG5\Plugins\AuroraDevs_UGC\Intermediate\Build\Win64\x64\UnrealEditor\Development\AuroraDevs_UGC\AuroraDevs_UGC.init.gen.cpp.obj"
-/experimental:log "D:\UnrealProject\RPG5\Plugins\AuroraDevs_UGC\Intermediate\Build\Win64\x64\UnrealEditor\Development\AuroraDevs_UGC\AuroraDevs_UGC.init.gen.cpp.sarif"
-/sourceDependencies "D:\UnrealProject\RPG5\Plugins\AuroraDevs_UGC\Intermediate\Build\Win64\x64\UnrealEditor\Development\AuroraDevs_UGC\AuroraDevs_UGC.init.gen.cpp.dep.json"
-@"D:\UnrealProject\RPG5\Plugins\AuroraDevs_UGC\Intermediate\Build\Win64\x64\UnrealEditor\Development\AuroraDevs_UGC\AuroraDevs_UGC.Shared.rsp"
+"D:\UnrealProject\RPG\Plugins\AuroraDevs_UGC\Intermediate\Build\Win64\UnrealEditor\Inc\AuroraDevs_UGC\UHT\AuroraDevs_UGC.init.gen.cpp"
+/FI"D:\UnrealProject\RPG\Intermediate\Build\Win64\x64\RPGEditor\Development\UnrealEd\SharedPCH.UnrealEd.Project.ValApi.Cpp20.InclOrderUnreal5_4.h"
+/FI"D:\UnrealProject\RPG\Plugins\AuroraDevs_UGC\Intermediate\Build\Win64\x64\UnrealEditor\Development\AuroraDevs_UGC\Definitions.AuroraDevs_UGC.h"
+/Yu"D:\UnrealProject\RPG\Intermediate\Build\Win64\x64\RPGEditor\Development\UnrealEd\SharedPCH.UnrealEd.Project.ValApi.Cpp20.InclOrderUnreal5_4.h"
+/Fp"D:\UnrealProject\RPG\Intermediate\Build\Win64\x64\RPGEditor\Development\UnrealEd\SharedPCH.UnrealEd.Project.ValApi.Cpp20.InclOrderUnreal5_4.h.pch"
+/Fo"D:\UnrealProject\RPG\Plugins\AuroraDevs_UGC\Intermediate\Build\Win64\x64\UnrealEditor\Development\AuroraDevs_UGC\AuroraDevs_UGC.init.gen.cpp.obj"
+/experimental:log "D:\UnrealProject\RPG\Plugins\AuroraDevs_UGC\Intermediate\Build\Win64\x64\UnrealEditor\Development\AuroraDevs_UGC\AuroraDevs_UGC.init.gen.cpp.sarif"
+/sourceDependencies "D:\UnrealProject\RPG\Plugins\AuroraDevs_UGC\Intermediate\Build\Win64\x64\UnrealEditor\Development\AuroraDevs_UGC\AuroraDevs_UGC.init.gen.cpp.dep.json"
+@"D:\UnrealProject\RPG\Plugins\AuroraDevs_UGC\Intermediate\Build\Win64\x64\UnrealEditor\Development\AuroraDevs_UGC\AuroraDevs_UGC.Shared.rsp"
 /d2ssa-cfg-question-
 /Zc:inline
 /nologo

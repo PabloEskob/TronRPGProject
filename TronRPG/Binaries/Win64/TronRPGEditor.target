@@ -34,6 +34,38 @@
 			"Type": "RequiredResource"
 		},
 		{
+			"Path": "$(ProjectDir)/Plugins/AuroraDevs_UGC/Binaries/Win64/UnrealEditor-AuroraDevs_UGC.dll",
+			"Type": "DynamicLibrary"
+		},
+		{
+			"Path": "$(ProjectDir)/Plugins/AuroraDevs_UGC/Binaries/Win64/UnrealEditor-AuroraDevs_UGC.pdb",
+			"Type": "SymbolFile"
+		},
+		{
+			"Path": "$(ProjectDir)/Plugins/AuroraDevs_UGC/Binaries/Win64/UnrealEditor-AuroraDevs_UGCEditor.dll",
+			"Type": "DynamicLibrary"
+		},
+		{
+			"Path": "$(ProjectDir)/Plugins/AuroraDevs_UGC/Binaries/Win64/UnrealEditor-AuroraDevs_UGCEditor.pdb",
+			"Type": "SymbolFile"
+		},
+		{
+			"Path": "$(ProjectDir)/Plugins/AuroraDevs_UGC/Binaries/Win64/UnrealEditor.modules",
+			"Type": "RequiredResource"
+		},
+		{
+			"Path": "$(ProjectDir)/Plugins/ElectronicNodes/Binaries/Win64/UnrealEditor-ElectronicNodes.dll",
+			"Type": "DynamicLibrary"
+		},
+		{
+			"Path": "$(ProjectDir)/Plugins/ElectronicNodes/Binaries/Win64/UnrealEditor-ElectronicNodes.pdb",
+			"Type": "SymbolFile"
+		},
+		{
+			"Path": "$(ProjectDir)/Plugins/ElectronicNodes/Binaries/Win64/UnrealEditor.modules",
+			"Type": "RequiredResource"
+		},
+		{
 			"Path": "$(EngineDir)/Binaries/ThirdParty/USD/UsdResources/Win64/plugins/ar/resources/plugInfo.json",
 			"Type": "RequiredResource"
 		},
@@ -8023,6 +8055,14 @@
 		}
 	],
 	"RuntimeDependencies": [
+		{
+			"Path": "$(ProjectDir)/Plugins/AuroraDevs_UGC/AuroraDevs_UGC.uplugin",
+			"Type": "UFS"
+		},
+		{
+			"Path": "$(ProjectDir)/Plugins/ElectronicNodes/ElectronicNodes.uplugin",
+			"Type": "UFS"
+		},
 		{
 			"Path": "$(ProjectDir)/TronRPG.uproject",
 			"Type": "UFS"
@@ -33779,6 +33819,7 @@
 		"AudioCapture",
 		"AudioSynesthesia",
 		"AudioWidgets",
+		"AuroraDevs_UGC",
 		"AutomationUtils",
 		"AvfMedia",
 		"BackChannel",
@@ -33826,6 +33867,7 @@
 		"EditorPerformance",
 		"EditorScriptingUtilities",
 		"EditorTelemetry",
+		"ElectronicNodes",
 		"EngineAssetDefinitions",
 		"EngineCameras",
 		"EnhancedInput",

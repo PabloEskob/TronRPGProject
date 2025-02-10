@@ -1,12 +1,12 @@
 {
     "Version": "1.2",
     "Data": {
-        "Source": "d:\\unrealproject\\rpg\\plugins\\auroradevs_ugc\\source\\auroradevs_ugceditor\\private\\auroradevs_ugceditor.cpp",
+        "Source": "d:\\unrealproject\\tronrpgproject\\tronrpg\\plugins\\auroradevs_ugc\\source\\auroradevs_ugceditor\\private\\auroradevs_ugceditor.cpp",
         "ProvidedModule": "",
-        "PCH": "d:\\unrealproject\\rpg\\intermediate\\build\\win64\\x64\\rpgeditor\\development\\unrealed\\sharedpch.unrealed.project.valapi.cpp20.inclorderunreal5_4.h.pch",
+        "PCH": "d:\\unrealproject\\tronrpgproject\\tronrpg\\intermediate\\build\\win64\\x64\\tronrpgeditor\\development\\unrealed\\sharedpch.unrealed.project.valapi.cpp20.h.pch",
         "Includes": [
-            "d:\\unrealproject\\rpg\\plugins\\auroradevs_ugc\\intermediate\\build\\win64\\x64\\unrealeditor\\development\\auroradevs_ugceditor\\definitions.auroradevs_ugceditor.h",
-            "d:\\unrealproject\\rpg\\plugins\\auroradevs_ugc\\source\\auroradevs_ugceditor\\public\\auroradevs_ugceditor.h"
+            "d:\\unrealproject\\tronrpgproject\\tronrpg\\plugins\\auroradevs_ugc\\intermediate\\build\\win64\\x64\\unrealeditor\\development\\auroradevs_ugceditor\\definitions.auroradevs_ugceditor.h",
+            "d:\\unrealproject\\tronrpgproject\\tronrpg\\plugins\\auroradevs_ugc\\source\\auroradevs_ugceditor\\public\\auroradevs_ugceditor.h"
         ],
         "ImportedModules": [],
         "ImportedHeaderUnits": []

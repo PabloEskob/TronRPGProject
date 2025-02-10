@@ -6,7 +6,7 @@
 /NAME:"UnrealEditor-ElectronicNodes.dll"
 /IGNORE:4221
 /NODEFAULTLIB
-"D:\UnrealProject\RPG5\Intermediate\Build\Win64\x64\RPGEditor\Development\UnrealEd\SharedPCH.UnrealEd.Project.ValApi.Cpp20.InclOrderUnreal5_4.h.obj"
-"D:\UnrealProject\RPG5\Plugins\ElectronicNodes\Intermediate\Build\Win64\x64\UnrealEditor\Development\ElectronicNodes\Module.ElectronicNodes.cpp.obj"
-"D:\UnrealProject\RPG5\Plugins\ElectronicNodes\Intermediate\Build\Win64\x64\UnrealEditor\Development\ElectronicNodes\Default.rc2.res"
-/OUT:"D:\UnrealProject\RPG5\Plugins\ElectronicNodes\Intermediate\Build\Win64\x64\UnrealEditor\Development\ElectronicNodes\UnrealEditor-ElectronicNodes.lib"
+"D:\UnrealProject\TronRPGProject\TronRPG\Intermediate\Build\Win64\x64\TronRPGEditor\Development\UnrealEd\SharedPCH.UnrealEd.Project.ValApi.Cpp20.h.obj"
+"D:\UnrealProject\TronRPGProject\TronRPG\Plugins\ElectronicNodes\Intermediate\Build\Win64\x64\UnrealEditor\Development\ElectronicNodes\Module.ElectronicNodes.cpp.obj"
+"D:\UnrealProject\TronRPGProject\TronRPG\Plugins\ElectronicNodes\Intermediate\Build\Win64\x64\UnrealEditor\Development\ElectronicNodes\Default.rc2.res"
+/OUT:"D:\UnrealProject\TronRPGProject\TronRPG\Plugins\ElectronicNodes\Intermediate\Build\Win64\x64\UnrealEditor\Development\ElectronicNodes\UnrealEditor-ElectronicNodes.lib"
