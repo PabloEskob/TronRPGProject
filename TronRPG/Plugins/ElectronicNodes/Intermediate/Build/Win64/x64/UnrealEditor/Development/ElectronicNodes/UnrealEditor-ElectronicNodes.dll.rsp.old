@@ -37,9 +37,9 @@
 /FUNCTIONPADMIN:6
 /NOIMPLIB
 /NATVIS:"..\Intermediate\Build\Win64\x64\UnrealEditor\Development\RenderCore\RenderCore.natvis"
-"D:\UnrealProject\RPG5\Intermediate\Build\Win64\x64\RPGEditor\Development\UnrealEd\SharedPCH.UnrealEd.Project.ValApi.Cpp20.InclOrderUnreal5_4.h.obj"
-"D:\UnrealProject\RPG5\Plugins\ElectronicNodes\Intermediate\Build\Win64\x64\UnrealEditor\Development\ElectronicNodes\Module.ElectronicNodes.cpp.obj"
-"D:\UnrealProject\RPG5\Plugins\ElectronicNodes\Intermediate\Build\Win64\x64\UnrealEditor\Development\ElectronicNodes\Default.rc2.res"
+"D:\UnrealProject\TronRPGProject\TronRPG\Intermediate\Build\Win64\x64\TronRPGEditor\Development\UnrealEd\SharedPCH.UnrealEd.Project.ValApi.Cpp20.h.obj"
+"D:\UnrealProject\TronRPGProject\TronRPG\Plugins\ElectronicNodes\Intermediate\Build\Win64\x64\UnrealEditor\Development\ElectronicNodes\Module.ElectronicNodes.cpp.obj"
+"D:\UnrealProject\TronRPGProject\TronRPG\Plugins\ElectronicNodes\Intermediate\Build\Win64\x64\UnrealEditor\Development\ElectronicNodes\Default.rc2.res"
 "..\Intermediate\Build\Win64\x64\UnrealEditor\Development\CoreUObject\UnrealEditor-CoreUObject.lib"
 "..\Intermediate\Build\Win64\x64\UnrealEditor\Development\Engine\UnrealEditor-Engine.lib"
 "..\Intermediate\Build\Win64\x64\UnrealEditor\Development\Slate\UnrealEditor-Slate.lib"
@@ -84,6 +84,6 @@
 "synchronization.lib"
 "dwmapi.lib"
 "imm32.lib"
-/OUT:"D:\UnrealProject\RPG5\Plugins\ElectronicNodes\Binaries\Win64\UnrealEditor-ElectronicNodes.dll"
-/PDB:"D:\UnrealProject\RPG5\Plugins\ElectronicNodes\Binaries\Win64\UnrealEditor-ElectronicNodes.pdb"
+/OUT:"D:\UnrealProject\TronRPGProject\TronRPG\Plugins\ElectronicNodes\Binaries\Win64\UnrealEditor-ElectronicNodes.dll"
+/PDB:"D:\UnrealProject\TronRPGProject\TronRPG\Plugins\ElectronicNodes\Binaries\Win64\UnrealEditor-ElectronicNodes.pdb"
 /ignore:4078

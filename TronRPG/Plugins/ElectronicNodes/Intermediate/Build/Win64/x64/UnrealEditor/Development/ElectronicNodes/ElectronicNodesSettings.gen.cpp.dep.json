@@ -1,13 +1,13 @@
 {
     "Version": "1.2",
     "Data": {
-        "Source": "d:\\unrealproject\\rpg5\\plugins\\electronicnodes\\intermediate\\build\\win64\\unrealeditor\\inc\\electronicnodes\\uht\\electronicnodessettings.gen.cpp",
+        "Source": "d:\\unrealproject\\tronrpgproject\\tronrpg\\plugins\\electronicnodes\\intermediate\\build\\win64\\unrealeditor\\inc\\electronicnodes\\uht\\electronicnodessettings.gen.cpp",
         "ProvidedModule": "",
-        "PCH": "d:\\unrealproject\\rpg5\\intermediate\\build\\win64\\x64\\rpgeditor\\development\\unrealed\\sharedpch.unrealed.project.valapi.cpp20.inclorderunreal5_4.h.pch",
+        "PCH": "d:\\unrealproject\\tronrpgproject\\tronrpg\\intermediate\\build\\win64\\x64\\tronrpgeditor\\development\\unrealed\\sharedpch.unrealed.project.valapi.cpp20.h.pch",
         "Includes": [
-            "d:\\unrealproject\\rpg5\\plugins\\electronicnodes\\intermediate\\build\\win64\\x64\\unrealeditor\\development\\electronicnodes\\definitions.electronicnodes.h",
-            "d:\\unrealproject\\rpg5\\plugins\\electronicnodes\\source\\electronicnodes\\public\\electronicnodessettings.h",
-            "d:\\unrealproject\\rpg5\\plugins\\electronicnodes\\intermediate\\build\\win64\\unrealeditor\\inc\\electronicnodes\\uht\\electronicnodessettings.generated.h"
+            "d:\\unrealproject\\tronrpgproject\\tronrpg\\plugins\\electronicnodes\\intermediate\\build\\win64\\x64\\unrealeditor\\development\\electronicnodes\\definitions.electronicnodes.h",
+            "d:\\unrealproject\\tronrpgproject\\tronrpg\\plugins\\electronicnodes\\source\\electronicnodes\\public\\electronicnodessettings.h",
+            "d:\\unrealproject\\tronrpgproject\\tronrpg\\plugins\\electronicnodes\\intermediate\\build\\win64\\unrealeditor\\inc\\electronicnodes\\uht\\electronicnodessettings.generated.h"
         ],
         "ImportedModules": [],
         "ImportedHeaderUnits": []

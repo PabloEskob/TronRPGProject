@@ -1,6 +1,9 @@
 {
 	"SourceFiles": [
 		"D:\\UnrealProject\\TronRPGProject\\TronRPG\\Source\\TronRPG\\TronRPG.Build.cs",
+		"D:\\UnrealProject\\TronRPGProject\\TronRPG\\Plugins\\AuroraDevs_UGC\\Source\\AuroraDevs_UGCEditor\\AuroraDevs_UGCEditor.Build.cs",
+		"D:\\UnrealProject\\TronRPGProject\\TronRPG\\Plugins\\AuroraDevs_UGC\\Source\\AuroraDevs_UGC\\AuroraDevs_UGC.Build.cs",
+		"D:\\UnrealProject\\TronRPGProject\\TronRPG\\Plugins\\ElectronicNodes\\Source\\ElectronicNodes\\ElectronicNodes.Build.cs",
 		"D:\\UnrealProject\\TronRPGProject\\TronRPG\\Source\\TronRPG.Target.cs",
 		"D:\\UnrealProject\\TronRPGProject\\TronRPG\\Source\\TronRPGEditor.Target.cs"
 	],

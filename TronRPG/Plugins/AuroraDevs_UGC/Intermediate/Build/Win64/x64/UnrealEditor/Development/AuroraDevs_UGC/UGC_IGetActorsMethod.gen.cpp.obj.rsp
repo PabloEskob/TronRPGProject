@@ -1,12 +1,12 @@
-"D:\UnrealProject\RPG\Plugins\AuroraDevs_UGC\Intermediate\Build\Win64\UnrealEditor\Inc\AuroraDevs_UGC\UHT\UGC_IGetActorsMethod.gen.cpp"
-/FI"D:\UnrealProject\RPG\Intermediate\Build\Win64\x64\RPGEditor\Development\UnrealEd\SharedPCH.UnrealEd.Project.ValApi.Cpp20.InclOrderUnreal5_4.h"
-/FI"D:\UnrealProject\RPG\Plugins\AuroraDevs_UGC\Intermediate\Build\Win64\x64\UnrealEditor\Development\AuroraDevs_UGC\Definitions.AuroraDevs_UGC.h"
-/Yu"D:\UnrealProject\RPG\Intermediate\Build\Win64\x64\RPGEditor\Development\UnrealEd\SharedPCH.UnrealEd.Project.ValApi.Cpp20.InclOrderUnreal5_4.h"
-/Fp"D:\UnrealProject\RPG\Intermediate\Build\Win64\x64\RPGEditor\Development\UnrealEd\SharedPCH.UnrealEd.Project.ValApi.Cpp20.InclOrderUnreal5_4.h.pch"
-/Fo"D:\UnrealProject\RPG\Plugins\AuroraDevs_UGC\Intermediate\Build\Win64\x64\UnrealEditor\Development\AuroraDevs_UGC\UGC_IGetActorsMethod.gen.cpp.obj"
-/experimental:log "D:\UnrealProject\RPG\Plugins\AuroraDevs_UGC\Intermediate\Build\Win64\x64\UnrealEditor\Development\AuroraDevs_UGC\UGC_IGetActorsMethod.gen.cpp.sarif"
-/sourceDependencies "D:\UnrealProject\RPG\Plugins\AuroraDevs_UGC\Intermediate\Build\Win64\x64\UnrealEditor\Development\AuroraDevs_UGC\UGC_IGetActorsMethod.gen.cpp.dep.json"
-@"D:\UnrealProject\RPG\Plugins\AuroraDevs_UGC\Intermediate\Build\Win64\x64\UnrealEditor\Development\AuroraDevs_UGC\AuroraDevs_UGC.Shared.rsp"
+"D:\UnrealProject\TronRPGProject\TronRPG\Plugins\AuroraDevs_UGC\Intermediate\Build\Win64\UnrealEditor\Inc\AuroraDevs_UGC\UHT\UGC_IGetActorsMethod.gen.cpp"
+/FI"D:\UnrealProject\TronRPGProject\TronRPG\Intermediate\Build\Win64\x64\TronRPGEditor\Development\UnrealEd\SharedPCH.UnrealEd.Project.ValApi.Cpp20.h"
+/FI"D:\UnrealProject\TronRPGProject\TronRPG\Plugins\AuroraDevs_UGC\Intermediate\Build\Win64\x64\UnrealEditor\Development\AuroraDevs_UGC\Definitions.AuroraDevs_UGC.h"
+/Yu"D:\UnrealProject\TronRPGProject\TronRPG\Intermediate\Build\Win64\x64\TronRPGEditor\Development\UnrealEd\SharedPCH.UnrealEd.Project.ValApi.Cpp20.h"
+/Fp"D:\UnrealProject\TronRPGProject\TronRPG\Intermediate\Build\Win64\x64\TronRPGEditor\Development\UnrealEd\SharedPCH.UnrealEd.Project.ValApi.Cpp20.h.pch"
+/Fo"D:\UnrealProject\TronRPGProject\TronRPG\Plugins\AuroraDevs_UGC\Intermediate\Build\Win64\x64\UnrealEditor\Development\AuroraDevs_UGC\UGC_IGetActorsMethod.gen.cpp.obj"
+/experimental:log "D:\UnrealProject\TronRPGProject\TronRPG\Plugins\AuroraDevs_UGC\Intermediate\Build\Win64\x64\UnrealEditor\Development\AuroraDevs_UGC\UGC_IGetActorsMethod.gen.cpp.sarif"
+/sourceDependencies "D:\UnrealProject\TronRPGProject\TronRPG\Plugins\AuroraDevs_UGC\Intermediate\Build\Win64\x64\UnrealEditor\Development\AuroraDevs_UGC\UGC_IGetActorsMethod.gen.cpp.dep.json"
+@"D:\UnrealProject\TronRPGProject\TronRPG\Plugins\AuroraDevs_UGC\Intermediate\Build\Win64\x64\UnrealEditor\Development\AuroraDevs_UGC\AuroraDevs_UGC.Shared.rsp"
 /d2ssa-cfg-question-
 /Zc:inline
 /nologo

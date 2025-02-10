@@ -1,15 +1,15 @@
 {
     "Version": "1.2",
     "Data": {
-        "Source": "d:\\unrealproject\\rpg\\plugins\\auroradevs_ugc\\intermediate\\build\\win64\\unrealeditor\\inc\\auroradevs_ugceditor\\uht\\ugc_editornodes.gen.cpp",
+        "Source": "d:\\unrealproject\\tronrpgproject\\tronrpg\\plugins\\auroradevs_ugc\\intermediate\\build\\win64\\unrealeditor\\inc\\auroradevs_ugceditor\\uht\\ugc_editornodes.gen.cpp",
         "ProvidedModule": "",
-        "PCH": "d:\\unrealproject\\rpg\\intermediate\\build\\win64\\x64\\rpgeditor\\development\\unrealed\\sharedpch.unrealed.project.valapi.cpp20.inclorderunreal5_4.h.pch",
+        "PCH": "d:\\unrealproject\\tronrpgproject\\tronrpg\\intermediate\\build\\win64\\x64\\tronrpgeditor\\development\\unrealed\\sharedpch.unrealed.project.valapi.cpp20.h.pch",
         "Includes": [
-            "d:\\unrealproject\\rpg\\plugins\\auroradevs_ugc\\intermediate\\build\\win64\\x64\\unrealeditor\\development\\auroradevs_ugceditor\\definitions.auroradevs_ugceditor.h",
-            "d:\\unrealproject\\rpg\\plugins\\auroradevs_ugc\\source\\auroradevs_ugceditor\\public\\ugc_editornodes.h",
+            "d:\\unrealproject\\tronrpgproject\\tronrpg\\plugins\\auroradevs_ugc\\intermediate\\build\\win64\\x64\\unrealeditor\\development\\auroradevs_ugceditor\\definitions.auroradevs_ugceditor.h",
+            "d:\\unrealproject\\tronrpgproject\\tronrpg\\plugins\\auroradevs_ugc\\source\\auroradevs_ugceditor\\public\\ugc_editornodes.h",
             "d:\\unreal\\unreal\\ue_5.5\\engine\\source\\editor\\blueprintgraph\\classes\\k2node_baseasynctask.h",
             "d:\\unreal\\unreal\\ue_5.5\\engine\\intermediate\\build\\win64\\unrealeditor\\inc\\blueprintgraph\\uht\\k2node_baseasynctask.generated.h",
-            "d:\\unrealproject\\rpg\\plugins\\auroradevs_ugc\\intermediate\\build\\win64\\unrealeditor\\inc\\auroradevs_ugceditor\\uht\\ugc_editornodes.generated.h"
+            "d:\\unrealproject\\tronrpgproject\\tronrpg\\plugins\\auroradevs_ugc\\intermediate\\build\\win64\\unrealeditor\\inc\\auroradevs_ugceditor\\uht\\ugc_editornodes.generated.h"
         ],
         "ImportedModules": [],
         "ImportedHeaderUnits": []

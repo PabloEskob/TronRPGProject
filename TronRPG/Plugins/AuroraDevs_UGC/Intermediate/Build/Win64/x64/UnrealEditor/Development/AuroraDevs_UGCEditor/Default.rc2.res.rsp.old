@@ -84,5 +84,5 @@
 /DPROJECT_COPYRIGHT_STRING=PabloEsk
 /DPROJECT_PRODUCT_NAME="Third Person Game Template"
 /DPROJECT_PRODUCT_IDENTIFIER=RPG
-/fo "D:\UnrealProject\RPG5\Plugins\AuroraDevs_UGC\Intermediate\Build\Win64\x64\UnrealEditor\Development\AuroraDevs_UGCEditor\Default.rc2.res"
+/fo "D:\UnrealProject\RPG\Plugins\AuroraDevs_UGC\Intermediate\Build\Win64\x64\UnrealEditor\Development\AuroraDevs_UGCEditor\Default.rc2.res"
 "..\Build\Windows\Resources\Default.rc2"
