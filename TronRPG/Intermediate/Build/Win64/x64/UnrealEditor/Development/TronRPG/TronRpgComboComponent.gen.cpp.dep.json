@@ -1,0 +1,15 @@
+{
+    "Version": "1.2",
+    "Data": {
+        "Source": "d:\\unrealproject\\tronrpgproject\\tronrpg\\intermediate\\build\\win64\\unrealeditor\\inc\\tronrpg\\uht\\tronrpgcombocomponent.gen.cpp",
+        "ProvidedModule": "",
+        "PCH": "d:\\unrealproject\\tronrpgproject\\tronrpg\\intermediate\\build\\win64\\x64\\tronrpgeditor\\development\\unrealed\\sharedpch.unrealed.project.valapi.cpp20.h.pch",
+        "Includes": [
+            "d:\\unrealproject\\tronrpgproject\\tronrpg\\intermediate\\build\\win64\\x64\\unrealeditor\\development\\tronrpg\\definitions.tronrpg.h",
+            "d:\\unrealproject\\tronrpgproject\\tronrpg\\source\\tronrpg\\public\\component\\tronrpgcombocomponent.h",
+            "d:\\unrealproject\\tronrpgproject\\tronrpg\\intermediate\\build\\win64\\unrealeditor\\inc\\tronrpg\\uht\\tronrpgcombocomponent.generated.h"
+        ],
+        "ImportedModules": [],
+        "ImportedHeaderUnits": []
+    }
+}

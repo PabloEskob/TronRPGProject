@@ -1,0 +1,21 @@
+{
+    "Version": "1.2",
+    "Data": {
+        "Source": "d:\\unrealproject\\tronrpgproject\\tronrpg\\intermediate\\build\\win64\\unrealeditor\\inc\\tronrpg\\uht\\gamemanager.gen.cpp",
+        "ProvidedModule": "",
+        "PCH": "d:\\unrealproject\\tronrpgproject\\tronrpg\\intermediate\\build\\win64\\x64\\tronrpgeditor\\development\\unrealed\\sharedpch.unrealed.project.valapi.cpp20.h.pch",
+        "Includes": [
+            "d:\\unrealproject\\tronrpgproject\\tronrpg\\intermediate\\build\\win64\\x64\\unrealeditor\\development\\tronrpg\\definitions.tronrpg.h",
+            "d:\\unrealproject\\tronrpgproject\\tronrpg\\source\\tronrpg\\public\\object\\gamemanager.h",
+            "d:\\unreal\\unreal\\ue_5.5\\engine\\source\\runtime\\coreuobject\\public\\uobject\\noexporttypes.h",
+            "d:\\unreal\\unreal\\ue_5.5\\engine\\source\\runtime\\coreuobject\\public\\uobject\\propertyaccessutil.h",
+            "d:\\unreal\\unreal\\ue_5.5\\engine\\source\\runtime\\coreuobject\\public\\serialization\\testundeclaredscriptstructobjectreferences.h",
+            "d:\\unreal\\unreal\\ue_5.5\\engine\\source\\runtime\\core\\public\\math\\unitconversion.h",
+            "d:\\unreal\\unreal\\ue_5.5\\engine\\source\\runtime\\core\\public\\math\\unitconversion.inl",
+            "d:\\unreal\\unreal\\ue_5.5\\engine\\source\\runtime\\core\\public\\internationalization\\polyglottextdata.h",
+            "d:\\unrealproject\\tronrpgproject\\tronrpg\\intermediate\\build\\win64\\unrealeditor\\inc\\tronrpg\\uht\\gamemanager.generated.h"
+        ],
+        "ImportedModules": [],
+        "ImportedHeaderUnits": []
+    }
+}

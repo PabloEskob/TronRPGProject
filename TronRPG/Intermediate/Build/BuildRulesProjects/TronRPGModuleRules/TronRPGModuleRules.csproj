@@ -15,6 +15,9 @@
     <ProjectReference Include="..\..\..\..\..\..\..\Unreal\Unreal\UE_5.5\Engine\Source\Programs\UnrealBuildTool\UnrealBuildTool.csproj"><Private>false</Private></ProjectReference>
   </ItemGroup>
   <ItemGroup>
+  <Compile Include="..\..\..\..\Plugins\AuroraDevs_UGC\Source\AuroraDevs_UGCEditor\AuroraDevs_UGCEditor.Build.cs"><Link>Plugins\AuroraDevs_UGC\Source\AuroraDevs_UGCEditor\AuroraDevs_UGCEditor.Build.cs</Link></Compile>
+  <Compile Include="..\..\..\..\Plugins\AuroraDevs_UGC\Source\AuroraDevs_UGC\AuroraDevs_UGC.Build.cs"><Link>Plugins\AuroraDevs_UGC\Source\AuroraDevs_UGC\AuroraDevs_UGC.Build.cs</Link></Compile>
+  <Compile Include="..\..\..\..\Plugins\ElectronicNodes\Source\ElectronicNodes\ElectronicNodes.Build.cs"><Link>Plugins\ElectronicNodes\Source\ElectronicNodes\ElectronicNodes.Build.cs</Link></Compile>
   <Compile Include="..\..\..\..\Source\TronRPG.Target.cs"><Link>Source\TronRPG.Target.cs</Link></Compile>
   <Compile Include="..\..\..\..\Source\TronRPGEditor.Target.cs"><Link>Source\TronRPGEditor.Target.cs</Link></Compile>
   <Compile Include="..\..\..\..\Source\TronRPG\TronRPG.Build.cs"><Link>Source\TronRPG\TronRPG.Build.cs</Link></Compile>
