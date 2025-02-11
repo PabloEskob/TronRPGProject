@@ -81,7 +81,7 @@
 /DUE_BUILD_DEVELOPMENT=1
 /DORIGINAL_FILE_NAME="UnrealEditor-AuroraDevs_UGC.dll"
 /DBUILD_ICON_FILE_NAME="\"..\\Build\\Windows\\Resources\\Default.ico\""
-/DPROJECT_COPYRIGHT_STRING="Fill out your copyright notice in the Description page of Project Settings."
+/DPROJECT_COPYRIGHT_STRING=Tron
 /DPROJECT_PRODUCT_IDENTIFIER=TronRPG
 /fo "D:\UnrealProject\TronRPGProject\TronRPG\Plugins\AuroraDevs_UGC\Intermediate\Build\Win64\x64\UnrealEditor\Development\AuroraDevs_UGC\Default.rc2.res"
 "..\Build\Windows\Resources\Default.rc2"

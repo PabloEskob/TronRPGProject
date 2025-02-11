@@ -11,6 +11,7 @@
     <None Include="..\..\Source\TronRPGEditor.Target.cs">
       <Filter>Source</Filter>
     </None>
+    <None Include="..\..\.vsconfig" />
     <Filter Include="Config">
       <UniqueIdentifier>{FA535FFB-25E1-3D20-B416-52F9BE21E06E}</UniqueIdentifier>
     </Filter>
@@ -26,6 +27,276 @@
     <None Include="..\..\Config\DefaultInput.ini">
       <Filter>Config</Filter>
     </None>
+    <Filter Include="Plugins">
+      <UniqueIdentifier>{BB38096A-B391-30DC-A0D4-4F3EA6B44507}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Plugins\AuroraDevs_UGC">
+      <UniqueIdentifier>{C45DA187-F081-36C0-B73D-2D19949636AE}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Plugins\AuroraDevs_UGC\Source">
+      <UniqueIdentifier>{3DE83B8F-E571-3076-95B8-46C4A887D37D}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Plugins\AuroraDevs_UGC\Source\AuroraDevs_UGCEditor">
+      <UniqueIdentifier>{5971CC77-3880-3CB3-B61E-46B8AD35406D}</UniqueIdentifier>
+    </Filter>
+    <None Include="..\..\Plugins\AuroraDevs_UGC\Source\AuroraDevs_UGCEditor\AuroraDevs_UGCEditor.Build.cs">
+      <Filter>Plugins\AuroraDevs_UGC\Source\AuroraDevs_UGCEditor</Filter>
+    </None>
+    <Filter Include="Plugins\AuroraDevs_UGC\Source\AuroraDevs_UGCEditor\Private">
+      <UniqueIdentifier>{05379BFB-8F25-3076-BCAF-3926810BB782}</UniqueIdentifier>
+    </Filter>
+    <ClCompile Include="..\..\Plugins\AuroraDevs_UGC\Source\AuroraDevs_UGCEditor\Private\AuroraDevs_UGCEditor.cpp">
+      <Filter>Plugins\AuroraDevs_UGC\Source\AuroraDevs_UGCEditor\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Plugins\AuroraDevs_UGC\Source\AuroraDevs_UGCEditor\Private\UGC_EditorNodes.cpp">
+      <Filter>Plugins\AuroraDevs_UGC\Source\AuroraDevs_UGCEditor\Private</Filter>
+    </ClCompile>
+    <Filter Include="Plugins\AuroraDevs_UGC\Source\AuroraDevs_UGCEditor\Public">
+      <UniqueIdentifier>{8582F105-989F-3803-A6F5-2B749404922A}</UniqueIdentifier>
+    </Filter>
+    <ClCompile Include="..\..\Plugins\AuroraDevs_UGC\Source\AuroraDevs_UGCEditor\Public\AuroraDevs_UGCEditor.h">
+      <Filter>Plugins\AuroraDevs_UGC\Source\AuroraDevs_UGCEditor\Public</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Plugins\AuroraDevs_UGC\Source\AuroraDevs_UGCEditor\Public\UGC_EditorNodes.h">
+      <Filter>Plugins\AuroraDevs_UGC\Source\AuroraDevs_UGCEditor\Public</Filter>
+    </ClCompile>
+    <None Include="..\..\Plugins\AuroraDevs_UGC\AuroraDevs_UGC.uplugin">
+      <Filter>Plugins\AuroraDevs_UGC</Filter>
+    </None>
+    <Filter Include="Plugins\AuroraDevs_UGC\Config">
+      <UniqueIdentifier>{4700B88B-8B50-3335-BFA5-F97E3DAFE8BF}</UniqueIdentifier>
+    </Filter>
+    <None Include="..\..\Plugins\AuroraDevs_UGC\Config\FilterPlugin.ini">
+      <Filter>Plugins\AuroraDevs_UGC\Config</Filter>
+    </None>
+    <Filter Include="Plugins\AuroraDevs_UGC\Resources">
+      <UniqueIdentifier>{A4B9E943-0D50-358C-A04A-8C56581632A8}</UniqueIdentifier>
+    </Filter>
+    <None Include="..\..\Plugins\AuroraDevs_UGC\Resources\Icon128.png">
+      <Filter>Plugins\AuroraDevs_UGC\Resources</Filter>
+    </None>
+    <Filter Include="Plugins\ElectronicNodes">
+      <UniqueIdentifier>{3E76CDD4-DA7C-3828-B0C3-C8977B2F8F52}</UniqueIdentifier>
+    </Filter>
+    <None Include="..\..\Plugins\ElectronicNodes\ElectronicNodes.uplugin">
+      <Filter>Plugins\ElectronicNodes</Filter>
+    </None>
+    <Filter Include="Plugins\ElectronicNodes\Config">
+      <UniqueIdentifier>{B565FF41-FC22-387C-8BC3-9D2F5ACBC89D}</UniqueIdentifier>
+    </Filter>
+    <None Include="..\..\Plugins\ElectronicNodes\Config\FilterPlugin.ini">
+      <Filter>Plugins\ElectronicNodes\Config</Filter>
+    </None>
+    <Filter Include="Plugins\ElectronicNodes\Resources">
+      <UniqueIdentifier>{B2CF25B2-D84E-30D1-8966-78C23F47A422}</UniqueIdentifier>
+    </Filter>
+    <None Include="..\..\Plugins\ElectronicNodes\Resources\Icon128.png">
+      <Filter>Plugins\ElectronicNodes\Resources</Filter>
+    </None>
+    <Filter Include="Plugins\AuroraDevs_UGC\Source\AuroraDevs_UGC">
+      <UniqueIdentifier>{7F1AFAE6-C640-3F43-9B1E-3933971C9B7D}</UniqueIdentifier>
+    </Filter>
+    <None Include="..\..\Plugins\AuroraDevs_UGC\Source\AuroraDevs_UGC\AuroraDevs_UGC.Build.cs">
+      <Filter>Plugins\AuroraDevs_UGC\Source\AuroraDevs_UGC</Filter>
+    </None>
+    <Filter Include="Plugins\AuroraDevs_UGC\Source\AuroraDevs_UGC\Private">
+      <UniqueIdentifier>{169BC2F9-B00C-3F4B-A29A-938CACBAE20A}</UniqueIdentifier>
+    </Filter>
+    <ClCompile Include="..\..\Plugins\AuroraDevs_UGC\Source\AuroraDevs_UGC\Private\AuroraDevs_UGC.cpp">
+      <Filter>Plugins\AuroraDevs_UGC\Source\AuroraDevs_UGC\Private</Filter>
+    </ClCompile>
+    <Filter Include="Plugins\AuroraDevs_UGC\Source\AuroraDevs_UGC\Private\Camera">
+      <UniqueIdentifier>{ABF96591-6E06-3D87-86E1-FC98A58E9EBD}</UniqueIdentifier>
+    </Filter>
+    <ClCompile Include="..\..\Plugins\AuroraDevs_UGC\Source\AuroraDevs_UGC\Private\Camera\UGC_PlayerCameraManager.cpp">
+      <Filter>Plugins\AuroraDevs_UGC\Source\AuroraDevs_UGC\Private\Camera</Filter>
+    </ClCompile>
+    <Filter Include="Plugins\AuroraDevs_UGC\Source\AuroraDevs_UGC\Private\Camera\Data">
+      <UniqueIdentifier>{1444B7B3-93C8-37E5-B3D9-9E8F6DCCE031}</UniqueIdentifier>
+    </Filter>
+    <ClCompile Include="..\..\Plugins\AuroraDevs_UGC\Source\AuroraDevs_UGC\Private\Camera\Data\UGC_CameraData.cpp">
+      <Filter>Plugins\AuroraDevs_UGC\Source\AuroraDevs_UGC\Private\Camera\Data</Filter>
+    </ClCompile>
+    <Filter Include="Plugins\AuroraDevs_UGC\Source\AuroraDevs_UGC\Private\Camera\Methods">
+      <UniqueIdentifier>{6521DB16-ED7A-3AA8-B626-4A5D05DD209F}</UniqueIdentifier>
+    </Filter>
+    <ClCompile Include="..\..\Plugins\AuroraDevs_UGC\Source\AuroraDevs_UGC\Private\Camera\Methods\UGC_IFocusTargetMethod.cpp">
+      <Filter>Plugins\AuroraDevs_UGC\Source\AuroraDevs_UGC\Private\Camera\Methods</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Plugins\AuroraDevs_UGC\Source\AuroraDevs_UGC\Private\Camera\Methods\UGC_IGetActorsMethod.cpp">
+      <Filter>Plugins\AuroraDevs_UGC\Source\AuroraDevs_UGC\Private\Camera\Methods</Filter>
+    </ClCompile>
+    <Filter Include="Plugins\AuroraDevs_UGC\Source\AuroraDevs_UGC\Private\Camera\Modifiers">
+      <UniqueIdentifier>{8558D2AE-4B96-33C2-B378-381F4770FCE5}</UniqueIdentifier>
+    </Filter>
+    <ClCompile Include="..\..\Plugins\AuroraDevs_UGC\Source\AuroraDevs_UGC\Private\Camera\Modifiers\UGC_CameraAnimationModifier.cpp">
+      <Filter>Plugins\AuroraDevs_UGC\Source\AuroraDevs_UGC\Private\Camera\Modifiers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Plugins\AuroraDevs_UGC\Source\AuroraDevs_UGC\Private\Camera\Modifiers\UGC_CameraCollisionModifier.cpp">
+      <Filter>Plugins\AuroraDevs_UGC\Source\AuroraDevs_UGC\Private\Camera\Modifiers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Plugins\AuroraDevs_UGC\Source\AuroraDevs_UGC\Private\Camera\Modifiers\UGC_CameraDitheringModifier.cpp">
+      <Filter>Plugins\AuroraDevs_UGC\Source\AuroraDevs_UGC\Private\Camera\Modifiers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Plugins\AuroraDevs_UGC\Source\AuroraDevs_UGC\Private\Camera\Modifiers\UGC_CameraModifier.cpp">
+      <Filter>Plugins\AuroraDevs_UGC\Source\AuroraDevs_UGC\Private\Camera\Modifiers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Plugins\AuroraDevs_UGC\Source\AuroraDevs_UGC\Private\Camera\Modifiers\UGC_PlayCameraAnimCallbackProxy.cpp">
+      <Filter>Plugins\AuroraDevs_UGC\Source\AuroraDevs_UGC\Private\Camera\Modifiers</Filter>
+    </ClCompile>
+    <Filter Include="Plugins\AuroraDevs_UGC\Source\AuroraDevs_UGC\Private\Input">
+      <UniqueIdentifier>{0CBB04D6-F1D4-3DE1-939E-1BC241BBAE64}</UniqueIdentifier>
+    </Filter>
+    <ClCompile Include="..\..\Plugins\AuroraDevs_UGC\Source\AuroraDevs_UGC\Private\Input\UGC_CameraTurnRateModifier.cpp">
+      <Filter>Plugins\AuroraDevs_UGC\Source\AuroraDevs_UGC\Private\Input</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Plugins\AuroraDevs_UGC\Source\AuroraDevs_UGC\Private\Input\UGC_InputAccelerationModifier.cpp">
+      <Filter>Plugins\AuroraDevs_UGC\Source\AuroraDevs_UGC\Private\Input</Filter>
+    </ClCompile>
+    <Filter Include="Plugins\AuroraDevs_UGC\Source\AuroraDevs_UGC\Private\Pawn">
+      <UniqueIdentifier>{DDE0B558-C6C2-3097-A226-3B4544655973}</UniqueIdentifier>
+    </Filter>
+    <ClCompile Include="..\..\Plugins\AuroraDevs_UGC\Source\AuroraDevs_UGC\Private\Pawn\UGC_PawnInterface.cpp">
+      <Filter>Plugins\AuroraDevs_UGC\Source\AuroraDevs_UGC\Private\Pawn</Filter>
+    </ClCompile>
+    <Filter Include="Plugins\AuroraDevs_UGC\Source\AuroraDevs_UGC\Public">
+      <UniqueIdentifier>{C84D0776-2B1D-3104-A41A-EB77CC8A7855}</UniqueIdentifier>
+    </Filter>
+    <ClCompile Include="..\..\Plugins\AuroraDevs_UGC\Source\AuroraDevs_UGC\Public\AuroraDevs_UGC.h">
+      <Filter>Plugins\AuroraDevs_UGC\Source\AuroraDevs_UGC\Public</Filter>
+    </ClCompile>
+    <Filter Include="Plugins\AuroraDevs_UGC\Source\AuroraDevs_UGC\Public\Camera">
+      <UniqueIdentifier>{55BA85A9-3B86-3895-B057-B2DE3CFE6B89}</UniqueIdentifier>
+    </Filter>
+    <ClCompile Include="..\..\Plugins\AuroraDevs_UGC\Source\AuroraDevs_UGC\Public\Camera\UGC_PlayerCameraManager.h">
+      <Filter>Plugins\AuroraDevs_UGC\Source\AuroraDevs_UGC\Public\Camera</Filter>
+    </ClCompile>
+    <Filter Include="Plugins\AuroraDevs_UGC\Source\AuroraDevs_UGC\Public\Camera\Data">
+      <UniqueIdentifier>{B0D00C30-7C39-37E0-A143-DC2EBA9C4ACC}</UniqueIdentifier>
+    </Filter>
+    <ClCompile Include="..\..\Plugins\AuroraDevs_UGC\Source\AuroraDevs_UGC\Public\Camera\Data\UGC_CameraData.h">
+      <Filter>Plugins\AuroraDevs_UGC\Source\AuroraDevs_UGC\Public\Camera\Data</Filter>
+    </ClCompile>
+    <Filter Include="Plugins\AuroraDevs_UGC\Source\AuroraDevs_UGC\Public\Camera\Methods">
+      <UniqueIdentifier>{F663DD83-7B24-31C7-87AD-BDD8AFC070CE}</UniqueIdentifier>
+    </Filter>
+    <ClCompile Include="..\..\Plugins\AuroraDevs_UGC\Source\AuroraDevs_UGC\Public\Camera\Methods\UGC_IFocusTargetMethod.h">
+      <Filter>Plugins\AuroraDevs_UGC\Source\AuroraDevs_UGC\Public\Camera\Methods</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Plugins\AuroraDevs_UGC\Source\AuroraDevs_UGC\Public\Camera\Methods\UGC_IGetActorsMethod.h">
+      <Filter>Plugins\AuroraDevs_UGC\Source\AuroraDevs_UGC\Public\Camera\Methods</Filter>
+    </ClCompile>
+    <Filter Include="Plugins\AuroraDevs_UGC\Source\AuroraDevs_UGC\Public\Camera\Modifiers">
+      <UniqueIdentifier>{E28D4788-887A-3D66-BC84-5A812CA5B684}</UniqueIdentifier>
+    </Filter>
+    <ClCompile Include="..\..\Plugins\AuroraDevs_UGC\Source\AuroraDevs_UGC\Public\Camera\Modifiers\UGC_CameraAnimationModifier.h">
+      <Filter>Plugins\AuroraDevs_UGC\Source\AuroraDevs_UGC\Public\Camera\Modifiers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Plugins\AuroraDevs_UGC\Source\AuroraDevs_UGC\Public\Camera\Modifiers\UGC_CameraCollisionModifier.h">
+      <Filter>Plugins\AuroraDevs_UGC\Source\AuroraDevs_UGC\Public\Camera\Modifiers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Plugins\AuroraDevs_UGC\Source\AuroraDevs_UGC\Public\Camera\Modifiers\UGC_CameraDitheringModifier.h">
+      <Filter>Plugins\AuroraDevs_UGC\Source\AuroraDevs_UGC\Public\Camera\Modifiers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Plugins\AuroraDevs_UGC\Source\AuroraDevs_UGC\Public\Camera\Modifiers\UGC_CameraModifier.h">
+      <Filter>Plugins\AuroraDevs_UGC\Source\AuroraDevs_UGC\Public\Camera\Modifiers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Plugins\AuroraDevs_UGC\Source\AuroraDevs_UGC\Public\Camera\Modifiers\UGC_PlayCameraAnimCallbackProxy.h">
+      <Filter>Plugins\AuroraDevs_UGC\Source\AuroraDevs_UGC\Public\Camera\Modifiers</Filter>
+    </ClCompile>
+    <Filter Include="Plugins\AuroraDevs_UGC\Source\AuroraDevs_UGC\Public\Input">
+      <UniqueIdentifier>{0E33B01B-A94B-3DB6-95D7-09B25EC33C10}</UniqueIdentifier>
+    </Filter>
+    <ClCompile Include="..\..\Plugins\AuroraDevs_UGC\Source\AuroraDevs_UGC\Public\Input\UGC_CameraTurnRateModifier.h">
+      <Filter>Plugins\AuroraDevs_UGC\Source\AuroraDevs_UGC\Public\Input</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Plugins\AuroraDevs_UGC\Source\AuroraDevs_UGC\Public\Input\UGC_InputAccelerationModifier.h">
+      <Filter>Plugins\AuroraDevs_UGC\Source\AuroraDevs_UGC\Public\Input</Filter>
+    </ClCompile>
+    <Filter Include="Plugins\AuroraDevs_UGC\Source\AuroraDevs_UGC\Public\Pawn">
+      <UniqueIdentifier>{1C20BFEB-43FA-38DD-91D1-A7CBA3B6ED6E}</UniqueIdentifier>
+    </Filter>
+    <ClCompile Include="..\..\Plugins\AuroraDevs_UGC\Source\AuroraDevs_UGC\Public\Pawn\UGC_PawnInterface.h">
+      <Filter>Plugins\AuroraDevs_UGC\Source\AuroraDevs_UGC\Public\Pawn</Filter>
+    </ClCompile>
+    <Filter Include="Plugins\ElectronicNodes\Source">
+      <UniqueIdentifier>{57F6932C-30BA-30A3-B999-46E0EF56D027}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Plugins\ElectronicNodes\Source\ElectronicNodes">
+      <UniqueIdentifier>{936E617C-2D43-3124-9A3F-83A32C3E749D}</UniqueIdentifier>
+    </Filter>
+    <None Include="..\..\Plugins\ElectronicNodes\Source\ElectronicNodes\ElectronicNodes.Build.cs">
+      <Filter>Plugins\ElectronicNodes\Source\ElectronicNodes</Filter>
+    </None>
+    <Filter Include="Plugins\ElectronicNodes\Source\ElectronicNodes\Private">
+      <UniqueIdentifier>{5951B60C-06C0-3679-B711-9FDF2DBD2938}</UniqueIdentifier>
+    </Filter>
+    <ClCompile Include="..\..\Plugins\ElectronicNodes\Source\ElectronicNodes\Private\ElectronicNodes.cpp">
+      <Filter>Plugins\ElectronicNodes\Source\ElectronicNodes\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Plugins\ElectronicNodes\Source\ElectronicNodes\Private\ENCommands.h">
+      <Filter>Plugins\ElectronicNodes\Source\ElectronicNodes\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Plugins\ElectronicNodes\Source\ElectronicNodes\Private\ENConnectionDrawingPolicy.cpp">
+      <Filter>Plugins\ElectronicNodes\Source\ElectronicNodes\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Plugins\ElectronicNodes\Source\ElectronicNodes\Private\ENConnectionDrawingPolicy.h">
+      <Filter>Plugins\ElectronicNodes\Source\ElectronicNodes\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Plugins\ElectronicNodes\Source\ElectronicNodes\Private\ENPathDrawer.cpp">
+      <Filter>Plugins\ElectronicNodes\Source\ElectronicNodes\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Plugins\ElectronicNodes\Source\ElectronicNodes\Private\ENPathDrawer.h">
+      <Filter>Plugins\ElectronicNodes\Source\ElectronicNodes\Private</Filter>
+    </ClCompile>
+    <Filter Include="Plugins\ElectronicNodes\Source\ElectronicNodes\Private\Lib">
+      <UniqueIdentifier>{0794070F-BE44-3903-BE26-B8620E17C9AF}</UniqueIdentifier>
+    </Filter>
+    <ClCompile Include="..\..\Plugins\ElectronicNodes\Source\ElectronicNodes\Private\Lib\HotPatch.h">
+      <Filter>Plugins\ElectronicNodes\Source\ElectronicNodes\Private\Lib</Filter>
+    </ClCompile>
+    <Filter Include="Plugins\ElectronicNodes\Source\ElectronicNodes\Private\Patch">
+      <UniqueIdentifier>{D6F76C8A-22D1-37CA-B4D0-55B73862AF07}</UniqueIdentifier>
+    </Filter>
+    <ClCompile Include="..\..\Plugins\ElectronicNodes\Source\ElectronicNodes\Private\Patch\NodeFactoryPatch.cpp">
+      <Filter>Plugins\ElectronicNodes\Source\ElectronicNodes\Private\Patch</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Plugins\ElectronicNodes\Source\ElectronicNodes\Private\Patch\NodeFactoryPatch.h">
+      <Filter>Plugins\ElectronicNodes\Source\ElectronicNodes\Private\Patch</Filter>
+    </ClCompile>
+    <Filter Include="Plugins\ElectronicNodes\Source\ElectronicNodes\Private\Policies">
+      <UniqueIdentifier>{71F8DE07-9129-3FF8-8563-814AD1FDE275}</UniqueIdentifier>
+    </Filter>
+    <ClCompile Include="..\..\Plugins\ElectronicNodes\Source\ElectronicNodes\Private\Policies\ENAnimGraphConnectionDrawingPolicy.h">
+      <Filter>Plugins\ElectronicNodes\Source\ElectronicNodes\Private\Policies</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Plugins\ElectronicNodes\Source\ElectronicNodes\Private\Policies\ENBehaviorTreeConnectionDrawingPolicy.h">
+      <Filter>Plugins\ElectronicNodes\Source\ElectronicNodes\Private\Policies</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Plugins\ElectronicNodes\Source\ElectronicNodes\Private\Policies\ENMaterialGraphConnectionDrawingPolicy.h">
+      <Filter>Plugins\ElectronicNodes\Source\ElectronicNodes\Private\Policies</Filter>
+    </ClCompile>
+    <Filter Include="Plugins\ElectronicNodes\Source\ElectronicNodes\Private\Popup">
+      <UniqueIdentifier>{00D2030D-EFE7-341D-ADB2-6B5A668675F4}</UniqueIdentifier>
+    </Filter>
+    <ClCompile Include="..\..\Plugins\ElectronicNodes\Source\ElectronicNodes\Private\Popup\ENUpdateConfig.h">
+      <Filter>Plugins\ElectronicNodes\Source\ElectronicNodes\Private\Popup</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Plugins\ElectronicNodes\Source\ElectronicNodes\Private\Popup\ENUpdatePopup.cpp">
+      <Filter>Plugins\ElectronicNodes\Source\ElectronicNodes\Private\Popup</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Plugins\ElectronicNodes\Source\ElectronicNodes\Private\Popup\ENUpdatePopup.h">
+      <Filter>Plugins\ElectronicNodes\Source\ElectronicNodes\Private\Popup</Filter>
+    </ClCompile>
+    <Filter Include="Plugins\ElectronicNodes\Source\ElectronicNodes\Public">
+      <UniqueIdentifier>{42FF8EA0-5D16-335E-89D1-6F7C251779CE}</UniqueIdentifier>
+    </Filter>
+    <ClCompile Include="..\..\Plugins\ElectronicNodes\Source\ElectronicNodes\Public\ElectronicNodes.h">
+      <Filter>Plugins\ElectronicNodes\Source\ElectronicNodes\Public</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Plugins\ElectronicNodes\Source\ElectronicNodes\Public\ElectronicNodesSettings.h">
+      <Filter>Plugins\ElectronicNodes\Source\ElectronicNodes\Public</Filter>
+    </ClCompile>
     <Filter Include="Source\TronRPG">
       <UniqueIdentifier>{BCE58914-82F6-3487-8BEC-1230C51D731A}</UniqueIdentifier>
     </Filter>

@@ -5,7 +5,13 @@
 			"guid": "00000000000000000000000000000000",
 			"description": "Default Uncontrolled Changelist",
 			"files": [
-				"D:/UnrealProject/TronRPGProject/TronRPG/Content/Maps/MainLevel.umap"
+				"D:/UnrealProject/TronRPGProject/TronRPG/Content/Maps/MainLevel.umap",
+				"D:/UnrealProject/TronRPGProject/TronRPG/Content/Blueprint/GameMode/BP_TronRpgGameMode.uasset",
+				"D:/UnrealProject/TronRPGProject/TronRPG/Content/Input/Action/LookAction.uasset",
+				"D:/UnrealProject/TronRPGProject/TronRPG/Content/Input/Action/MoveAction.uasset",
+				"D:/UnrealProject/TronRPGProject/TronRPG/Content/Input/IMC_Player.uasset",
+				"D:/UnrealProject/TronRPGProject/TronRPG/Content/Blueprint/Characters/Player/BP_TronPlayerCharacter.uasset",
+				"D:/UnrealProject/TronRPGProject/TronRPG/Content/Blueprint/Controllers/Player/BP_TronPlayerController.uasset"
 			]
 		}
 	]
