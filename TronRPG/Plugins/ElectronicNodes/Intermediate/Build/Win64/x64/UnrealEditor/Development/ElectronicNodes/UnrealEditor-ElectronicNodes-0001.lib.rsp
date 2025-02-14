@@ -6,12 +6,7 @@
 /NAME:"UnrealEditor-ElectronicNodes-0001.dll"
 /IGNORE:4221
 /NODEFAULTLIB
-"D:\UnrealProject\RPG\Intermediate\Build\Win64\x64\RPGEditor\Development\UnrealEd\SharedPCH.UnrealEd.Project.ValApi.Cpp20.h.obj"
-"D:\UnrealProject\RPG\Plugins\ElectronicNodes\Intermediate\Build\Win64\x64\UnrealEditor\Development\ElectronicNodes\Module.ElectronicNodes.cpp.obj"
-"D:\UnrealProject\RPG\Plugins\ElectronicNodes\Intermediate\Build\Win64\x64\UnrealEditor\Development\ElectronicNodes\ElectronicNodes.cpp.obj"
-"D:\UnrealProject\RPG\Plugins\ElectronicNodes\Intermediate\Build\Win64\x64\UnrealEditor\Development\ElectronicNodes\ENConnectionDrawingPolicy.cpp.obj"
-"D:\UnrealProject\RPG\Plugins\ElectronicNodes\Intermediate\Build\Win64\x64\UnrealEditor\Development\ElectronicNodes\ENPathDrawer.cpp.obj"
-"D:\UnrealProject\RPG\Plugins\ElectronicNodes\Intermediate\Build\Win64\x64\UnrealEditor\Development\ElectronicNodes\NodeFactoryPatch.cpp.obj"
-"D:\UnrealProject\RPG\Plugins\ElectronicNodes\Intermediate\Build\Win64\x64\UnrealEditor\Development\ElectronicNodes\ENUpdatePopup.cpp.obj"
-"D:\UnrealProject\RPG\Plugins\ElectronicNodes\Intermediate\Build\Win64\x64\UnrealEditor\Development\ElectronicNodes\Default.rc2.res"
-/OUT:"D:\UnrealProject\RPG\Plugins\ElectronicNodes\Intermediate\Build\Win64\x64\UnrealEditor\Development\ElectronicNodes\UnrealEditor-ElectronicNodes-0001.lib"
+"D:\UnrealProject\TronRPGProject\TronRPG\Intermediate\Build\Win64\x64\TronRPGEditor\Development\UnrealEd\SharedPCH.UnrealEd.Project.ValApi.Cpp20.h.obj"
+"D:\UnrealProject\TronRPGProject\TronRPG\Plugins\ElectronicNodes\Intermediate\Build\Win64\x64\UnrealEditor\Development\ElectronicNodes\Module.ElectronicNodes.cpp.obj"
+"D:\UnrealProject\TronRPGProject\TronRPG\Plugins\ElectronicNodes\Intermediate\Build\Win64\x64\UnrealEditor\Development\ElectronicNodes\Default.rc2.res"
+/OUT:"D:\UnrealProject\TronRPGProject\TronRPG\Plugins\ElectronicNodes\Intermediate\Build\Win64\x64\UnrealEditor\Development\ElectronicNodes\UnrealEditor-ElectronicNodes-0001.lib"

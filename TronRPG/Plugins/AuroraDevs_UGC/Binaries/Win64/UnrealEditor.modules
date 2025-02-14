@@ -2,7 +2,7 @@
 	"BuildId": "37670630",
 	"Modules": 
 	{
-		"AuroraDevs_UGC": "UnrealEditor-AuroraDevs_UGC.dll",
-		"AuroraDevs_UGCEditor": "UnrealEditor-AuroraDevs_UGCEditor.dll"
+		"AuroraDevs_UGC": "UnrealEditor-AuroraDevs_UGC-0001.dll",
+		"AuroraDevs_UGCEditor": "UnrealEditor-AuroraDevs_UGCEditor-0001.dll"
 	}
 }

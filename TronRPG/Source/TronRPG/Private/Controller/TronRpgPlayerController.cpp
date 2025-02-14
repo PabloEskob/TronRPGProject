@@ -39,7 +39,12 @@ void ATronRpgPlayerController::Move(const FInputActionValue& InputActionValue)
 		return;
 	}
 
-	const FVector2D MovementVector = InputActionValue.Get<FVector2D>();
+	FVector2D MovementVector = InputActionValue.Get<FVector2D>();
+	
+	if (MovementVector.SizeSquared() > 1.0f)
+	{
+		MovementVector.Normalize();
+	}
 
 	if (APawn* ControlledPawn = GetPawn())
 	{
