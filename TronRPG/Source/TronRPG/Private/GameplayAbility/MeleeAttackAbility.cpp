@@ -55,7 +55,7 @@ void UMeleeAttackAbility::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 		// Предположим, что в UGameplayTagsLibrary определён статический тег Attack_Melee
 		UAbilitySystemGlobals::Get().GetGameplayCueManager()->HandleGameplayCue(
 			BaseCharacter,
-			UGameplayTagsLibrary::Attack_Melee,
+			GameplayTags::Attack::Melee,
 			EGameplayCueEvent::Executed,
 			CueParams);
 	}

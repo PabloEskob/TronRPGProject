@@ -7,51 +7,75 @@
 #include "AbilitySystemInterface.h"
 #include "TronRpgBaseCharacter.generated.h"
 
+class UWeaponDataAsset;
+class UCharacterAnimInstance;
+class UAbilityInputComponent;
 class UTronRpgAbilitySystemComponent;
 class UTronRpgAttributeSet;
+class UWeaponManagerComponent;
+class UInventoryComponent;
 class UTronRpgComboComponent;
-
-class UGameManager;
-class UUIManager;
+class UAnimationComponent;
+class UDependencyInjectorComponent;
 
 UCLASS(Abstract)
-class TRONRPG_API ATronRpgBaseCharacter : public ACharacter,public IAbilitySystemInterface
+class TRONRPG_API ATronRpgBaseCharacter : public ACharacter, public IAbilitySystemInterface
 {
 	GENERATED_BODY()
 
 public:
 	ATronRpgBaseCharacter();
-	
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-	
+
+	virtual void BeginPlay() override;
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
-	
-	UFUNCTION(BlueprintCallable, Category = "DI")
-	void InjectDependencies(UGameManager* InGameManager, UUIManager* InUIManager);
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
-	// Ability System Component для работы с GAS
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Abilities")
-	UTronRpgAbilitySystemComponent* AbilitySystemComponent;
+	UFUNCTION(BlueprintCallable, Category = "Weapon")
+	void EquipWeapon(UWeaponDataAsset* WeaponAsset);
 
-	// Attribute Set с основными атрибутами (Health, Mana, Strength, Agility, Intelligence)
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Attributes")
-	UTronRpgAttributeSet* AttributeSet;
+	UFUNCTION(BlueprintCallable, Category = "Weapon")
+	void UnequipWeapon();
 
-	// Компонент для управления комбо-атаками
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat")
-	UTronRpgComboComponent* ComboComponent;
+	UFUNCTION()
+	void OnRep_CurrentWeapon();
 
-	// Ссылка на Animation Instance (для интеграции с Motion Matching)
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Animation")
-	UAnimInstance* AnimInstance;
-
-	// Зависимости, внедряемые через DI (например, менеджеры)
-	UPROPERTY(Transient, BlueprintReadOnly, Category = "Managers")
-	UGameManager* GameManager;
-
-	UPROPERTY(Transient, BlueprintReadOnly, Category = "Managers")
-	UUIManager* UIManager;
+	UFUNCTION(BlueprintCallable, Category = "Weapon")
+	bool CanSwitchWeapon();
 
 protected:
-	virtual void BeginPlay() override;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Replicated, Category = "Components")
+	UTronRpgAbilitySystemComponent* AbilitySystemComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	UTronRpgAttributeSet* AttributeSet;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	UTronRpgComboComponent* ComboComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	UAnimationComponent* AnimationComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	UDependencyInjectorComponent* DependencyInjector;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	UAbilityInputComponent* AbilityInputComponent;
+
+	UPROPERTY(ReplicatedUsing = OnRep_CurrentWeapon, BlueprintReadOnly, Category = "Weapon")
+	UWeaponDataAsset* CurrentWeapon;
+
+	UPROPERTY()
+	UCharacterAnimInstance* CharacterAnimInstance;
+
+	UPROPERTY()
+	float LastWeaponSwitchTime;
+
+	UPROPERTY()
+	bool IsSwitchingWeapon;
+
+	UPROPERTY()
+	UWeaponDataAsset* PendingWeapon;
+
+private:
+	void ProcessWeaponSwitch();
 };

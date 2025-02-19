@@ -13,5 +13,9 @@ UCLASS()
 class TRONRPG_API ATronRpgPlayerCharacter : public ATronRpgBaseCharacter
 {
 	GENERATED_BODY()
-	
+
+public:
+	ATronRpgPlayerCharacter();
+
+	virtual void BeginPlay() override;
 };

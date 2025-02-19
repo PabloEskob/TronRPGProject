@@ -1,12 +1,55 @@
 ﻿#include "Object/GameplayTagsLibrary.h"
-
 #include "GameplayTagContainer.h"
+#include "Logging/LogMacros.h"
 
-// Инициализируем статические константы. 
-// FGameplayTag::RequestGameplayTag ищет тег по имени, убедитесь, что в вашем проекте этот тег добавлен в DefaultGameplayTags.ini или в настройках Gameplay Tags.
-const FGameplayTag UGameplayTagsLibrary::Attack_Melee = FGameplayTag::RequestGameplayTag(FName("GameplayCue.Attack.Melee"));
+namespace GameplayTags
+{
+	namespace Weapon
+	{
+		const FGameplayTag Equipped = FGameplayTag::RequestGameplayTag(FName("Weapon.Equipped"));
+		const FGameplayTag Broken = FGameplayTag::RequestGameplayTag(FName("Weapon.Broken"));
+	}
 
-// Пример других тегов:
-// const FGameplayTag UGameplayTagsLibrary::Spell_MagicOrb = FGameplayTag::RequestGameplayTag(FName("GameplayCue.Spell.MagicOrb"));
-// const FGameplayTag UGameplayTagsLibrary::State_Stunned = FGameplayTag::RequestGameplayTag(FName("State.Stunned"));
-// const FGameplayTag UGameplayTagsLibrary::State_Attacking = FGameplayTag::RequestGameplayTag(FName("State.Attacking"));
+	namespace Attack
+	{
+		const FGameplayTag Melee = FGameplayTag::RequestGameplayTag(FName("GameplayCue.Attack.Melee"));
+	}
+
+	namespace State
+	{
+	}
+
+	static bool bTagsInitialized = false;
+
+	bool IsValidTag(const FGameplayTag& Tag, const FString& TagName)
+	{
+		if (!Tag.IsValid())
+		{
+			UE_LOG(LogGameplayTags, Error,
+				   TEXT("Gameplay Tag '%s' not found. Make sure it is defined in DefaultGameplayTags.ini or Gameplay Tags editor."), *TagName);
+			return false;
+		}
+		return true;
+	}
+
+	void InitializeTags()
+	{
+		if (bTagsInitialized)
+		{
+			UE_LOG(LogGameplayTags, Warning, TEXT("Gameplay Tags are already initialized."));
+			return;
+		}
+
+		IsValidTag(Weapon::Equipped, TEXT("Weapon.Equipped"));
+		IsValidTag(Weapon::Broken, TEXT("Weapon.Broken"));
+		IsValidTag(Attack::Melee, TEXT("GameplayCue.Attack.Melee"));
+
+		bTagsInitialized = true;
+		UE_LOG(LogGameplayTags, Log, TEXT("Gameplay Tags initialized successfully."));
+	}
+
+	bool AreTagsInitialized()
+	{
+		return bTagsInitialized;
+	}
+}
