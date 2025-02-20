@@ -8,8 +8,6 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GAS/TronRpgAbilitySystemComponent.h"
 
-DEFINE_LOG_CATEGORY_STATIC(LogCharacterAnimInstance, Log, All);
-
 void UCharacterAnimInstance::NativeInitializeAnimation()
 {
 	Super::NativeInitializeAnimation();
@@ -17,17 +15,18 @@ void UCharacterAnimInstance::NativeInitializeAnimation()
 	ATronRpgBaseCharacter* Character = Cast<ATronRpgBaseCharacter>(GetOwningActor());
 	if (!Character)
 	{
-		UE_LOG(LogCharacterAnimInstance, Warning, TEXT("NativeInitializeAnimation: Owning actor is not ATronRpgBaseCharacter."));
+		UE_LOG(LogTemp, Warning, TEXT("NativeInitializeAnimation: Owning actor is not ATronRpgBaseCharacter."));
 		return;
 	}
 
 	UTronRpgAbilitySystemComponent* ASC = Character->FindComponentByClass<UTronRpgAbilitySystemComponent>();
 	if (!ASC)
 	{
-		UE_LOG(LogCharacterAnimInstance, Warning, TEXT("NativeInitializeAnimation: UTronRpgAbilitySystemComponent not found."));
+		UE_LOG(LogTemp, Warning, TEXT("NativeInitializeAnimation: UTronRpgAbilitySystemComponent not found."));
 		return;
 	}
 
+	UE_LOG(LogTemp, Warning, TEXT("NativeInitializeAnimation: Owning actor is  ATronRpgBaseCharacter."));
 	CurrentStateTags = ASC->GetOwnedGameplayTags();
 }
 
@@ -47,39 +46,31 @@ void UCharacterAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	}
 
 	UTronRpgAbilitySystemComponent* ASC = Character->FindComponentByClass<UTronRpgAbilitySystemComponent>();
-	if (!ASC)
+	if (ASC)
 	{
-		return;
-	}
-
-	FGameplayTagContainer NewTags = ASC->GetOwnedGameplayTags();
-	if (NewTags != CurrentStateTags)
-	{
-		CurrentStateTags = NewTags;
+		FGameplayTagContainer NewTags = ASC->GetOwnedGameplayTags();
+		if (NewTags != CurrentStateTags)
+		{
+			CurrentStateTags = NewTags;
+		}
 	}
 }
 
 void UCharacterAnimInstance::UpdateStateTags(const FGameplayTagContainer& NewTags)
 {
 	CurrentStateTags = NewTags;
-	UE_LOG(LogCharacterAnimInstance, Log, TEXT("UpdateStateTags: State tags updated."));
+	UE_LOG(LogTemp, Log, TEXT("UpdateStateTags: State tags updated."));
 }
 
 void UCharacterAnimInstance::UpdateWeaponAnimations(UWeaponDataAsset* WeaponAsset)
 {
 	if (!WeaponAsset)
 	{
-		CurrentIdleAnimation = nullptr;
 		CurrentWalkForwardBlendSpace = nullptr;
-		CurrentRunForwardBlendSpace = nullptr;
 		CurrentWalkBackwardBlendSpace = nullptr;
-		CurrentRunBackwardBlendSpace = nullptr;
 		return;
 	}
 
-	CurrentIdleAnimation = WeaponAsset->IdleAnimation.Get();
 	CurrentWalkForwardBlendSpace = WeaponAsset->WalkForwardBlendSpace.Get();
-	CurrentRunForwardBlendSpace = WeaponAsset->RunForwardBlendSpace.Get();
 	CurrentWalkBackwardBlendSpace = WeaponAsset->WalkBackwardBlendSpace.Get();
-	CurrentRunBackwardBlendSpace = WeaponAsset->RunBackwardBlendSpace.Get();
 }

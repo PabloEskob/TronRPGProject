@@ -26,14 +26,4 @@ void UAbilityInputComponent::SetupPlayerInput(UInputComponent* PlayerInputCompon
 	{
 		return;
 	}
-
-	// Привязываем ввод к слотам способностей
-	AbilitySystemComponent->BindAbilityActivationToInputComponent(
-		PlayerInputComponent,
-		FGameplayAbilityInputBinds(
-			TEXT("Confirm"),
-			TEXT("Cancel"),
-			TEXT("AbilitySlot")
-		)
-	);
 }

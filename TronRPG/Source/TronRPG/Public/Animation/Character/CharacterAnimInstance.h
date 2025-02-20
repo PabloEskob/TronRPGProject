@@ -1,5 +1,3 @@
-// Tron
-
 #pragma once
 
 #include "CoreMinimal.h"
@@ -8,9 +6,7 @@
 #include "CharacterAnimInstance.generated.h"
 
 class UWeaponDataAsset;
-/**
- * 
- */
+
 UCLASS()
 class TRONRPG_API UCharacterAnimInstance : public UAnimInstance
 {
@@ -27,19 +23,10 @@ public:
 	float GroundSpeed;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Animation")
-	UAnimSequence* CurrentIdleAnimation;
-
-	UPROPERTY(BlueprintReadOnly, Category = "Animation")
 	UBlendSpace* CurrentWalkForwardBlendSpace;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Animation")
-	UBlendSpace* CurrentRunForwardBlendSpace;
-
-	UPROPERTY(BlueprintReadOnly, Category = "Animation")
 	UBlendSpace* CurrentWalkBackwardBlendSpace;
-
-	UPROPERTY(BlueprintReadOnly, Category = "Animation")
-	UBlendSpace* CurrentRunBackwardBlendSpace;
 
 	UFUNCTION(BlueprintCallable, Category = "Animation")
 	void UpdateStateTags(const FGameplayTagContainer& NewTags);

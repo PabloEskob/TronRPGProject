@@ -21,7 +21,7 @@ UTronRpgWeaponAssetManager* UTronRpgWeaponAssetManager::Get(const UObject* World
 void UTronRpgWeaponAssetManager::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);
-	UE_LOG(LogTemp, Log, TEXT("WeaponAssetManager initialized."));
+	UE_LOG(LogTemp, Log, TEXT("WeaponAssetManager initialized. Instance class!: %s"), *GetClass()->GetName());
 }
 
 void UTronRpgWeaponAssetManager::Deinitialize()
@@ -33,7 +33,16 @@ void UTronRpgWeaponAssetManager::Deinitialize()
 	UE_LOG(LogTemp, Log, TEXT("WeaponAssetManager deinitialized."));
 }
 
-void UTronRpgWeaponAssetManager::PreloadAllWeaponAssets()
+bool UTronRpgWeaponAssetManager::ShouldCreateSubsystem(UObject* Outer) const
+{
+	if (this->GetClass()->IsInBlueprint() && Super::ShouldCreateSubsystem(Outer))
+	{
+		return true;
+	}
+	return false;
+}
+
+void UTronRpgWeaponAssetManager::PreloadAllWeaponAssets(FOnPreloadComplete OnComplete)
 {
 	TArray<FSoftObjectPath> AssetsToLoad;
 	for (const TSoftObjectPtr<UWeaponDataAsset>& WeaponAssetPtr : WeaponAssets)
@@ -45,11 +54,8 @@ void UTronRpgWeaponAssetManager::PreloadAllWeaponAssets()
 			AssetsToLoad.Add(WeaponAsset->EquipMontage.ToSoftObjectPath());
 			AssetsToLoad.Add(WeaponAsset->AttackMontage.ToSoftObjectPath());
 			AssetsToLoad.Add(WeaponAsset->WeaponMesh.ToSoftObjectPath());
-			AssetsToLoad.Add(WeaponAsset->IdleAnimation.ToSoftObjectPath());
 			AssetsToLoad.Add(WeaponAsset->WalkForwardBlendSpace.ToSoftObjectPath());
-			AssetsToLoad.Add(WeaponAsset->RunForwardBlendSpace.ToSoftObjectPath());
 			AssetsToLoad.Add(WeaponAsset->WalkBackwardBlendSpace.ToSoftObjectPath());
-			AssetsToLoad.Add(WeaponAsset->RunBackwardBlendSpace.ToSoftObjectPath());
 			LoadedWeaponAssets.Add(FName(*WeaponAsset->WeaponName.ToString()), WeaponAsset);
 		}
 		else
@@ -58,9 +64,10 @@ void UTronRpgWeaponAssetManager::PreloadAllWeaponAssets()
 		}
 	}
 
+	// Захватываем делегат по значению в лямбде
 	UAssetManager::GetStreamableManager().RequestAsyncLoad(
 		AssetsToLoad,
-		[this]()
+		[this, OnComplete]() // Здесь мы захватываем OnComplete
 		{
 			for (const TSoftObjectPtr<UWeaponDataAsset>& WeaponAssetPtr : WeaponAssets)
 			{
@@ -72,9 +79,10 @@ void UTronRpgWeaponAssetManager::PreloadAllWeaponAssets()
 				}
 			}
 			UE_LOG(LogTemp, Log, TEXT("All weapon assets preloaded."));
+			// Вызываем делегат, чтобы уведомить, что загрузка завершена
+			OnComplete.ExecuteIfBound();
 		},
-		FStreamableManager::AsyncLoadHighPriority
-	);
+		FStreamableManager::AsyncLoadHighPriority);
 }
 
 UWeaponDataAsset* UTronRpgWeaponAssetManager::GetWeaponAssetByName(FName WeaponName) const
@@ -103,10 +111,6 @@ void UTronRpgWeaponAssetManager::LoadWeaponAssets(UWeaponDataAsset* WeaponAsset)
 	FName WeaponName = FName(*WeaponAsset->WeaponName.ToString());
 
 	// Кэшируем анимации
-	if (WeaponAsset->IdleAnimation.IsValid())
-	{
-		CachedIdleAnimations.Add(WeaponName, WeaponAsset->IdleAnimation.Get());
-	}
 
 	// Используем FString для конкатенации строк
 	FString WeaponNameStr = WeaponName.ToString();
@@ -115,24 +119,28 @@ void UTronRpgWeaponAssetManager::LoadWeaponAssets(UWeaponDataAsset* WeaponAsset)
 		FName Key = FName(*(WeaponNameStr + TEXT("_WalkForward")));
 		CachedBlendSpaces.Add(Key, WeaponAsset->WalkForwardBlendSpace.Get());
 	}
-	if (WeaponAsset->RunForwardBlendSpace.IsValid())
-	{
-		FName Key = FName(*(WeaponNameStr + TEXT("_RunForward")));
-		CachedBlendSpaces.Add(Key, WeaponAsset->RunForwardBlendSpace.Get());
-	}
+
 	if (WeaponAsset->WalkBackwardBlendSpace.IsValid())
 	{
 		FName Key = FName(*(WeaponNameStr + TEXT("_WalkBackward")));
 		CachedBlendSpaces.Add(Key, WeaponAsset->WalkBackwardBlendSpace.Get());
-	}
-	if (WeaponAsset->RunBackwardBlendSpace.IsValid())
-	{
-		FName Key = FName(*(WeaponNameStr + TEXT("_RunBackward")));
-		CachedBlendSpaces.Add(Key, WeaponAsset->RunBackwardBlendSpace.Get());
 	}
 }
 
 bool UTronRpgWeaponAssetManager::IsAssetLoaded(const TSoftObjectPtr<UObject>& Asset) const
 {
 	return Asset.IsValid();
+}
+
+UWeaponDataAsset* UTronRpgWeaponAssetManager::GetDefaultWeapon()
+{
+	FGameplayTag DefaultTag = FGameplayTag::RequestGameplayTag(TEXT("Weapon.Default"));
+	for (UWeaponDataAsset* Weapon : GetAllWeaponAssets())
+	{
+		if (Weapon->WeaponStateTags.HasTag(DefaultTag))
+		{
+			return Weapon;
+		}
+	}
+	return nullptr;
 }

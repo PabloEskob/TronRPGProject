@@ -38,10 +38,32 @@ void ATronRpgBaseCharacter::BeginPlay()
 	}
 
 	UTronRpgWeaponAssetManager* WeaponManager = UTronRpgWeaponAssetManager::Get(this);
-	// Предзагрузка ассетов через UWeaponAssetManager
 	if (WeaponManager)
 	{
-		WeaponManager->PreloadAllWeaponAssets();
+		FOnPreloadComplete OnComplete;
+		OnComplete.BindUFunction(this, FName("OnWeaponAssetsPreloadComplete"));
+		WeaponManager->PreloadAllWeaponAssets(OnComplete);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("BeginPlay: Failed to get WeaponAssetManager."));
+	}
+}
+
+void ATronRpgBaseCharacter::OnWeaponAssetsPreloadComplete()
+{
+	UTronRpgWeaponAssetManager* WeaponManager = UTronRpgWeaponAssetManager::Get(this);
+	if (WeaponManager)
+	{
+		UWeaponDataAsset* DefaultWeapon = WeaponManager->GetDefaultWeapon();
+		if (DefaultWeapon)
+		{
+			EquipWeapon(DefaultWeapon);
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("BeginPlay: Default weapon not found."));
+		}
 	}
 }
 
@@ -58,15 +80,11 @@ void ATronRpgBaseCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>
 	DOREPLIFETIME(ATronRpgBaseCharacter, AbilitySystemComponent);
 }
 
-bool ATronRpgBaseCharacter::CanSwitchWeapon()
-{
-	const float CurrentTime = GetWorld()->GetTimeSeconds();
-	return (CurrentTime - LastWeaponSwitchTime) > 0.5f;
-}
+
 
 void ATronRpgBaseCharacter::EquipWeapon(UWeaponDataAsset* WeaponAsset)
 {
-	if (!WeaponAsset || !AbilitySystemComponent || !CharacterAnimInstance || !CanSwitchWeapon())
+	if (!WeaponAsset || !AbilitySystemComponent || !CharacterAnimInstance)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("EquipWeapon: Invalid parameters or weapon switch on cooldown."));
 		return;
@@ -81,88 +99,77 @@ void ATronRpgBaseCharacter::EquipWeapon(UWeaponDataAsset* WeaponAsset)
 
 void ATronRpgBaseCharacter::ProcessWeaponSwitch()
 {
-	IsSwitchingWeapon = true;
+    IsSwitchingWeapon = true;
 
-	if (CurrentWeapon)
-	{
-		AbilitySystemComponent->RemoveLooseGameplayTags(CurrentWeapon->WeaponStateTags);
-	}
+    if (CurrentWeapon)
+    {
+        AbilitySystemComponent->RemoveLooseGameplayTags(CurrentWeapon->WeaponStateTags);
+    }
 
-	CurrentWeapon = PendingWeapon;
-	LastWeaponSwitchTime = GetWorld()->GetTimeSeconds();
+    CurrentWeapon = PendingWeapon;
+    LastWeaponSwitchTime = GetWorld()->GetTimeSeconds();
 
-	TArray<FSoftObjectPath> AssetsToLoad;
-	AssetsToLoad.Add(CurrentWeapon->EquipMontage.ToSoftObjectPath());
-	AssetsToLoad.Add(CurrentWeapon->AttackMontage.ToSoftObjectPath());
-	AssetsToLoad.Add(CurrentWeapon->WeaponMesh.ToSoftObjectPath());
-	AssetsToLoad.Add(CurrentWeapon->IdleAnimation.ToSoftObjectPath());
-	AssetsToLoad.Add(CurrentWeapon->WalkForwardBlendSpace.ToSoftObjectPath());
-	AssetsToLoad.Add(CurrentWeapon->RunForwardBlendSpace.ToSoftObjectPath());
-	AssetsToLoad.Add(CurrentWeapon->WalkBackwardBlendSpace.ToSoftObjectPath());
-	AssetsToLoad.Add(CurrentWeapon->RunBackwardBlendSpace.ToSoftObjectPath());
+    TArray<FSoftObjectPath> AssetsToLoad;
+    AssetsToLoad.Add(CurrentWeapon->EquipMontage.ToSoftObjectPath());
+    AssetsToLoad.Add(CurrentWeapon->AttackMontage.ToSoftObjectPath());
+    AssetsToLoad.Add(CurrentWeapon->WeaponMesh.ToSoftObjectPath());
+    AssetsToLoad.Add(CurrentWeapon->WalkForwardBlendSpace.ToSoftObjectPath());
+    AssetsToLoad.Add(CurrentWeapon->WalkBackwardBlendSpace.ToSoftObjectPath());
 
-	UAssetManager::GetStreamableManager().RequestAsyncLoad(
-		AssetsToLoad,
-		[this]()
-		{
-			UAnimMontage* EquipMontage = CurrentWeapon->EquipMontage.Get();
-			UAnimMontage* AttackMontage = CurrentWeapon->AttackMontage.Get();
-			USkeletalMesh* WeaponMesh = CurrentWeapon->WeaponMesh.Get();
-			UAnimSequence* IdleAnimation = CurrentWeapon->IdleAnimation.Get();
-			UBlendSpace* WalkForwardBlendSpace = CurrentWeapon->WalkForwardBlendSpace.Get();
-			UBlendSpace* RunForwardBlendSpace = CurrentWeapon->RunForwardBlendSpace.Get();
-			UBlendSpace* WalkBackwardBlendSpace = CurrentWeapon->WalkBackwardBlendSpace.Get();
-			UBlendSpace* RunBackwardBlendSpace = CurrentWeapon->RunBackwardBlendSpace.Get();
+    UAssetManager::GetStreamableManager().RequestAsyncLoad(
+        AssetsToLoad,
+        [this]()
+        {
+            UAnimMontage* EquipMontage = CurrentWeapon->EquipMontage.Get();
+            UAnimMontage* AttackMontage = CurrentWeapon->AttackMontage.Get();
+            USkeletalMesh* WeaponMesh = CurrentWeapon->WeaponMesh.Get();
+            UBlendSpace* WalkForwardBlendSpace = CurrentWeapon->WalkForwardBlendSpace.Get();
+            UBlendSpace* WalkBackwardBlendSpace = CurrentWeapon->WalkBackwardBlendSpace.Get();
 
-			if (!EquipMontage || !AttackMontage || !WeaponMesh || !IdleAnimation ||
-				!WalkForwardBlendSpace || !RunForwardBlendSpace || !WalkBackwardBlendSpace || !RunBackwardBlendSpace)
-			{
-				UE_LOG(LogTemp, Error, TEXT("EquipWeapon: Failed to load resources for weapon %s."), *CurrentWeapon->WeaponName.ToString());
-				IsSwitchingWeapon = false;
-				return;
-			}
+            if (!EquipMontage || !AttackMontage || !WeaponMesh || !WalkForwardBlendSpace || !WalkBackwardBlendSpace)
+            {
+                UE_LOG(LogTemp, Error, TEXT("EquipWeapon: Failed to load resources for weapon %s."), *CurrentWeapon->WeaponName.ToString());
+                IsSwitchingWeapon = false;
+                return;
+            }
 
-			AbilitySystemComponent->AddLooseGameplayTags(CurrentWeapon->WeaponStateTags);
+            AbilitySystemComponent->AddLooseGameplayTags(CurrentWeapon->WeaponStateTags);
 
-			// Обновляем анимации
-			CharacterAnimInstance->UpdateWeaponAnimations(CurrentWeapon);
-			CharacterAnimInstance->UpdateStateTags(AbilitySystemComponent->GetOwnedGameplayTags());
+            CharacterAnimInstance->UpdateWeaponAnimations(CurrentWeapon);
+            CharacterAnimInstance->UpdateStateTags(AbilitySystemComponent->GetOwnedGameplayTags());
 
-			// Воспроизводим анимацию экипировки
-			PlayAnimMontage(EquipMontage);
+            PlayAnimMontage(EquipMontage);
 
-			// Создаем и прикрепляем меш оружия
-			TArray<USkeletalMeshComponent*> WeaponMeshes;
-			GetComponents<USkeletalMeshComponent>(WeaponMeshes);
-			for (USkeletalMeshComponent* SkeletalMeshComponent : WeaponMeshes)
-			{
-				if (SkeletalMeshComponent->GetName().Contains(TEXT("WeaponMesh")))
-				{
-					SkeletalMeshComponent->DestroyComponent();
-				}
-			}
+            TArray<USkeletalMeshComponent*> WeaponMeshes;
+            GetComponents<USkeletalMeshComponent>(WeaponMeshes);
+            for (USkeletalMeshComponent* SkeletalMeshComponent : WeaponMeshes)
+            {
+                if (SkeletalMeshComponent->GetName().Contains(TEXT("WeaponMesh")))
+                {
+                    SkeletalMeshComponent->DestroyComponent();
+                }
+            }
 
-			USkeletalMeshComponent* WeaponMeshComponent = NewObject<USkeletalMeshComponent>(this, TEXT("WeaponMesh"));
-			WeaponMeshComponent->RegisterComponent();
-			WeaponMeshComponent->SetSkeletalMesh(WeaponMesh);
-			WeaponMeshComponent->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, TEXT("WeaponSocket"));
+            USkeletalMeshComponent* WeaponMeshComponent = NewObject<USkeletalMeshComponent>(this, TEXT("WeaponMesh"));
+            WeaponMeshComponent->RegisterComponent();
+            WeaponMeshComponent->SetSkeletalMesh(WeaponMesh);
+            WeaponMeshComponent->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, TEXT("WeaponSocket"));
 
-			// Реплицируем изменения
-			if (HasAuthority())
-			{
-				OnRep_CurrentWeapon();
-			}
+            if (HasAuthority())
+            {
+                OnRep_CurrentWeapon();
+            }
 
-			UE_LOG(LogTemp, Log, TEXT("Weapon %s equipped."), *CurrentWeapon->WeaponName.ToString());
+            UE_LOG(LogTemp, Log, TEXT("Weapon %s equipped."), *CurrentWeapon->WeaponName.ToString());
 
-			IsSwitchingWeapon = false;
-			if (PendingWeapon != CurrentWeapon)
-			{
-				ProcessWeaponSwitch();
-			}
-		},
-		FStreamableManager::AsyncLoadHighPriority
-	);
+            IsSwitchingWeapon = false;
+            if (PendingWeapon != CurrentWeapon)
+            {
+                ProcessWeaponSwitch();
+            }
+        },
+        FStreamableManager::AsyncLoadHighPriority
+    );
 }
 
 void ATronRpgBaseCharacter::UnequipWeapon()

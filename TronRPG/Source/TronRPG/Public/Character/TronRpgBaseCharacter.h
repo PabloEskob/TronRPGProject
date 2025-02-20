@@ -38,9 +38,10 @@ public:
 
 	UFUNCTION()
 	void OnRep_CurrentWeapon();
+	
 
-	UFUNCTION(BlueprintCallable, Category = "Weapon")
-	bool CanSwitchWeapon();
+	UFUNCTION()
+	void OnWeaponAssetsPreloadComplete();
 
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Replicated, Category = "Components")

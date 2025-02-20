@@ -3,15 +3,13 @@
 
 #include "Character/Player/TronRpgPlayerCharacter.h"
 
+
 ATronRpgPlayerCharacter::ATronRpgPlayerCharacter()
 {
 	// Игроку нужны все компоненты
-	
 }
 
 void ATronRpgPlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-
-	// Дополнительная инициализация для игрока, если требуется
 }
