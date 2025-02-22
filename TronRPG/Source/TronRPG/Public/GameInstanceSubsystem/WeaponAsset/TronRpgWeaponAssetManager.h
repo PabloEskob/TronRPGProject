@@ -20,6 +20,7 @@ public:
 	virtual bool ShouldCreateSubsystem(UObject* Outer) const override;
 	// Предварительная загрузка всех ассетов оружий
 	void PreloadAllWeaponAssets();
+	void LoadInternalAssets();
 
 	static UTronRpgWeaponAssetManager* Get(const UObject* WorldContextObject);
 

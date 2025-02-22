@@ -64,7 +64,7 @@ void ATronRpgBaseCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>
 	DOREPLIFETIME(ATronRpgBaseCharacter, AbilitySystemComponent);
 }
 
-void ATronRpgBaseCharacter::EquipWeapon(UWeaponDataAsset* WeaponAsset)
+void ATronRpgBaseCharacter::EquipWeapon(UWeaponDataAsset* WeaponAsset, float BlendSpaceTransitionDuration)
 {
 	if (!WeaponAsset) return;
 
@@ -80,10 +80,24 @@ void ATronRpgBaseCharacter::EquipWeapon(UWeaponDataAsset* WeaponAsset)
 	AbilitySystemComponent->AddLooseGameplayTags(CurrentWeapon->WeaponTags);
 	AbilitySystemComponent->AddLooseGameplayTag(EquippedTag);
 
-	// Обновляем BlendSpace в Animation Instance
+	// Проверяем, что ассеты загружены
+	if (!CurrentWeapon->WalkForwardBlendSpace.IsValid())
+	{
+		CurrentWeapon->WalkForwardBlendSpace.LoadSynchronous();
+	}
+	if (!CurrentWeapon->WalkBackwardBlendSpace.IsValid())
+	{
+		CurrentWeapon->WalkBackwardBlendSpace.LoadSynchronous();
+	}
+
+	// Обновляем BlendSpace с плавным переходом
 	if (UCharacterAnimInstance* AnimInstance = Cast<UCharacterAnimInstance>(GetMesh()->GetAnimInstance()))
 	{
-		AnimInstance->SetMovementBlendSpace(CurrentWeapon->WalkForwardBlendSpace.Get(), CurrentWeapon->WalkBackwardBlendSpace.Get());
+		AnimInstance->TransitionToNewBlendSpace(
+			CurrentWeapon->WalkForwardBlendSpace.Get(),
+			CurrentWeapon->WalkBackwardBlendSpace.Get(),
+			BlendSpaceTransitionDuration
+		);
 	}
 
 	// Проигрываем монтаж экипировки
@@ -107,10 +121,17 @@ void ATronRpgBaseCharacter::UnequipWeapon()
 	AbilitySystemComponent->RemoveLooseGameplayTags(CurrentWeapon->WeaponTags);
 	AbilitySystemComponent->RemoveLooseGameplayTag(EquippedTag);
 
-	// Сбрасываем BlendSpace
-	if (UCharacterAnimInstance* AnimInstance = Cast<UCharacterAnimInstance>(GetMesh()->GetAnimInstance()))
+	// Возвращаем дефолтные BlendSpaces
+	if (DefaultWeaponAsset && DefaultWeaponAsset->WalkForwardBlendSpace.IsValid() && DefaultWeaponAsset->WalkBackwardBlendSpace.IsValid())
 	{
-		AnimInstance->SetMovementBlendSpace(DefaultWeaponAsset->WalkForwardBlendSpace.Get(), DefaultWeaponAsset->WalkBackwardBlendSpace.Get());
+		if (UCharacterAnimInstance* AnimInstance = Cast<UCharacterAnimInstance>(GetMesh()->GetAnimInstance()))
+		{
+			AnimInstance->TransitionToNewBlendSpace(
+				DefaultWeaponAsset->WalkForwardBlendSpace.Get(),
+				DefaultWeaponAsset->WalkBackwardBlendSpace.Get(),
+				0.5f // Длительность перехода
+			);
+		}
 	}
 
 	CurrentWeapon = nullptr;
@@ -118,22 +139,21 @@ void ATronRpgBaseCharacter::UnequipWeapon()
 
 void ATronRpgBaseCharacter::EquipWeaponByTag(FGameplayTag WeaponTag)
 {
-	// Пример: получение оружия через менеджер ассетов (дополните под вашу систему)
 	UTronRpgWeaponAssetManager* WeaponManager = UTronRpgWeaponAssetManager::Get(this);
 	if (WeaponManager)
 	{
 		TArray<UWeaponDataAsset*> Weapons = WeaponManager->GetWeaponsByTag(WeaponTag);
 		if (Weapons.Num() > 0)
 		{
-			EquipWeapon(Weapons[0]); // Экипируем первое найденное оружие с тегом
+			EquipWeapon(Weapons[0], 0.5f); // Устанавливаем длительность перехода
 		}
 		else
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Оружие с тегом %s не найдено"), *WeaponTag.ToString());
+			UE_LOG(LogTemp, Warning, TEXT("Weapon with tag %s not found"), *WeaponTag.ToString());
 		}
 	}
 	else
 	{
-		UE_LOG(LogTemp, Error, TEXT("WeaponManager не найден"));
+		UE_LOG(LogTemp, Error, TEXT("WeaponManager not found"));
 	}
 }

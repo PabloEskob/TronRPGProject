@@ -33,7 +33,7 @@ public:
 
 	// Экипировка и снятие оружия
 	UFUNCTION(BlueprintCallable, Category = "Weapon")
-	void EquipWeapon(UWeaponDataAsset* WeaponAsset);
+	void EquipWeapon(UWeaponDataAsset* WeaponAsset, float BlendSpaceTransitionDuration = 0.5f);
 
 	UFUNCTION(BlueprintCallable, Category = "Weapon")
 	void UnequipWeapon();
