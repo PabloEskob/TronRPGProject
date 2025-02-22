@@ -8,7 +8,6 @@
 #include "Component/DI/DependencyInjectorComponent.h"
 #include "Component/Input/AbilityInputComponent.h"
 #include "Data/Weapon/WeaponDataAsset.h"
-#include "Engine/AssetManager.h"
 #include "GameInstanceSubsystem/WeaponAsset/TronRpgWeaponAssetManager.h"
 #include "Net/UnrealNetwork.h"
 
@@ -20,49 +19,34 @@ ATronRpgBaseCharacter::ATronRpgBaseCharacter()
 	AnimationComponent = CreateDefaultSubobject<UAnimationComponent>(TEXT("AnimationComponent"));
 	DependencyInjector = CreateDefaultSubobject<UDependencyInjectorComponent>(TEXT("DependencyInjector"));
 	AbilityInputComponent = CreateDefaultSubobject<UAbilityInputComponent>(TEXT("AbilityInputComponent"));
-
-	LastWeaponSwitchTime = 0.0f;
-	IsSwitchingWeapon = false;
-	PendingWeapon = nullptr;
 }
 
 void ATronRpgBaseCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
-	CharacterAnimInstance = Cast<UCharacterAnimInstance>(GetMesh()->GetAnimInstance());
-
-	if (UTronRpgAbilitySystemComponent* ASC = Cast<UTronRpgAbilitySystemComponent>(GetAbilitySystemComponent()))
+	if (!CurrentWeapon)
 	{
-		ASC->InitAbilityActorInfo(this, this);
-	}
-
-	UTronRpgWeaponAssetManager* WeaponManager = UTronRpgWeaponAssetManager::Get(this);
-	if (WeaponManager)
-	{
-		FOnPreloadComplete OnComplete;
-		OnComplete.BindUFunction(this, FName("OnWeaponAssetsPreloadComplete"));
-		WeaponManager->PreloadAllWeaponAssets(OnComplete);
-	}
-	else
-	{
-		UE_LOG(LogTemp, Error, TEXT("BeginPlay: Failed to get WeaponAssetManager."));
-	}
-}
-
-void ATronRpgBaseCharacter::OnWeaponAssetsPreloadComplete()
-{
-	UTronRpgWeaponAssetManager* WeaponManager = UTronRpgWeaponAssetManager::Get(this);
-	if (WeaponManager)
-	{
-		UWeaponDataAsset* DefaultWeapon = WeaponManager->GetDefaultWeapon();
-		if (DefaultWeapon)
+		if (DefaultWeaponAsset)
 		{
-			EquipWeapon(DefaultWeapon);
-		}
-		else
-		{
-			UE_LOG(LogTemp, Warning, TEXT("BeginPlay: Default weapon not found."));
+			// Синхронная загрузка BlendSpace
+			if (!DefaultWeaponAsset->WalkForwardBlendSpace.IsValid())
+			{
+				UBlendSpace* LoadSynchronous = DefaultWeaponAsset->WalkForwardBlendSpace.LoadSynchronous();
+			}
+			if (!DefaultWeaponAsset->WalkBackwardBlendSpace.IsValid())
+			{
+				UBlendSpace* LoadSynchronous = DefaultWeaponAsset->WalkBackwardBlendSpace.LoadSynchronous();
+			}
+
+			// Устанавливаем дефолтные BlendSpace
+			if (UCharacterAnimInstance* AnimInstance = Cast<UCharacterAnimInstance>(GetMesh()->GetAnimInstance()))
+			{
+				AnimInstance->SetMovementBlendSpace(
+					DefaultWeaponAsset->WalkForwardBlendSpace.Get(),
+					DefaultWeaponAsset->WalkBackwardBlendSpace.Get()
+				);
+			}
 		}
 	}
 }
@@ -80,174 +64,76 @@ void ATronRpgBaseCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>
 	DOREPLIFETIME(ATronRpgBaseCharacter, AbilitySystemComponent);
 }
 
-
-
 void ATronRpgBaseCharacter::EquipWeapon(UWeaponDataAsset* WeaponAsset)
 {
-	if (!WeaponAsset || !AbilitySystemComponent || !CharacterAnimInstance)
+	if (!WeaponAsset) return;
+
+	// Снимаем текущее оружие, если оно есть
+	if (CurrentWeapon)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("EquipWeapon: Invalid parameters or weapon switch on cooldown."));
-		return;
+		UnequipWeapon();
 	}
 
-	PendingWeapon = WeaponAsset;
-	if (!IsSwitchingWeapon)
+	CurrentWeapon = WeaponAsset;
+
+	// Добавляем теги оружия и тег экипировки
+	AbilitySystemComponent->AddLooseGameplayTags(CurrentWeapon->WeaponTags);
+	AbilitySystemComponent->AddLooseGameplayTag(EquippedTag);
+
+	// Обновляем BlendSpace в Animation Instance
+	if (UCharacterAnimInstance* AnimInstance = Cast<UCharacterAnimInstance>(GetMesh()->GetAnimInstance()))
 	{
-		ProcessWeaponSwitch();
+		AnimInstance->SetMovementBlendSpace(CurrentWeapon->WalkForwardBlendSpace.Get(), CurrentWeapon->WalkBackwardBlendSpace.Get());
 	}
-}
 
-void ATronRpgBaseCharacter::ProcessWeaponSwitch()
-{
-    IsSwitchingWeapon = true;
-
-    if (CurrentWeapon)
-    {
-        AbilitySystemComponent->RemoveLooseGameplayTags(CurrentWeapon->WeaponStateTags);
-    }
-
-    CurrentWeapon = PendingWeapon;
-    LastWeaponSwitchTime = GetWorld()->GetTimeSeconds();
-
-    TArray<FSoftObjectPath> AssetsToLoad;
-    AssetsToLoad.Add(CurrentWeapon->EquipMontage.ToSoftObjectPath());
-    AssetsToLoad.Add(CurrentWeapon->AttackMontage.ToSoftObjectPath());
-    AssetsToLoad.Add(CurrentWeapon->WeaponMesh.ToSoftObjectPath());
-    AssetsToLoad.Add(CurrentWeapon->WalkForwardBlendSpace.ToSoftObjectPath());
-    AssetsToLoad.Add(CurrentWeapon->WalkBackwardBlendSpace.ToSoftObjectPath());
-
-    UAssetManager::GetStreamableManager().RequestAsyncLoad(
-        AssetsToLoad,
-        [this]()
-        {
-            UAnimMontage* EquipMontage = CurrentWeapon->EquipMontage.Get();
-            UAnimMontage* AttackMontage = CurrentWeapon->AttackMontage.Get();
-            USkeletalMesh* WeaponMesh = CurrentWeapon->WeaponMesh.Get();
-            UBlendSpace* WalkForwardBlendSpace = CurrentWeapon->WalkForwardBlendSpace.Get();
-            UBlendSpace* WalkBackwardBlendSpace = CurrentWeapon->WalkBackwardBlendSpace.Get();
-
-            if (!EquipMontage || !AttackMontage || !WeaponMesh || !WalkForwardBlendSpace || !WalkBackwardBlendSpace)
-            {
-                UE_LOG(LogTemp, Error, TEXT("EquipWeapon: Failed to load resources for weapon %s."), *CurrentWeapon->WeaponName.ToString());
-                IsSwitchingWeapon = false;
-                return;
-            }
-
-            AbilitySystemComponent->AddLooseGameplayTags(CurrentWeapon->WeaponStateTags);
-
-            CharacterAnimInstance->UpdateWeaponAnimations(CurrentWeapon);
-            CharacterAnimInstance->UpdateStateTags(AbilitySystemComponent->GetOwnedGameplayTags());
-
-            PlayAnimMontage(EquipMontage);
-
-            TArray<USkeletalMeshComponent*> WeaponMeshes;
-            GetComponents<USkeletalMeshComponent>(WeaponMeshes);
-            for (USkeletalMeshComponent* SkeletalMeshComponent : WeaponMeshes)
-            {
-                if (SkeletalMeshComponent->GetName().Contains(TEXT("WeaponMesh")))
-                {
-                    SkeletalMeshComponent->DestroyComponent();
-                }
-            }
-
-            USkeletalMeshComponent* WeaponMeshComponent = NewObject<USkeletalMeshComponent>(this, TEXT("WeaponMesh"));
-            WeaponMeshComponent->RegisterComponent();
-            WeaponMeshComponent->SetSkeletalMesh(WeaponMesh);
-            WeaponMeshComponent->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, TEXT("WeaponSocket"));
-
-            if (HasAuthority())
-            {
-                OnRep_CurrentWeapon();
-            }
-
-            UE_LOG(LogTemp, Log, TEXT("Weapon %s equipped."), *CurrentWeapon->WeaponName.ToString());
-
-            IsSwitchingWeapon = false;
-            if (PendingWeapon != CurrentWeapon)
-            {
-                ProcessWeaponSwitch();
-            }
-        },
-        FStreamableManager::AsyncLoadHighPriority
-    );
+	// Проигрываем монтаж экипировки
+	if (CurrentWeapon->EquipMontage.IsValid())
+	{
+		PlayAnimMontage(CurrentWeapon->EquipMontage.Get());
+	}
 }
 
 void ATronRpgBaseCharacter::UnequipWeapon()
 {
-	if (!CurrentWeapon || !AbilitySystemComponent || !CharacterAnimInstance)
+	if (!CurrentWeapon) return;
+
+	// Проигрываем монтаж снятия
+	if (CurrentWeapon->UnequipMontage.IsValid())
 	{
-		return;
+		PlayAnimMontage(CurrentWeapon->UnequipMontage.Get());
 	}
 
-	// Удаляем теги текущего оружия
-	AbilitySystemComponent->RemoveLooseGameplayTags(CurrentWeapon->WeaponStateTags);
+	// Удаляем теги оружия и тег экипировки
+	AbilitySystemComponent->RemoveLooseGameplayTags(CurrentWeapon->WeaponTags);
+	AbilitySystemComponent->RemoveLooseGameplayTag(EquippedTag);
 
-	// Очищаем анимации
-	CharacterAnimInstance->UpdateWeaponAnimations(nullptr);
-	CharacterAnimInstance->UpdateStateTags(AbilitySystemComponent->GetOwnedGameplayTags());
-
-	// Удаляем меш оружия
-	TArray<USkeletalMeshComponent*> WeaponMeshes;
-	GetComponents<USkeletalMeshComponent>(WeaponMeshes);
-	for (USkeletalMeshComponent* WeaponMesh : WeaponMeshes)
+	// Сбрасываем BlendSpace
+	if (UCharacterAnimInstance* AnimInstance = Cast<UCharacterAnimInstance>(GetMesh()->GetAnimInstance()))
 	{
-		if (WeaponMesh->GetName().Contains(TEXT("WeaponMesh")))
-		{
-			WeaponMesh->DestroyComponent();
-		}
+		AnimInstance->SetMovementBlendSpace(DefaultWeaponAsset->WalkForwardBlendSpace.Get(), DefaultWeaponAsset->WalkBackwardBlendSpace.Get());
 	}
 
-	// Реплицируем изменения
-	if (HasAuthority())
-	{
-		OnRep_CurrentWeapon();
-	}
-
-	UE_LOG(LogTemp, Log, TEXT("Weapon %s unequipped."), *CurrentWeapon->WeaponName.ToString());
 	CurrentWeapon = nullptr;
 }
 
-void ATronRpgBaseCharacter::OnRep_CurrentWeapon()
+void ATronRpgBaseCharacter::EquipWeaponByTag(FGameplayTag WeaponTag)
 {
-	if (CurrentWeapon && CharacterAnimInstance && AbilitySystemComponent)
+	// Пример: получение оружия через менеджер ассетов (дополните под вашу систему)
+	UTronRpgWeaponAssetManager* WeaponManager = UTronRpgWeaponAssetManager::Get(this);
+	if (WeaponManager)
 	{
-		AbilitySystemComponent->AddLooseGameplayTags(CurrentWeapon->WeaponStateTags);
-		CharacterAnimInstance->UpdateWeaponAnimations(CurrentWeapon);
-		CharacterAnimInstance->UpdateStateTags(AbilitySystemComponent->GetOwnedGameplayTags());
-
-		// Обновляем меш оружия на клиентской стороне
-		TArray<USkeletalMeshComponent*> WeaponMeshes;
-		GetComponents<USkeletalMeshComponent>(WeaponMeshes);
-		for (USkeletalMeshComponent* WeaponMesh : WeaponMeshes)
+		TArray<UWeaponDataAsset*> Weapons = WeaponManager->GetWeaponsByTag(WeaponTag);
+		if (Weapons.Num() > 0)
 		{
-			if (WeaponMesh->GetName().Contains(TEXT("WeaponMesh")))
-			{
-				WeaponMesh->DestroyComponent();
-			}
+			EquipWeapon(Weapons[0]); // Экипируем первое найденное оружие с тегом
 		}
-
-		USkeletalMeshComponent* WeaponMeshComponent = NewObject<USkeletalMeshComponent>(this, TEXT("WeaponMesh"));
-		WeaponMeshComponent->RegisterComponent();
-		WeaponMeshComponent->SetSkeletalMesh(CurrentWeapon->WeaponMesh.Get());
-		WeaponMeshComponent->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, TEXT("WeaponSocket"));
-
-		UE_LOG(LogTemp, Log, TEXT("OnRep_CurrentWeapon: Weapon %s replicated."), *CurrentWeapon->WeaponName.ToString());
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Оружие с тегом %s не найдено"), *WeaponTag.ToString());
+		}
 	}
-	else if (!CurrentWeapon && CharacterAnimInstance && AbilitySystemComponent)
+	else
 	{
-		CharacterAnimInstance->UpdateWeaponAnimations(nullptr);
-		CharacterAnimInstance->UpdateStateTags(AbilitySystemComponent->GetOwnedGameplayTags());
-
-		TArray<USkeletalMeshComponent*> WeaponMeshes;
-		GetComponents<USkeletalMeshComponent>(WeaponMeshes);
-		for (USkeletalMeshComponent* WeaponMesh : WeaponMeshes)
-		{
-			if (WeaponMesh->GetName().Contains(TEXT("WeaponMesh")))
-			{
-				WeaponMesh->DestroyComponent();
-			}
-		}
-
-		UE_LOG(LogTemp, Log, TEXT("OnRep_CurrentWeapon: Weapon unequipped."));
+		UE_LOG(LogTemp, Error, TEXT("WeaponManager не найден"));
 	}
 }

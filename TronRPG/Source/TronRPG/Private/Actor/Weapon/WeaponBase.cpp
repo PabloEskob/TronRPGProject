@@ -26,7 +26,7 @@ void AWeaponBase::BeginPlay()
 	// Проверяем, загружен ли WeaponData, иначе загружаем асинхронно
 	if (!WeaponData.IsValid())
 	{
-		LoadWeaponDataAsync();
+		/*LoadWeaponDataAsync();*/
 		return;
 	}
 }
@@ -75,24 +75,6 @@ void AWeaponBase::Unequip()
 	StateComponent->bIsEquipped = false;
 	StateComponent->SetWeaponState(GameplayTags::Weapon::Equipped, false);
 	SetOwner(nullptr);
-}
-
-FWeaponUIData AWeaponBase::GetWeaponUIData() const
-{
-	FWeaponUIData UIData;
-	if (!WeaponData.Get() || !StateComponent)
-	{
-		UE_LOG(LogWeaponSystem, Error, TEXT("Cannot get weapon UI data: Invalid WeaponData or StateComponent"));
-		return UIData;
-	}
-
-	UWeaponDataAsset* WeaponAsset = WeaponData.Get();
-	UIData.WeaponName = WeaponAsset->WeaponName;
-	UIData.WeaponIcon = WeaponAsset->WeaponIcon;
-	UIData.Damage = WeaponAsset->Damage;
-	UIData.AttackSpeed = WeaponAsset->AttackSpeed;
-	UIData.StateTags = StateComponent->WeaponStateTags;
-	return UIData;
 }
 
 void AWeaponBase::HandleWeaponStateChanged(AWeaponBase* Weapon, const FGameplayTagContainer& StateTags)

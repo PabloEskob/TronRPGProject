@@ -43,10 +43,6 @@ public:
     // Снятие оружия
     UFUNCTION(BlueprintCallable, Category = "Weapon")
     virtual void Unequip();
-    
-    // Получение данных для UI
-    UFUNCTION(BlueprintCallable, Category = "Weapon")
-    FWeaponUIData GetWeaponUIData() const;
 
 protected:
     virtual void BeginPlay() override;

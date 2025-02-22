@@ -6,6 +6,12 @@
 
 namespace GameplayTags
 {
+	namespace WeaponType
+	{
+		extern const FGameplayTag Sword;
+		extern const FGameplayTag None;
+		extern const FGameplayTag SwordAndShield;  // Новый тег для дефолтного оружия
+	}
 	namespace Weapon
 	{
 		extern const FGameplayTag Equipped;

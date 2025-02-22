@@ -13,7 +13,6 @@ class TRONRPG_API UCharacterAnimInstance : public UAnimInstance
 	GENERATED_BODY()
 
 public:
-	virtual void NativeInitializeAnimation() override;
 	virtual void NativeUpdateAnimation(float DeltaSeconds) override;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Animation")
@@ -29,8 +28,5 @@ public:
 	UBlendSpace* CurrentWalkBackwardBlendSpace;
 
 	UFUNCTION(BlueprintCallable, Category = "Animation")
-	void UpdateStateTags(const FGameplayTagContainer& NewTags);
-
-	UFUNCTION(BlueprintCallable, Category = "Animation")
-	void UpdateWeaponAnimations(UWeaponDataAsset* WeaponAsset);
+	void SetMovementBlendSpace(UBlendSpace* WalkForwardBlendSpace, UBlendSpace* WalkBackwardBlendSpace);
 };

@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "AbilitySystemInterface.h"
+#include "GameplayTagContainer.h"
 #include "TronRpgBaseCharacter.generated.h"
 
 class UWeaponDataAsset;
@@ -30,18 +31,15 @@ public:
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
+	// Экипировка и снятие оружия
 	UFUNCTION(BlueprintCallable, Category = "Weapon")
 	void EquipWeapon(UWeaponDataAsset* WeaponAsset);
 
 	UFUNCTION(BlueprintCallable, Category = "Weapon")
 	void UnequipWeapon();
 
-	UFUNCTION()
-	void OnRep_CurrentWeapon();
-	
-
-	UFUNCTION()
-	void OnWeaponAssetsPreloadComplete();
+	UFUNCTION(BlueprintCallable, Category = "Weapon")
+	void EquipWeaponByTag(FGameplayTag WeaponTag);
 
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Replicated, Category = "Components")
@@ -62,21 +60,17 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	UAbilityInputComponent* AbilityInputComponent;
 
-	UPROPERTY(ReplicatedUsing = OnRep_CurrentWeapon, BlueprintReadOnly, Category = "Weapon")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
+	UWeaponDataAsset* DefaultWeaponAsset;
+
+	// Текущее оружие
+	UPROPERTY(VisibleAnywhere,Replicated, BlueprintReadOnly, Category = "Weapon")
 	UWeaponDataAsset* CurrentWeapon;
+
+	// Тег экипировки
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Gameplay Tags")
+	FGameplayTag EquippedTag;
 
 	UPROPERTY()
 	UCharacterAnimInstance* CharacterAnimInstance;
-
-	UPROPERTY()
-	float LastWeaponSwitchTime;
-
-	UPROPERTY()
-	bool IsSwitchingWeapon;
-
-	UPROPERTY()
-	UWeaponDataAsset* PendingWeapon;
-
-private:
-	void ProcessWeaponSwitch();
 };
