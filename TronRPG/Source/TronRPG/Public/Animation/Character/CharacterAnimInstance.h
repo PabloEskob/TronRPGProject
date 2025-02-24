@@ -29,17 +29,17 @@ protected:
 
 	// Текущие активные BlendSpaces
 	UPROPERTY(BlueprintReadOnly, Category = "Animation")
-	UBlendSpace* CurrentWalkForwardBlendSpace = nullptr;
+	UBlendSpace* OptionAWalkForwardBlendSpace = nullptr;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Animation")
-	UBlendSpace* CurrentWalkBackwardBlendSpace = nullptr;
+	UBlendSpace* OptionAWalkBackwardBlendSpace = nullptr;
 
 	// Целевые BlendSpaces для перехода
 	UPROPERTY(Transient, BlueprintReadOnly, Category = "Animation")
-	UBlendSpace* TargetWalkForwardBlendSpace = nullptr;
+	UBlendSpace* OptionBWalkForwardBlendSpace = nullptr;
 
 	UPROPERTY(Transient, BlueprintReadOnly, Category = "Animation")
-	UBlendSpace* TargetWalkBackwardBlendSpace = nullptr;
+	UBlendSpace* OptionBWalkBackwardBlendSpace = nullptr;
 
 	// Вес интерполяции для плавного перехода (0 - текущий, 1 - целевой)
 	UPROPERTY(Transient, BlueprintReadOnly, Category = "Animation")
@@ -50,4 +50,7 @@ protected:
 
 	UPROPERTY(Transient)
 	float TransitionDuration = 0.5f;
+
+	UPROPERTY(Transient)
+	bool bCan;
 };

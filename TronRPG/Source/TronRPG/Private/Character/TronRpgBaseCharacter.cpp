@@ -71,7 +71,7 @@ void ATronRpgBaseCharacter::EquipWeapon(UWeaponDataAsset* WeaponAsset, float Ble
 	// Снимаем текущее оружие, если оно есть
 	if (CurrentWeapon)
 	{
-		UnequipWeapon();
+		/*UnequipWeapon();*/
 	}
 
 	CurrentWeapon = WeaponAsset;
@@ -129,7 +129,7 @@ void ATronRpgBaseCharacter::UnequipWeapon()
 			AnimInstance->TransitionToNewBlendSpace(
 				DefaultWeaponAsset->WalkForwardBlendSpace.Get(),
 				DefaultWeaponAsset->WalkBackwardBlendSpace.Get(),
-				0.5f // Длительность перехода
+				1.0f // Длительность перехода
 			);
 		}
 	}
@@ -145,7 +145,7 @@ void ATronRpgBaseCharacter::EquipWeaponByTag(FGameplayTag WeaponTag)
 		TArray<UWeaponDataAsset*> Weapons = WeaponManager->GetWeaponsByTag(WeaponTag);
 		if (Weapons.Num() > 0)
 		{
-			EquipWeapon(Weapons[0], 0.5f); // Устанавливаем длительность перехода
+			EquipWeapon(Weapons[0], 1.0f); // Устанавливаем длительность перехода
 		}
 		else
 		{
