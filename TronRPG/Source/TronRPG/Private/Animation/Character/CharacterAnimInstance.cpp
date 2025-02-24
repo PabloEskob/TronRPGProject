@@ -10,90 +10,131 @@
 void UCharacterAnimInstance::NativeInitializeAnimation()
 {
 	Super::NativeInitializeAnimation();
+
+	// Кэшируем основные компоненты
+	CachedCharacter = Cast<ATronRpgBaseCharacter>(GetOwningActor());
+	if (CachedCharacter)
+	{
+		CachedMovementComponent = CachedCharacter->GetCharacterMovement();
+		CachedASC = CachedCharacter->FindComponentByClass<UTronRpgAbilitySystemComponent>();
+	}
 }
 
 void UCharacterAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 {
 	Super::NativeUpdateAnimation(DeltaSeconds);
 
-	ATronRpgBaseCharacter* Character = Cast<ATronRpgBaseCharacter>(GetOwningActor());
-	if (!Character) return;
+	// Если по какой-то причине кэш не установлен, пытаемся обновить его
+	if (!CachedCharacter)
+	{
+		CachedCharacter = Cast<ATronRpgBaseCharacter>(GetOwningActor());
+		if (!CachedCharacter)
+		{
+			return;
+		}
+	}
 
 	// Обновляем скорость движения
-	if (UCharacterMovementComponent* MovementComponent = Character->GetCharacterMovement())
+	if (CachedMovementComponent)
+	{
+		GroundSpeed = CachedMovementComponent->Velocity.Size2D();
+	}
+	else if (UCharacterMovementComponent* MovementComponent = CachedCharacter->GetCharacterMovement())
 	{
 		GroundSpeed = MovementComponent->Velocity.Size2D();
+		CachedMovementComponent = MovementComponent;
 	}
 
 	// Обновляем теги состояния
-	if (UTronRpgAbilitySystemComponent* ASC = Character->FindComponentByClass<UTronRpgAbilitySystemComponent>())
+	if (CachedASC)
+	{
+		CurrentStateTags = CachedASC->GetOwnedGameplayTags();
+	}
+	else if (UTronRpgAbilitySystemComponent* ASC = CachedCharacter->FindComponentByClass<UTronRpgAbilitySystemComponent>())
 	{
 		CurrentStateTags = ASC->GetOwnedGameplayTags();
+		CachedASC = ASC;
 	}
 
+	// Обработка перехода между blend space
 	if (TransitionTimeRemaining > 0.f)
 	{
 		TransitionTimeRemaining -= DeltaSeconds;
-		if (bCan)
+		if (bTransitionToPrimary)
 		{
+			// Переход от Target -> Primary: интерполируем с 1 до 0
 			if (TransitionTimeRemaining <= 0.f)
 			{
-				BlendSpaceTransitionWeight = 0.0f;
-				OptionAWalkForwardBlendSpace = OptionBWalkForwardBlendSpace;
-				OptionAWalkBackwardBlendSpace = OptionBWalkBackwardBlendSpace;
+				BlendSpaceTransitionWeight = 0.f;
+				// Завершение перехода: обновляем первичные blend space
+				PrimaryWalkForwardBlendSpace = TargetWalkForwardBlendSpace;
+				PrimaryWalkBackwardBlendSpace = TargetWalkBackwardBlendSpace;
 				TransitionTimeRemaining = 0.f;
 			}
 			else
 			{
-				float Alpha = 1.f - (TransitionTimeRemaining / TransitionDuration);
-				BlendSpaceTransitionWeight = FMath::InterpEaseInOut(1.f, 0.f, Alpha, 2.f);
+				BlendSpaceTransitionWeight = CalculateTransitionWeight(1.f, 0.f);
 			}
 		}
 		else
 		{
+			// Переход от Primary -> Target: интерполируем с 0 до 1
 			if (TransitionTimeRemaining <= 0.f)
 			{
-				BlendSpaceTransitionWeight = 1.0f; // Устанавливаем вес на 1.0
-				OptionBWalkForwardBlendSpace = OptionAWalkForwardBlendSpace;
-				OptionBWalkBackwardBlendSpace = OptionAWalkBackwardBlendSpace;
-				TransitionTimeRemaining = 0.f; // Сбрасываем время, но вес остается 1.0
+				BlendSpaceTransitionWeight = 1.f;
+				// Завершение перехода: обновляем целевые blend space
+				TargetWalkForwardBlendSpace = PrimaryWalkForwardBlendSpace;
+				TargetWalkBackwardBlendSpace = PrimaryWalkBackwardBlendSpace;
+				TransitionTimeRemaining = 0.f;
 			}
 			else
 			{
-				float Alpha = 1.f - (TransitionTimeRemaining / TransitionDuration);
-				BlendSpaceTransitionWeight = FMath::InterpEaseInOut(0.f, 1.f, Alpha, 2.f);
+				BlendSpaceTransitionWeight = CalculateTransitionWeight(0.f, 1.f);
 			}
 		}
 	}
 }
 
-void UCharacterAnimInstance::SetMovementBlendSpace(UBlendSpace* WalkForwardBlendSpace, UBlendSpace* WalkBackwardBlendSpace)
+float UCharacterAnimInstance::CalculateTransitionWeight(float StartWeight, float EndWeight) const
 {
-	BlendSpaceTransitionWeight = 0.f;
-	TransitionTimeRemaining = 0.f;
+	// Защита от деления на ноль
+	if (TotalTransitionDuration <= 0.f)
+	{
+		return EndWeight;
+	}
+	float Alpha = 1.f - (TransitionTimeRemaining / TotalTransitionDuration);
+	return FMath::InterpEaseInOut(StartWeight, EndWeight, Alpha, 2.f);
 }
 
-void UCharacterAnimInstance::TransitionToNewBlendSpace(UBlendSpace* NewWalkForwardBlendSpace, UBlendSpace* NewWalkBackwardBlendSpace,
-                                                       float InTransitionDuration)
+void UCharacterAnimInstance::SetMovementBlendSpace(UBlendSpace* WalkForwardBlendSpace, UBlendSpace* WalkBackwardBlendSpace)
 {
-	if (bCan)
-	{
-		OptionAWalkForwardBlendSpace = NewWalkForwardBlendSpace;
-		OptionAWalkBackwardBlendSpace = NewWalkBackwardBlendSpace;
-		TransitionDuration = InTransitionDuration;
-		TransitionTimeRemaining = InTransitionDuration;
-		BlendSpaceTransitionWeight = 0.f;
+	// Немедленное переключение blend space без перехода
+	BlendSpaceTransitionWeight = 0.f;
+	TransitionTimeRemaining = 0.f;
+	TargetWalkForwardBlendSpace = WalkForwardBlendSpace;
+	TargetWalkBackwardBlendSpace = WalkBackwardBlendSpace;
+	bTransitionToPrimary = true;
+}
 
-		bCan = false;
+void UCharacterAnimInstance::TransitionToNewBlendSpace(UBlendSpace* NewWalkForwardBlendSpace, UBlendSpace* NewWalkBackwardBlendSpace, float InTransitionDuration)
+{
+	TotalTransitionDuration = InTransitionDuration;
+	TransitionTimeRemaining = InTransitionDuration;
+
+	if (bTransitionToPrimary)
+	{
+		// Выполняем переход, обновляя первичные blend space
+		PrimaryWalkForwardBlendSpace = NewWalkForwardBlendSpace;
+		PrimaryWalkBackwardBlendSpace = NewWalkBackwardBlendSpace;
+		BlendSpaceTransitionWeight = 0.f;
+		bTransitionToPrimary = false;
 	}
 	else
 	{
-		OptionBWalkForwardBlendSpace = NewWalkForwardBlendSpace;
-		OptionBWalkBackwardBlendSpace = NewWalkBackwardBlendSpace;
-		TransitionDuration = InTransitionDuration;
-		TransitionTimeRemaining = InTransitionDuration;
+		// Переход обновляет целевые blend space
+		TargetWalkForwardBlendSpace = NewWalkForwardBlendSpace;
+		TargetWalkBackwardBlendSpace = NewWalkBackwardBlendSpace;
 		BlendSpaceTransitionWeight = 1.f;
-
-		bCan = true;
+		bTransitionToPrimary = true;
 	}
 }
