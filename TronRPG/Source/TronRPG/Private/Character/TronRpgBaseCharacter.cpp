@@ -68,19 +68,21 @@ void ATronRpgBaseCharacter::EquipWeapon(UWeaponDataAsset* WeaponAsset, float Ble
 {
 	if (!WeaponAsset) return;
 
-	// Снимаем текущее оружие, если оно есть
-	if (CurrentWeapon)
-	{
-		/*UnequipWeapon();*/
-	}
+	// Сохраняем текущее оружие
+	UWeaponDataAsset* PreviousWeapon = CurrentWeapon;
 
+	// Устанавливаем новое оружие
 	CurrentWeapon = WeaponAsset;
 
-	// Добавляем теги оружия и тег экипировки
+	// Обновляем теги: убираем старые, добавляем новые
+	if (PreviousWeapon)
+	{
+		AbilitySystemComponent->RemoveLooseGameplayTags(PreviousWeapon->WeaponTags);
+	}
 	AbilitySystemComponent->AddLooseGameplayTags(CurrentWeapon->WeaponTags);
 	AbilitySystemComponent->AddLooseGameplayTag(EquippedTag);
 
-	// Проверяем, что ассеты загружены
+	// Проверяем, что ассеты нового оружия загружены
 	if (!CurrentWeapon->WalkForwardBlendSpace.IsValid())
 	{
 		CurrentWeapon->WalkForwardBlendSpace.LoadSynchronous();
@@ -90,7 +92,12 @@ void ATronRpgBaseCharacter::EquipWeapon(UWeaponDataAsset* WeaponAsset, float Ble
 		CurrentWeapon->WalkBackwardBlendSpace.LoadSynchronous();
 	}
 
-	// Обновляем BlendSpace с плавным переходом
+	// Проигрываем монтаж экипировки
+	if (CurrentWeapon->EquipMontage.IsValid())
+	{
+		UAnimMontage* EquipMontage = CurrentWeapon->EquipMontage.Get();
+		PlayAnimMontage(EquipMontage);
+	}
 	if (UCharacterAnimInstance* AnimInstance = Cast<UCharacterAnimInstance>(GetMesh()->GetAnimInstance()))
 	{
 		AnimInstance->TransitionToNewBlendSpace(
@@ -98,12 +105,6 @@ void ATronRpgBaseCharacter::EquipWeapon(UWeaponDataAsset* WeaponAsset, float Ble
 			CurrentWeapon->WalkBackwardBlendSpace.Get(),
 			BlendSpaceTransitionDuration
 		);
-	}
-
-	// Проигрываем монтаж экипировки
-	if (CurrentWeapon->EquipMontage.IsValid())
-	{
-		PlayAnimMontage(CurrentWeapon->EquipMontage.Get());
 	}
 }
 
@@ -114,7 +115,8 @@ void ATronRpgBaseCharacter::UnequipWeapon()
 	// Проигрываем монтаж снятия
 	if (CurrentWeapon->UnequipMontage.IsValid())
 	{
-		PlayAnimMontage(CurrentWeapon->UnequipMontage.Get());
+		UAnimMontage* UnequipMontage = CurrentWeapon->UnequipMontage.Get();
+		PlayAnimMontage(UnequipMontage);
 	}
 
 	// Удаляем теги оружия и тег экипировки
@@ -139,21 +141,33 @@ void ATronRpgBaseCharacter::UnequipWeapon()
 
 void ATronRpgBaseCharacter::EquipWeaponByTag(FGameplayTag WeaponTag)
 {
+	// Получаем менеджер оружия
 	UTronRpgWeaponAssetManager* WeaponManager = UTronRpgWeaponAssetManager::Get(this);
-	if (WeaponManager)
+	if (!WeaponManager)
 	{
-		TArray<UWeaponDataAsset*> Weapons = WeaponManager->GetWeaponsByTag(WeaponTag);
-		if (Weapons.Num() > 0)
-		{
-			EquipWeapon(Weapons[0], 1.0f); // Устанавливаем длительность перехода
-		}
-		else
-		{
-			UE_LOG(LogTemp, Warning, TEXT("Weapon with tag %s not found"), *WeaponTag.ToString());
-		}
+		UE_LOG(LogTemp, Error, TEXT("WeaponManager not found"));
+		return;
+	}
+
+	// Ищем оружие по тегу
+	TArray<UWeaponDataAsset*> Weapons = WeaponManager->GetWeaponsByTag(WeaponTag);
+	if (Weapons.Num() == 0)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Weapon with tag %s not found"), *WeaponTag.ToString());
+		return;
+	}
+
+	UWeaponDataAsset* TargetWeapon = Weapons[0];
+
+	// Проверяем, экипировано ли уже оружие с этим тегом
+	if (CurrentWeapon && CurrentWeapon->WeaponTags.HasTagExact(WeaponTag))
+	{
+		// Если оружие уже экипировано, снимаем его
+		UnequipWeapon();
 	}
 	else
 	{
-		UE_LOG(LogTemp, Error, TEXT("WeaponManager not found"));
+		// Если оружие не экипировано, надеваем его
+		EquipWeapon(TargetWeapon, 1.0f); // 1.0f — длительность перехода
 	}
 }

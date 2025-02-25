@@ -67,6 +67,7 @@ void UTronRpgWeaponAssetManager::LoadInternalAssets()
 			// Add internal asset paths (e.g., mesh, animations)
 			AssetsToLoad.AddUnique(WeaponAsset->WeaponMesh.ToSoftObjectPath());
 			AssetsToLoad.AddUnique(WeaponAsset->EquipMontage.ToSoftObjectPath());
+			AssetsToLoad.AddUnique(WeaponAsset->UnequipMontage.ToSoftObjectPath());
 			AssetsToLoad.AddUnique(WeaponAsset->WalkForwardBlendSpace.ToSoftObjectPath());
 			AssetsToLoad.AddUnique(WeaponAsset->WalkBackwardBlendSpace.ToSoftObjectPath());
 			// Add to loaded assets map
