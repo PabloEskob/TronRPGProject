@@ -41,6 +41,14 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Weapon")
 	void EquipWeaponByTag(FGameplayTag WeaponTag);
 
+	UPROPERTY(VisibleAnywhere,Replicated, BlueprintReadOnly, Category = "Weapon")
+	UWeaponDataAsset* CurrentWeapon;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	UStaticMeshComponent* MainHandMeshComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	UStaticMeshComponent* OffHandMeshComponent;
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Replicated, Category = "Components")
 	UTronRpgAbilitySystemComponent* AbilitySystemComponent;
@@ -62,21 +70,11 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
 	UWeaponDataAsset* DefaultWeaponAsset;
-
-	// Текущее оружие
-	UPROPERTY(VisibleAnywhere,Replicated, BlueprintReadOnly, Category = "Weapon")
-	UWeaponDataAsset* CurrentWeapon;
-
+	
 	// Тег экипировки
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Gameplay Tags")
 	FGameplayTag EquippedTag;
 
 	UPROPERTY()
 	UCharacterAnimInstance* CharacterAnimInstance;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-	UStaticMeshComponent* MainHandMeshComponent;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-	UStaticMeshComponent* OffHandMeshComponent;
 };
