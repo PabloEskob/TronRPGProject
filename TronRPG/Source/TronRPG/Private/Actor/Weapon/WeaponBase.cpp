@@ -55,7 +55,7 @@ void AWeaponBase::Equip(ACharacter* OwnerCharacter)
 
 	StateComponent->bIsEquipped = true;
 	SetOwner(OwnerCharacter);
-	StateComponent->SetWeaponState(GameplayTags::Weapon::Equipped, true);
+	StateComponent->SetWeaponState(TAG_Weapon_Equipped, true);
 }
 
 void AWeaponBase::Unequip()
@@ -73,7 +73,7 @@ void AWeaponBase::Unequip()
 	}
 
 	StateComponent->bIsEquipped = false;
-	StateComponent->SetWeaponState(GameplayTags::Weapon::Equipped, false);
+	StateComponent->SetWeaponState(TAG_Weapon_Equipped, false);
 	SetOwner(nullptr);
 }
 

@@ -10,6 +10,7 @@
 #include "Data/Weapon/WeaponDataAsset.h"
 #include "GameInstanceSubsystem/WeaponAsset/TronRpgWeaponAssetManager.h"
 #include "Net/UnrealNetwork.h"
+#include "Object/GameplayTagsLibrary.h"
 
 ATronRpgBaseCharacter::ATronRpgBaseCharacter()
 {
@@ -19,6 +20,14 @@ ATronRpgBaseCharacter::ATronRpgBaseCharacter()
 	AnimationComponent = CreateDefaultSubobject<UAnimationComponent>(TEXT("AnimationComponent"));
 	DependencyInjector = CreateDefaultSubobject<UDependencyInjectorComponent>(TEXT("DependencyInjector"));
 	AbilityInputComponent = CreateDefaultSubobject<UAbilityInputComponent>(TEXT("AbilityInputComponent"));
+
+	MainHandMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MainHandMesh"));
+	MainHandMeshComponent->SetupAttachment(GetMesh(), TEXT("WeaponSocket_MainHand"));
+	MainHandMeshComponent->SetVisibility(false);
+
+	OffHandMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("OffHandMesh"));
+	OffHandMeshComponent->SetupAttachment(GetMesh(), TEXT("WeaponSocket_OffHand"));
+	OffHandMeshComponent->SetVisibility(false);
 }
 
 void ATronRpgBaseCharacter::BeginPlay()
@@ -66,51 +75,95 @@ void ATronRpgBaseCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>
 
 void ATronRpgBaseCharacter::EquipWeapon(UWeaponDataAsset* WeaponAsset, float BlendSpaceTransitionDuration)
 {
-	if (!WeaponAsset) return;
+    if (!WeaponAsset)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("EquipWeapon: Invalid WeaponAsset provided"));
+        return;
+    }
 
-	// Сохраняем текущее оружие
-	UWeaponDataAsset* PreviousWeapon = CurrentWeapon;
+    // Если текущее оружие уже установлено и совпадает с новым, ничего не делаем
+    if (CurrentWeapon == WeaponAsset)
+    {
+        return;
+    }
 
-	// Устанавливаем новое оружие
-	CurrentWeapon = WeaponAsset;
+    // Сохраняем текущее оружие
+    UWeaponDataAsset* PreviousWeapon = CurrentWeapon;
 
-	// Обновляем теги: убираем старые, добавляем новые
-	if (PreviousWeapon)
+    // Устанавливаем новое оружие
+    CurrentWeapon = WeaponAsset;
+
+    // Обновляем теги
+    if (PreviousWeapon)
+    {
+        AbilitySystemComponent->RemoveLooseGameplayTags(PreviousWeapon->WeaponTags);
+    }
+    AbilitySystemComponent->AddLooseGameplayTags(CurrentWeapon->WeaponTags);
+    AbilitySystemComponent->AddLooseGameplayTag(EquippedTag);
+
+    // Загружаем ассеты анимации оружия
+    if (!CurrentWeapon->WalkForwardBlendSpace.IsValid())
+    {
+        CurrentWeapon->WalkForwardBlendSpace.LoadSynchronous();
+    }
+    if (!CurrentWeapon->WalkBackwardBlendSpace.IsValid())
+    {
+        CurrentWeapon->WalkBackwardBlendSpace.LoadSynchronous();
+    }
+
+    // Проигрываем монтаж экипировки
+    if (CurrentWeapon->EquipMontage.IsValid())
+    {
+        UAnimMontage* EquipMontage = CurrentWeapon->EquipMontage.Get();
+        PlayAnimMontage(EquipMontage);
+    }
+
+    // Обновляем BlendSpace для анимаций
+    if (UCharacterAnimInstance* AnimInstance = Cast<UCharacterAnimInstance>(GetMesh()->GetAnimInstance()))
+    {
+        AnimInstance->TransitionToNewBlendSpace(
+            CurrentWeapon->WalkForwardBlendSpace.Get(),
+            CurrentWeapon->WalkBackwardBlendSpace.Get(),
+            BlendSpaceTransitionDuration
+        );
+    }
+
+    // Обновляем визуальные компоненты (меши оружия)
+	if (CurrentWeapon->WeaponSlot.HasTag(TAG_Equipment_Slot_MainHand))
 	{
-		AbilitySystemComponent->RemoveLooseGameplayTags(PreviousWeapon->WeaponTags);
+		if (CurrentWeapon->WeaponMesh.IsValid())
+		{
+			MainHandMeshComponent->SetStaticMesh(CurrentWeapon->WeaponMesh.Get());
+			MainHandMeshComponent->SetVisibility(true);
+		}
 	}
-	AbilitySystemComponent->AddLooseGameplayTags(CurrentWeapon->WeaponTags);
-	AbilitySystemComponent->AddLooseGameplayTag(EquippedTag);
-
-	// Проверяем, что ассеты нового оружия загружены
-	if (!CurrentWeapon->WalkForwardBlendSpace.IsValid())
+	else
 	{
-		CurrentWeapon->WalkForwardBlendSpace.LoadSynchronous();
-	}
-	if (!CurrentWeapon->WalkBackwardBlendSpace.IsValid())
-	{
-		CurrentWeapon->WalkBackwardBlendSpace.LoadSynchronous();
+		MainHandMeshComponent->SetStaticMesh(nullptr);
+		MainHandMeshComponent->SetVisibility(false);
 	}
 
-	// Проигрываем монтаж экипировки
-	if (CurrentWeapon->EquipMontage.IsValid())
+	if (CurrentWeapon->WeaponSlot.HasTag(TAG_Equipment_Slot_MainHand))
 	{
-		UAnimMontage* EquipMontage = CurrentWeapon->EquipMontage.Get();
-		PlayAnimMontage(EquipMontage);
+		if (CurrentWeapon->AdditionalWeaponMesh.IsValid())
+		{
+			OffHandMeshComponent->SetStaticMesh(CurrentWeapon->AdditionalWeaponMesh.Get());
+			OffHandMeshComponent->SetVisibility(true);
+		}
 	}
-	if (UCharacterAnimInstance* AnimInstance = Cast<UCharacterAnimInstance>(GetMesh()->GetAnimInstance()))
+	else
 	{
-		AnimInstance->TransitionToNewBlendSpace(
-			CurrentWeapon->WalkForwardBlendSpace.Get(),
-			CurrentWeapon->WalkBackwardBlendSpace.Get(),
-			BlendSpaceTransitionDuration
-		);
+		OffHandMeshComponent->SetStaticMesh(nullptr);
+		OffHandMeshComponent->SetVisibility(false);
 	}
 }
 
 void ATronRpgBaseCharacter::UnequipWeapon()
 {
-	if (!CurrentWeapon) return;
+	if (!CurrentWeapon)
+	{
+		return;
+	}
 
 	// Проигрываем монтаж снятия
 	if (CurrentWeapon->UnequipMontage.IsValid())
@@ -123,7 +176,7 @@ void ATronRpgBaseCharacter::UnequipWeapon()
 	AbilitySystemComponent->RemoveLooseGameplayTags(CurrentWeapon->WeaponTags);
 	AbilitySystemComponent->RemoveLooseGameplayTag(EquippedTag);
 
-	// Возвращаем дефолтные BlendSpaces
+	// Возвращаем дефолтные BlendSpace
 	if (DefaultWeaponAsset && DefaultWeaponAsset->WalkForwardBlendSpace.IsValid() && DefaultWeaponAsset->WalkBackwardBlendSpace.IsValid())
 	{
 		if (UCharacterAnimInstance* AnimInstance = Cast<UCharacterAnimInstance>(GetMesh()->GetAnimInstance()))
@@ -136,16 +189,31 @@ void ATronRpgBaseCharacter::UnequipWeapon()
 		}
 	}
 
+	// Скрываем визуальные компоненты
+	MainHandMeshComponent->SetStaticMesh(nullptr);
+	MainHandMeshComponent->SetVisibility(false);
+	OffHandMeshComponent->SetStaticMesh(nullptr);
+	OffHandMeshComponent->SetVisibility(false);
+
+	// Очищаем текущее оружие
 	CurrentWeapon = nullptr;
 }
 
 void ATronRpgBaseCharacter::EquipWeaponByTag(FGameplayTag WeaponTag)
 {
-	// Получаем менеджер оружия
-	UTronRpgWeaponAssetManager* WeaponManager = UTronRpgWeaponAssetManager::Get(this);
+	// Проверяем валидность тега
+	if (!WeaponTag.IsValid())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("EquipWeaponByTag: Invalid WeaponTag provided"));
+		return;
+	}
+
+	// Получаем менеджер оружия через подсистему
+	UTronRpgWeaponAssetManager* WeaponManager = GetGameInstance() ? 
+		GetGameInstance()->GetSubsystem<UTronRpgWeaponAssetManager>() : nullptr;
 	if (!WeaponManager)
 	{
-		UE_LOG(LogTemp, Error, TEXT("WeaponManager not found"));
+		UE_LOG(LogTemp, Error, TEXT("EquipWeaponByTag: WeaponManager subsystem not found"));
 		return;
 	}
 
@@ -153,21 +221,22 @@ void ATronRpgBaseCharacter::EquipWeaponByTag(FGameplayTag WeaponTag)
 	TArray<UWeaponDataAsset*> Weapons = WeaponManager->GetWeaponsByTag(WeaponTag);
 	if (Weapons.Num() == 0)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Weapon with tag %s not found"), *WeaponTag.ToString());
+		UE_LOG(LogTemp, Warning, TEXT("EquipWeaponByTag: No weapons found with tag %s"), *WeaponTag.ToString());
 		return;
 	}
 
+	// Для простоты берём первое оружие из списка (можно расширить логику выбора)
 	UWeaponDataAsset* TargetWeapon = Weapons[0];
 
 	// Проверяем, экипировано ли уже оружие с этим тегом
 	if (CurrentWeapon && CurrentWeapon->WeaponTags.HasTagExact(WeaponTag))
 	{
-		// Если оружие уже экипировано, снимаем его
+		// Снимаем текущее оружие, если оно имеет тот же тег
 		UnequipWeapon();
 	}
 	else
 	{
-		// Если оружие не экипировано, надеваем его
-		EquipWeapon(TargetWeapon, 1.0f); // 1.0f — длительность перехода
+		// Экипируем новое оружие
+		EquipWeapon(TargetWeapon, 1.0f); // 1.0f — длительность перехода анимации
 	}
 }

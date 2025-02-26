@@ -26,7 +26,10 @@ public:
 
 	// Меш оружия
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
-	TSoftObjectPtr<USkeletalMesh> WeaponMesh;
+	TSoftObjectPtr<UStaticMesh> WeaponMesh;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
+	TSoftObjectPtr<UStaticMesh> AdditionalWeaponMesh;
 
 	// Монтаж экипировки
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
@@ -40,13 +43,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
 	FGameplayTagContainer WeaponTags;
 
-	// Характеристики
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats")
-	float Damage;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats")
-	float AttackSpeed;
-
+	// Теги Slot
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
+	FGameplayTagContainer WeaponSlot;
+	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
 	TSoftObjectPtr<UBlendSpace> WalkForwardBlendSpace;
 

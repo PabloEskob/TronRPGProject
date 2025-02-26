@@ -1,36 +1,17 @@
 ﻿#pragma once
-
-#include "CoreMinimal.h"
 #include "GameplayTagContainer.h"
+#include "NativeGameplayTags.h"
 
+UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_WeaponType_Sword)
+UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_WeaponType_SwordAndShield)
+UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_WeaponType_None)
 
-namespace GameplayTags
-{
-	namespace WeaponType
-	{
-		extern const FGameplayTag Sword;
-		extern const FGameplayTag None;
-		extern const FGameplayTag SwordAndShield;  // Новый тег для дефолтного оружия
-	}
-	namespace Weapon
-	{
-		extern const FGameplayTag Equipped;
-		extern const FGameplayTag Broken;
-		extern const FGameplayTag Default;  // Новый тег для дефолтного оружия
-	}
+UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Weapon_Equipped)
+UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Weapon_Broken)
+UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Weapon_Default)
 
-	namespace Attack
-	{
-		extern const FGameplayTag Melee;
-		extern const FGameplayTag Ranged;  // Новый тег для дальних атак
-	}
+UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Attack_Melee)
+UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Attack_Ranged)
 
-	namespace State
-	{
-		// Можно добавить теги сюда, если нужно
-	}
-    
-	void InitializeTags();
-	bool IsValidTag(const FGameplayTag& Tag, const FString& TagName);
-	bool AreTagsInitialized();
-}
+UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Equipment_Slot_MainHand)
+UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Equipment_Slot_OffHand)

@@ -73,4 +73,10 @@ protected:
 
 	UPROPERTY()
 	UCharacterAnimInstance* CharacterAnimInstance;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	UStaticMeshComponent* MainHandMeshComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	UStaticMeshComponent* OffHandMeshComponent;
 };
