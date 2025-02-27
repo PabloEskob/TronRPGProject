@@ -24,7 +24,7 @@ public:
 
 	static UTronRpgWeaponAssetManager* Get(const UObject* WorldContextObject);
 
-	UFUNCTION()
+	UFUNCTION(BlueprintCallable)
 	TArray<UWeaponDataAsset*> GetWeaponsByTag(FGameplayTag Tag) const;
 
 protected:

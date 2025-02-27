@@ -9,29 +9,10 @@
 
 void URpgTronWeaponAppearNotify::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation)
 {
+	// Проверяем, что владелец компонента — это ATronRpgBaseCharacter
 	if (ATronRpgBaseCharacter* Character = Cast<ATronRpgBaseCharacter>(MeshComp->GetOwner()))
 	{
-		if (Character->CurrentWeapon)
-		{
-			if (bShouldShowWeapon)
-			{
-				if (Character->CurrentWeapon->WeaponSlot.HasTag(TAG_Equipment_Slot_MainHand))
-				{
-					Character->MainHandMeshComponent->SetVisibility(true);
-				}
-				if (Character->CurrentWeapon->WeaponSlot.HasTag(TAG_Equipment_Slot_OffHand))
-				{
-					Character->OffHandMeshComponent->SetVisibility(true);
-				}
-			}
-			else
-			{
-				Character->MainHandMeshComponent->SetStaticMesh(nullptr);
-				Character->MainHandMeshComponent->SetVisibility(false);
-				Character->OffHandMeshComponent->SetStaticMesh(nullptr);
-				Character->OffHandMeshComponent->SetVisibility(false);
-				Character->CurrentWeapon = nullptr;
-			}
-		}
+		// Вызываем делегат, передавая параметр bShouldShowWeapon
+		Character->OnWeaponVisibilityChanged.Broadcast(bShouldShowWeapon);
 	}
 }

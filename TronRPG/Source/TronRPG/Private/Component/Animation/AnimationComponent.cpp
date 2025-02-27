@@ -1,46 +1,39 @@
-#include "Component/Animation/AnimationComponent.h"
-#include "Components/SkeletalMeshComponent.h"
-#include "Animation/AnimInstance.h"
-#include "Animation/AnimMontage.h"
+﻿// Tron
 
-UAnimationComponent::UAnimationComponent()
-{
-	PrimaryComponentTick.bCanEverTick = false;
-}
+
+#include "Component/Animation/AnimationComponent.h"
+
+#include "Animation/Character/CharacterAnimInstance.h"
+
 
 void UAnimationComponent::BeginPlay()
 {
 	Super::BeginPlay();
-
-	// Получаем ссылку на SkeletalMeshComponent владельца
-	OwnerMesh = GetOwner()->FindComponentByClass<USkeletalMeshComponent>();
-	if (OwnerMesh)
-	{
-		AnimInstance = OwnerMesh->GetAnimInstance();
-	}
+	SkeletalMeshComponent = GetOwner()->FindComponentByClass<USkeletalMeshComponent>();
+	AnimInstance = SkeletalMeshComponent ? Cast<UCharacterAnimInstance>(SkeletalMeshComponent->GetAnimInstance()) : nullptr;
 }
 
-void UAnimationComponent::SetAnimInstanceClass(TSubclassOf<UAnimInstance> NewAnimClass)
+void UAnimationComponent::SetMovementBlendSpace(UBlendSpace* Forward, UBlendSpace* Backward)
 {
-	if (OwnerMesh && NewAnimClass)
+	if (AnimInstance)
 	{
-		OwnerMesh->SetAnimInstanceClass(NewAnimClass);
-		AnimInstance = OwnerMesh->GetAnimInstance();
+		AnimInstance->SetMovementBlendSpace(Forward, Backward);
 	}
 }
 
-void UAnimationComponent::PlayMontage(UAnimMontage* Montage, float PlayRate)
+void UAnimationComponent::TransitionToNewBlendSpace(UBlendSpace* Forward, UBlendSpace* Backward, float Duration)
 {
-	if (AnimInstance && Montage)
+	if (AnimInstance)
 	{
-		AnimInstance->Montage_Play(Montage, PlayRate);
+		AnimInstance->TransitionToNewBlendSpace(Forward, Backward, Duration);
 	}
 }
 
-void UAnimationComponent::StopMontage(UAnimMontage* Montage, float BlendOutTime)
+void UAnimationComponent::PlayMontage(UAnimMontage* Montage)
 {
-	if (AnimInstance && Montage)
+	if (SkeletalMeshComponent && Montage)
 	{
-		AnimInstance->Montage_Stop(BlendOutTime, Montage);
+		SkeletalMeshComponent->GetAnimInstance()->Montage_Play(Montage);
 	}
 }
+

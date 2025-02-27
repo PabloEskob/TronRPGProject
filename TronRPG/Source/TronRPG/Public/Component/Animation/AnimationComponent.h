@@ -1,36 +1,33 @@
+﻿// Tron
+
 #pragma once
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
 #include "AnimationComponent.generated.h"
 
-class USkeletalMeshComponent;
-class UAnimInstance;
-class UAnimMontage;
 
-UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
+UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class TRONRPG_API UAnimationComponent : public UActorComponent
 {
 	GENERATED_BODY()
 
 public:
-	UAnimationComponent();
+	UFUNCTION(BlueprintCallable)
+	void SetMovementBlendSpace(UBlendSpace* Forward, UBlendSpace* Backward);
 
-	virtual void BeginPlay() override;
+	UFUNCTION(BlueprintCallable)
+	void TransitionToNewBlendSpace(UBlendSpace* Forward, UBlendSpace* Backward, float Duration);
 
-	UFUNCTION(BlueprintCallable, Category = "Animation")
-	void SetAnimInstanceClass(TSubclassOf<UAnimInstance> NewAnimClass);
-
-	UFUNCTION(BlueprintCallable, Category = "Animation")
-	void PlayMontage(UAnimMontage* Montage, float PlayRate = 1.0f);
-
-	UFUNCTION(BlueprintCallable, Category = "Animation")
-	void StopMontage(UAnimMontage* Montage, float BlendOutTime = 0.2f);
+	UFUNCTION(BlueprintCallable)
+	void PlayMontage(UAnimMontage* Montage);
 
 protected:
-	UPROPERTY(Transient)
-	USkeletalMeshComponent* OwnerMesh;
+	UPROPERTY()
+	USkeletalMeshComponent* SkeletalMeshComponent;
 
-	UPROPERTY(Transient)
-	UAnimInstance* AnimInstance;
+	UPROPERTY()
+	class UCharacterAnimInstance* AnimInstance;
+
+	void BeginPlay() override;
 };

@@ -19,6 +19,8 @@ class UTronRpgComboComponent;
 class UAnimationComponent;
 class UDependencyInjectorComponent;
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnWeaponVisibilityChanged, bool, bIsVisible);
+
 UCLASS(Abstract)
 class TRONRPG_API ATronRpgBaseCharacter : public ACharacter, public IAbilitySystemInterface
 {
@@ -28,53 +30,49 @@ public:
 	ATronRpgBaseCharacter();
 
 	virtual void BeginPlay() override;
-	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
-	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	
+	UFUNCTION()
+	void UpdateWeaponVisibility(bool bIsVisible);
+	
+	UFUNCTION(BlueprintCallable)
+	void EquipWeapon(UWeaponDataAsset* WeaponAsset, float BlendSpaceTransitionDuration = 1.0f);
 
-	// Экипировка и снятие оружия
-	UFUNCTION(BlueprintCallable, Category = "Weapon")
-	void EquipWeapon(UWeaponDataAsset* WeaponAsset, float BlendSpaceTransitionDuration = 0.5f);
-
-	UFUNCTION(BlueprintCallable, Category = "Weapon")
+	UFUNCTION(BlueprintCallable)
 	void UnequipWeapon();
 
-	UFUNCTION(BlueprintCallable, Category = "Weapon")
+	UFUNCTION(BlueprintCallable)
 	void EquipWeaponByTag(FGameplayTag WeaponTag);
 
-	UPROPERTY(VisibleAnywhere,Replicated, BlueprintReadOnly, Category = "Weapon")
-	UWeaponDataAsset* CurrentWeapon;
+	UFUNCTION(BlueprintPure)
+	UAbilitySystemComponent* GetAbilitySystemComponent() const;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-	UStaticMeshComponent* MainHandMeshComponent;
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-	UStaticMeshComponent* OffHandMeshComponent;
+	UPROPERTY(BlueprintAssignable)
+	FOnWeaponVisibilityChanged OnWeaponVisibilityChanged;
+
 protected:
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Replicated, Category = "Components")
-	UTronRpgAbilitySystemComponent* AbilitySystemComponent;
+	UPROPERTY(VisibleAnywhere, Replicated, BlueprintReadOnly)
+	class UTronRpgAbilitySystemComponent* AbilitySystemComponent;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-	UTronRpgAttributeSet* AttributeSet;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	class UTronRpgAttributeSet* AttributeSet;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-	UTronRpgComboComponent* ComboComponent;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	class UTronRpgComboComponent* ComboComponent;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-	UAnimationComponent* AnimationComponent;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	class UAnimationComponent* AnimationComponent;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-	UDependencyInjectorComponent* DependencyInjector;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	class UDependencyInjectorComponent* DependencyInjector;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-	UAbilityInputComponent* AbilityInputComponent;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	class UAbilityInputComponent* AbilityInputComponent;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	class UWeaponComponent* WeaponComponent;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	UWeaponDataAsset* DefaultWeaponAsset;
-	
-	// Тег экипировки
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Gameplay Tags")
-	FGameplayTag EquippedTag;
-
-	UPROPERTY()
-	UCharacterAnimInstance* CharacterAnimInstance;
 };
