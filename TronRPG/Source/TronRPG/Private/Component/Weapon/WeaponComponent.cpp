@@ -63,6 +63,8 @@ bool UWeaponComponent::EquipWeapon(UWeaponDataAsset* WeaponAsset)
 		return false;
 	}
 
+	UpdateWeaponVisuals(false);
+
 	// Сохраняем предыдущее оружие
 	UWeaponDataAsset* PreviousWeapon = CurrentWeapon;
 
