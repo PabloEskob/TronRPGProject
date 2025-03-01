@@ -10,10 +10,22 @@
 #include "Component/Weapon/WeaponComponent.h"
 #include "Data/Weapon/WeaponDataAsset.h"
 #include "Net/UnrealNetwork.h"
+#include "AbilitySystemGlobals.h"
+#include "GameplayEffect.h"
+#include "GameplayAbilitySpec.h"
+#include "Object/GameplayTagsLibrary.h"
 
 ATronRpgBaseCharacter::ATronRpgBaseCharacter()
 {
+	// Системные настройки
+	bReplicates = true;
+	SetNetUpdateFrequency(60.f); // Оптимизация для быстрого обновления в сети
+
+	// Создание компонентов
 	AbilitySystemComponent = CreateDefaultSubobject<UTronRpgAbilitySystemComponent>(TEXT("AbilitySystemComponent"));
+	AbilitySystemComponent->SetIsReplicated(true);
+	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
+
 	AttributeSet = CreateDefaultSubobject<UTronRpgAttributeSet>(TEXT("AttributeSet"));
 	ComboComponent = CreateDefaultSubobject<UTronRpgComboComponent>(TEXT("ComboComponent"));
 	AnimationComponent = CreateDefaultSubobject<UAnimationComponent>(TEXT("AnimationComponent"));
@@ -21,33 +33,156 @@ ATronRpgBaseCharacter::ATronRpgBaseCharacter()
 	AbilityInputComponent = CreateDefaultSubobject<UAbilityInputComponent>(TEXT("AbilityInputComponent"));
 	WeaponComponent = CreateDefaultSubobject<UWeaponComponent>(TEXT("WeaponComponent"));
 
-	// Привязка делегата к методу (можно сделать в конструкторе или BeginPlay)
+	// Привязка делегата для обработки видимости оружия
 	OnWeaponVisibilityChanged.AddDynamic(this, &ATronRpgBaseCharacter::UpdateWeaponVisibility);
 
+	// Создание и настройка компонентов оружия
 	WeaponComponent->MainHandMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MainHandMesh"));
 	WeaponComponent->MainHandMeshComponent->SetupAttachment(GetMesh(), TEXT("WeaponSocket_MainHand"));
 	WeaponComponent->MainHandMeshComponent->SetVisibility(false);
+	WeaponComponent->MainHandMeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	WeaponComponent->MainHandMeshComponent->SetCanEverAffectNavigation(false);
+	WeaponComponent->MainHandMeshComponent->SetIsReplicated(true);
 
 	WeaponComponent->OffHandMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("OffHandMesh"));
 	WeaponComponent->OffHandMeshComponent->SetupAttachment(GetMesh(), TEXT("WeaponSocket_OffHand"));
 	WeaponComponent->OffHandMeshComponent->SetVisibility(false);
+	WeaponComponent->OffHandMeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	WeaponComponent->OffHandMeshComponent->SetCanEverAffectNavigation(false);
+	WeaponComponent->OffHandMeshComponent->SetIsReplicated(true);
+
+	// Инициализация переменных состояния
+	bAbilitiesInitialized = false;
+}
+
+void ATronRpgBaseCharacter::PostInitializeComponents()
+{
+	Super::PostInitializeComponents();
+	SetupComponents();
+}
+
+void ATronRpgBaseCharacter::SetupComponents()
+{
+	// Проверка валидности и настройка дополнительных параметров компонентов
+	if (AbilitySystemComponent)
+	{
+		// Настройка обработки тегов для ASC
+		
+		AbilitySystemComponent->SetTagMapCount((TAG_State_Running), 0);
+		AbilitySystemComponent->SetTagMapCount((TAG_State_Sprinting), 0);
+	}
+
+	// Настройка отладочных сообщений для компонентов
+	UE_LOG(LogTemp, Log, TEXT("Components for %s have been set up"), *GetName());
 }
 
 void ATronRpgBaseCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-	if (DefaultWeaponAsset)
+	
+	// Инициализация базового оружия, если указано
+	InitializeDefaultWeapon();
+
+	// Логирование начала игры
+	UE_LOG(LogTemp, Log, TEXT("Character %s has begun play"), *GetName());
+}
+
+void ATronRpgBaseCharacter::InitializeDefaultWeapon()
+{
+	if (DefaultWeaponAsset && AnimationComponent)
 	{
+		if (!DefaultWeaponAsset->WalkForwardBlendSpace.IsValid())
+		{
+			DefaultWeaponAsset->WalkForwardBlendSpace.LoadSynchronous();
+			DefaultWeaponAsset->WalkBackwardBlendSpace.LoadSynchronous();
+		}
+		// Установка начальных blend space для анимации движения
 		AnimationComponent->SetMovementBlendSpace(
 			DefaultWeaponAsset->WalkForwardBlendSpace.Get(),
 			DefaultWeaponAsset->WalkBackwardBlendSpace.Get()
 		);
+
+		// Автоматическая экипировка оружия по умолчанию, если нужно
+		// Раскомментировать при необходимости:
+		// EquipWeapon(DefaultWeaponAsset, 0.0f);
+	}
+}
+
+void ATronRpgBaseCharacter::PossessedBy(AController* NewController)
+{
+	Super::PossessedBy(NewController);
+
+	// Инициализация способностей при взятии персонажа под контроль
+	if (HasAuthority() && AbilitySystemComponent)
+	{
+		InitializeAbilities();
+		ApplyBaseEffects();
+	}
+}
+
+void ATronRpgBaseCharacter::OnRep_PlayerState()
+{
+	Super::OnRep_PlayerState();
+
+	// На клиенте тоже инициализируем способности после получения PlayerState
+	InitializeAbilities();
+}
+
+void ATronRpgBaseCharacter::InitializeAbilities()
+{
+	// Предотвращаем повторную инициализацию
+	if (bAbilitiesInitialized || !AbilitySystemComponent)
+		return;
+
+	// Выдаем базовые способности
+	for (TSubclassOf<UGameplayAbility>& AbilityClass : BaseAbilities)
+	{
+		if (AbilityClass)
+		{
+			FGameplayAbilitySpec AbilitySpec = FGameplayAbilitySpec(AbilityClass, 1);
+			AbilitySystemComponent->GiveAbility(AbilitySpec);
+		}
+	}
+
+	bAbilitiesInitialized = true;
+}
+
+void ATronRpgBaseCharacter::ApplyBaseEffects()
+{
+	if (!AbilitySystemComponent) return;
+
+	// Применяем постоянные эффекты
+	for (TSubclassOf<UGameplayEffect>& EffectClass : PersistentEffects)
+	{
+		if (EffectClass)
+		{
+			FGameplayEffectContextHandle EffectContext = AbilitySystemComponent->MakeEffectContext();
+			EffectContext.AddSourceObject(this);
+
+			FGameplayEffectSpecHandle SpecHandle = AbilitySystemComponent->MakeOutgoingSpec(
+				EffectClass, 1.0f, EffectContext);
+
+			if (SpecHandle.IsValid())
+			{
+				FActiveGameplayEffectHandle EffectHandle =
+					AbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
+
+				if (!EffectHandle.IsValid())
+				{
+					UE_LOG(LogTemp, Warning, TEXT("Failed to apply persistent effect %s to %s"),
+					       *EffectClass->GetName(), *GetName());
+				}
+			}
+		}
 	}
 }
 
 void ATronRpgBaseCharacter::UpdateWeaponVisibility(bool bIsVisible)
 {
-	WeaponComponent->UpdateWeaponVisuals(bIsVisible);
+	if (WeaponComponent)
+	{
+		WeaponComponent->UpdateWeaponVisuals(bIsVisible);
+	}
 }
 
 UAbilitySystemComponent* ATronRpgBaseCharacter::GetAbilitySystemComponent() const
@@ -55,39 +190,89 @@ UAbilitySystemComponent* ATronRpgBaseCharacter::GetAbilitySystemComponent() cons
 	return AbilitySystemComponent;
 }
 
-void ATronRpgBaseCharacter::EquipWeapon(UWeaponDataAsset* WeaponAsset, float BlendSpaceTransitionDuration)
+bool ATronRpgBaseCharacter::EquipWeapon(UWeaponDataAsset* WeaponAsset, float BlendSpaceTransitionDuration)
 {
-	if (!WeaponAsset) return;
+	if (!WeaponAsset)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Attempted to equip null weapon asset"));
+		return false;
+	}
 
-	WeaponComponent->EquipWeapon(WeaponAsset);
-	AnimationComponent->PlayMontage(WeaponAsset->EquipMontage.Get());
-	AnimationComponent->TransitionToNewBlendSpace(
-		WeaponAsset->WalkForwardBlendSpace.Get(),
-		WeaponAsset->WalkBackwardBlendSpace.Get(),
-		BlendSpaceTransitionDuration
-	);
+	// Для сетевой игры: на клиенте вызываем серверную функцию
+	if (GetLocalRole() < ROLE_Authority)
+	{
+		Server_EquipWeapon(WeaponAsset, BlendSpaceTransitionDuration);
+		return true; // Предполагаем успех на клиенте, сервер проверит
+	}
+
+	// Логика экипировки на сервере
+	if (WeaponComponent && AnimationComponent)
+	{
+		WeaponComponent->EquipWeapon(WeaponAsset);
+		AnimationComponent->PlayMontage(WeaponAsset->EquipMontage.Get());
+		AnimationComponent->TransitionToNewBlendSpace(
+			WeaponAsset->WalkForwardBlendSpace.Get(),
+			WeaponAsset->WalkBackwardBlendSpace.Get(),
+			BlendSpaceTransitionDuration
+		);
+		return true;
+	}
+	return false;
 }
 
-void ATronRpgBaseCharacter::UnequipWeapon()
+void ATronRpgBaseCharacter::Server_EquipWeapon_Implementation(UWeaponDataAsset* WeaponAsset, float BlendSpaceTransitionDuration)
 {
-	if (!WeaponComponent->CurrentWeapon) return;
-
-	AnimationComponent->PlayMontage(WeaponComponent->CurrentWeapon->UnequipMontage.Get());
-	AnimationComponent->TransitionToNewBlendSpace(
-		DefaultWeaponAsset->WalkForwardBlendSpace.Get(),
-		DefaultWeaponAsset->WalkBackwardBlendSpace.Get(),
-		1.0f
-	);
-	WeaponComponent->UnequipWeapon();
+	EquipWeapon(WeaponAsset, BlendSpaceTransitionDuration);
 }
 
-void ATronRpgBaseCharacter::EquipWeaponByTag(FGameplayTag WeaponTag)
+bool ATronRpgBaseCharacter::UnequipWeapon()
 {
-	WeaponComponent->EquipWeaponByTag(WeaponTag);
+	if (!WeaponComponent || !WeaponComponent->CurrentWeapon)
+	{
+		return false;
+	}
+
+	// Для сетевой игры: на клиенте вызываем серверную функцию
+	if (GetLocalRole() < ROLE_Authority)
+	{
+		Server_UnequipWeapon();
+		return true; // Предполагаем успех на клиенте, сервер проверит
+	}
+
+	// Логика снятия оружия на сервере
+	if (AnimationComponent && DefaultWeaponAsset)
+	{
+		AnimationComponent->PlayMontage(WeaponComponent->CurrentWeapon->UnequipMontage.Get());
+		AnimationComponent->TransitionToNewBlendSpace(
+			DefaultWeaponAsset->WalkForwardBlendSpace.Get(),
+			DefaultWeaponAsset->WalkBackwardBlendSpace.Get(),
+			1.0f
+		);
+		WeaponComponent->UnequipWeapon();
+		return true;
+	}
+	return false;
+}
+
+void ATronRpgBaseCharacter::Server_UnequipWeapon_Implementation()
+{
+	UnequipWeapon();
+}
+
+bool ATronRpgBaseCharacter::EquipWeaponByTag(FGameplayTag WeaponTag)
+{
+	if (!WeaponComponent) return false;
+
+	// Делегируем логику компоненту оружия
+	return WeaponComponent->EquipWeaponByTag(WeaponTag);
 }
 
 void ATronRpgBaseCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	// Репликация компонента AbilitySystem
 	DOREPLIFETIME(ATronRpgBaseCharacter, AbilitySystemComponent);
+
+	// Можно добавить другие переменные для репликации при необходимости
 }

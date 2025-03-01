@@ -1,6 +1,5 @@
 ﻿#pragma once
 #include "NativeGameplayTags.h"
-
 UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_WeaponType_Sword)
 UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_WeaponType_SwordAndShield)
 UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_WeaponType_None)
@@ -14,3 +13,22 @@ UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Attack_Ranged)
 
 UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Equipment_Slot_MainHand)
 UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Equipment_Slot_OffHand)
+
+// New tags for abilities and states
+UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_State_Dead)
+UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_State_Disabled)
+UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_State_Stunned)
+UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_State_Attacking)
+UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_State_Sprinting)
+UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_State_Running)
+UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_State_Equipment_Equipped)
+
+// New tags for damage and effects
+UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Damage)
+UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Damage_Critical)
+
+// New tags for status
+UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Status_NoWeaponEquipped)
+
+// New tags for abilities
+UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Ability_Combat_Melee)
