@@ -3,7 +3,6 @@
 #include "EnhancedInputSubsystems.h"
 #include "Input/TronRpgEnhancedInputComponent.h"
 #include "Character/TronRpgBaseCharacter.h"
-#include "Component/Input/AbilityInputComponent.h"
 #include "Object/GameplayTagsLibrary.h"
 
 void ATronRpgPlayerController::BeginPlay()
@@ -86,11 +85,11 @@ void ATronRpgPlayerController::SetupAbilityBindings()
 		return;
 	}
 
-	// Получаем компонент для обработки ввода способностей
-	UAbilityInputComponent* AbilityInputComp = BaseCharacter->FindComponentByClass<UAbilityInputComponent>();
+	// Получаем компонент для обработки ввода способностей (обновлено)
+	UTronRpgEnhancedInputComponent* AbilityInputComp = BaseCharacter->FindComponentByClass<UTronRpgEnhancedInputComponent>();
 	if (!AbilityInputComp)
 	{
-		UE_LOG(LogTemp, Error, TEXT("AbilityInputComponent not found on character!"));
+		UE_LOG(LogTemp, Error, TEXT("EnhancedAbilityInputComponent not found on character!"));
 		return;
 	}
 
@@ -99,17 +98,17 @@ void ATronRpgPlayerController::SetupAbilityBindings()
 	// Привязка для атаки ближнего боя
 	if (PrimaryAttackAction)
 	{
-		AbilityInputComp->AddInputBinding(PrimaryAttackAction, TAG_Ability_Combat_Melee);
+		AbilityInputComp->AddAbilityInputBinding(PrimaryAttackAction, TAG_Ability_Combat_Melee);
 	}
 
 	// Привязка для спринта (если есть)
 	if (SprintAction)
 	{
-		AbilityInputComp->AddInputBinding(SprintAction, TAG_State_Sprinting, true);
+		AbilityInputComp->AddAbilityInputBinding(SprintAction, TAG_State_Sprinting, true);
 	}
 
-	// Настраиваем InputComponent для наших привязок
-	AbilityInputComp->SetupPlayerInput(InputComponent);
+	// Настраиваем все привязки ввода
+	AbilityInputComp->SetupInputBindings();
 
 	UE_LOG(LogTemp, Log, TEXT("Ability input bindings setup complete"));
 }

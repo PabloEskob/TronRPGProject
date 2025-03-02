@@ -1,4 +1,6 @@
-﻿#pragma once
+﻿// Tron
+
+#pragma once
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
@@ -8,11 +10,18 @@
 class UWeaponDataAsset;
 class UTronRpgAbilitySystemComponent;
 class UWeaponVisualComponent;
-class UTronRpgAbilitySystemComponent;
-class UWeaponVisualComponent;
 struct FGameplayTag;
-class UWeaponDataAsset;
 
+/**
+ * Делегат для уведомления об изменении оружия
+ */
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnWeaponChanged, UWeaponDataAsset*, NewWeapon);
+
+/**
+ * Компонент для логики работы с оружием
+ * Отвечает за управление данными оружия, экипировку, снятие,
+ * историю оружия и управление тегами игрового процесса
+ */
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class TRONRPG_API UWeaponLogicComponent : public UActorComponent
 {
@@ -38,9 +47,9 @@ public:
 	bool EquipWeapon(UWeaponDataAsset* WeaponAsset);
 
 	/**
-    * Снять текущее оружие
-    * @return true если оружие было снято успешно
-    */
+	* Снять текущее оружие
+	* @return true если оружие было снято успешно
+	*/
 	UFUNCTION(BlueprintCallable, Category = "Weapon")
 	bool UnequipWeapon();
 
@@ -80,9 +89,6 @@ public:
 	 */
 	UFUNCTION(BlueprintCallable, Category = "Weapon")
 	void SetVisualComponent(UWeaponVisualComponent* InVisualComponent) { VisualComponent = InVisualComponent; }
-
-	// Делегат для уведомления об изменении оружия
-	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnWeaponChanged, UWeaponDataAsset*, NewWeapon);
 
 	// Делегат вызывается при смене оружия
 	UPROPERTY(BlueprintAssignable, Category = "Weapon|Events")

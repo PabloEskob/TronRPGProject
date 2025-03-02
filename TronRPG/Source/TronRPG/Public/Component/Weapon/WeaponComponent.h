@@ -9,10 +9,13 @@
 
 class UWeaponDataAsset;
 class UTronRpgAbilitySystemComponent;
+class UWeaponLogicComponent;
+class UWeaponVisualComponent;
 
 /**
- * Компонент для управления оружием персонажа
- * Отвечает за экипировку, снятие и управление визуализацией оружия
+ * Главный компонент для управления оружием персонажа
+ * Выступает в роли фасада для WeaponLogicComponent и WeaponVisualComponent,
+ * делегирующий соответствующую функциональность этим компонентам.
  */
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class TRONRPG_API UWeaponComponent : public UActorComponent
@@ -23,25 +26,7 @@ public:
 	UWeaponComponent();
 
 	virtual void BeginPlay() override;
-	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
-
-	/**
-	 * Текущее экипированное оружие
-	 */
-	UPROPERTY(ReplicatedUsing=OnRep_CurrentWeapon, BlueprintReadOnly, Category = "Weapon")
-	UWeaponDataAsset* CurrentWeapon;
-
-	/**
-	 * Меш-компонент для оружия в основной руке
-	 */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
-	UStaticMeshComponent* MainHandMeshComponent;
-
-	/**
-	 * Меш-компонент для оружия в дополнительной руке
-	 */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
-	UStaticMeshComponent* OffHandMeshComponent;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 	/**
 	 * Экипировать указанное оружие
@@ -85,7 +70,7 @@ public:
 	 * @return true если оружие экипировано
 	 */
 	UFUNCTION(BlueprintPure, Category = "Weapon")
-	bool IsWeaponEquipped() const { return CurrentWeapon != nullptr; }
+	bool IsWeaponEquipped() const;
 
 	/**
 	 * Проверить, соответствует ли текущее оружие указанному тегу
@@ -95,50 +80,51 @@ public:
 	UFUNCTION(BlueprintPure, Category = "Weapon")
 	bool HasWeaponWithTag(FGameplayTag Tag) const;
 
-protected:
 	/**
-	 * Компонент системы способностей для управления тегами
+	 * Получить текущее экипированное оружие
+	 * @return Текущее оружие или nullptr, если оружие не экипировано
 	 */
-	UPROPERTY()
-	UTronRpgAbilitySystemComponent* AbilitySystemComponent;
+	UFUNCTION(BlueprintPure, Category = "Weapon")
+	UWeaponDataAsset* GetCurrentWeapon() const;
 
 	/**
-	 * История последних экипированных оружий
-	 * Используется для быстрого переключения между оружием
+	 * Получить компонент логики оружия
+	 * @return Указатель на компонент логики оружия
 	 */
-	UPROPERTY()
-	TArray<UWeaponDataAsset*> WeaponHistory;
+	UFUNCTION(BlueprintPure, Category = "Weapon")
+	UWeaponLogicComponent* GetLogicComponent() const { return LogicComponent; }
 
 	/**
-	 * Максимальный размер истории оружия
+	 * Получить компонент визуализации оружия
+	 * @return Указатель на компонент визуализации оружия
 	 */
-	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
-	int32 MaxWeaponHistorySize = 5;
+	UFUNCTION(BlueprintPure, Category = "Weapon")
+	UWeaponVisualComponent* GetVisualComponent() const { return VisualComponent; }
 
 	/**
-	 * Добавить оружие в историю
-	 * @param WeaponAsset Оружие для добавления
-	 */
-	void AddToWeaponHistory(UWeaponDataAsset* WeaponAsset);
-
-	/**
-	 * Обновить теги геймплея, связанные с оружием
-	 * @param WeaponAsset Оружие для обновления тегов
-	 * @param bAdd Добавить или удалить теги
-	 */
-	void UpdateGameplayTags(UWeaponDataAsset* WeaponAsset, bool bAdd);
-
-	/**
-	 * Обработчик изменения текущего оружия (для репликации)
+	 * Обработчик изменения оружия (для обновления визуализации)
+	 * @param NewWeapon Новое оружие
 	 */
 	UFUNCTION()
-	void OnRep_CurrentWeapon();
+	void OnWeaponChanged(UWeaponDataAsset* NewWeapon);
 
-	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+protected:
+	/**
+	 * Компонент логики оружия
+	 */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
+	UWeaponLogicComponent* LogicComponent;
 
 	/**
-	 * Получить Asset Manager для оружия
-	 * @return Указатель на Asset Manager
+	 * Компонент визуализации оружия
 	 */
-	class UTronRpgWeaponAssetManager* GetWeaponAssetManager() const;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
+	UWeaponVisualComponent* VisualComponent;
+
+	/**
+	 * Инициализирует компоненты и их связи
+	 */
+	void InitializeComponents();
+
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 };

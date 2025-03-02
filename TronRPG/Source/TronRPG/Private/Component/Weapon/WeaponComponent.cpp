@@ -2,272 +2,185 @@
 
 #include "Component/Weapon/WeaponComponent.h"
 
-#include "GameInstanceSubsystem/WeaponAsset/TronRpgWeaponAssetManager.h"
-#include "GAS/TronRpgAbilitySystemComponent.h"
+#include "Component/Weapon/WeaponLogicComponent.h"
+#include "Component/Weapon/WeaponVisualComponent.h"
 #include "Data/Weapon/WeaponDataAsset.h"
-#include "Net/UnrealNetwork.h"
-#include "Object/GameplayTagsLibrary.h"
 #include "TronRPG/TronRPG.h"
 
 UWeaponComponent::UWeaponComponent()
 {
 	// Настройки компонента
-	PrimaryComponentTick.bCanEverTick = true;
-	PrimaryComponentTick.TickInterval = 0.1f; // Оптимизация производительности, тик каждые 100мс
+	PrimaryComponentTick.bCanEverTick = false;
 	SetIsReplicatedByDefault(true);
 
-	// Инициализация указателей
-	CurrentWeapon = nullptr;
-	AbilitySystemComponent = nullptr;
+	// Создаем дочерние компоненты
+	LogicComponent = CreateDefaultSubobject<UWeaponLogicComponent>(TEXT("WeaponLogicComponent"));
+	VisualComponent = CreateDefaultSubobject<UWeaponVisualComponent>(TEXT("WeaponVisualComponent"));
 }
 
 void UWeaponComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// Получаем AbilitySystemComponent из владельца
-	AbilitySystemComponent = GetOwner()->FindComponentByClass<UTronRpgAbilitySystemComponent>();
-
-	// Проверяем, что компоненты оружия правильно настроены
-	if (MainHandMeshComponent)
-	{
-		MainHandMeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-		MainHandMeshComponent->SetVisibility(false);
-	}
-
-	if (OffHandMeshComponent)
-	{
-		OffHandMeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-		OffHandMeshComponent->SetVisibility(false);
-	}
-
-	// Инициализация истории оружия
-	WeaponHistory.Empty(MaxWeaponHistorySize);
+	// Инициализируем компоненты и настраиваем связи между ними
+	InitializeComponents();
 }
 
-void UWeaponComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
+void UWeaponComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
-	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+	// Отписываемся от делегатов
+	if (LogicComponent)
+	{
+		LogicComponent->OnWeaponChanged.RemoveDynamic(this, &UWeaponComponent::OnWeaponChanged);
+	}
 
-	// Регулярные проверки или обновления состояния оружия можно реализовать здесь
-	// Например, проверка условий повреждения оружия, износа и т.д.
+	Super::EndPlay(EndPlayReason);
+}
+
+void UWeaponComponent::InitializeComponents()
+{
+	// Настройка связей между компонентами
+	if (LogicComponent && VisualComponent)
+	{
+		// Настраиваем взаимодействие между компонентами
+		LogicComponent->SetVisualComponent(VisualComponent);
+
+		// Подписываемся на события изменения оружия
+		LogicComponent->OnWeaponChanged.AddDynamic(this, &UWeaponComponent::OnWeaponChanged);
+
+		// Устанавливаем компоненты меша для визуального компонента
+		VisualComponent->MainHandMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MainHandMesh"));
+		VisualComponent->MainHandMeshComponent->SetupAttachment(GetOwner()->GetRootComponent(), TEXT("WeaponSocket_MainHand"));
+		VisualComponent->MainHandMeshComponent->SetVisibility(false);
+		VisualComponent->MainHandMeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		VisualComponent->MainHandMeshComponent->SetCanEverAffectNavigation(false);
+		VisualComponent->MainHandMeshComponent->SetIsReplicated(true);
+
+		VisualComponent->OffHandMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("OffHandMesh"));
+		VisualComponent->OffHandMeshComponent->SetupAttachment(GetOwner()->GetRootComponent(), TEXT("WeaponSocket_OffHand"));
+		VisualComponent->OffHandMeshComponent->SetVisibility(false);
+		VisualComponent->OffHandMeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		VisualComponent->OffHandMeshComponent->SetCanEverAffectNavigation(false);
+		VisualComponent->OffHandMeshComponent->SetIsReplicated(true);
+
+		UE_LOG(LogWeaponSystem, Log, TEXT("WeaponComponent: Components initialized"));
+	}
+	else
+	{
+		UE_LOG(LogWeaponSystem, Error, TEXT("WeaponComponent: Failed to initialize components"));
+	}
 }
 
 bool UWeaponComponent::EquipWeapon(UWeaponDataAsset* WeaponAsset)
 {
-	// Проверка валидности параметров
-	if (!WeaponAsset || CurrentWeapon == WeaponAsset)
+	if (!LogicComponent)
 	{
-		UE_LOG(LogWeaponSystem, Warning, TEXT("Invalid weapon asset or already equipped: %s"),
-		       WeaponAsset ? *WeaponAsset->GetName() : TEXT("nullptr"));
+		UE_LOG(LogWeaponSystem, Warning, TEXT("WeaponComponent: LogicComponent is not valid"));
 		return false;
 	}
 
-	UpdateWeaponVisuals(false);
-
-	// Сохраняем предыдущее оружие
-	UWeaponDataAsset* PreviousWeapon = CurrentWeapon;
-
-	// Обновляем текущее оружие
-	CurrentWeapon = WeaponAsset;
-
-	// Добавляем в историю
-	AddToWeaponHistory(WeaponAsset);
-
-	// Обрабатываем предыдущее оружие
-	if (PreviousWeapon)
-	{
-		UpdateGameplayTags(PreviousWeapon, false);
-	}
-
-	// Применяем теги нового оружия
-	UpdateGameplayTags(CurrentWeapon, true);
-
-	/*// Обновляем визуализацию
-	UpdateWeaponVisuals(true);*/
-
-	UE_LOG(LogWeaponSystem, Log, TEXT("Weapon equipped: %s"), *WeaponAsset->GetName());
-
-	return true;
+	// Делегируем логику экипировки LogicComponent
+	return LogicComponent->EquipWeapon(WeaponAsset);
 }
 
 bool UWeaponComponent::UnequipWeapon()
 {
-	if (!CurrentWeapon)
+	if (!LogicComponent)
 	{
-		UE_LOG(LogWeaponSystem, Warning, TEXT("Attempted to unequip weapon when none is equipped"));
+		UE_LOG(LogWeaponSystem, Warning, TEXT("WeaponComponent: LogicComponent is not valid"));
 		return false;
 	}
 
-	// Удаляем теги текущего оружия
-	UpdateGameplayTags(CurrentWeapon, false);
-
-	/*// Скрываем оружие
-	UpdateWeaponVisuals(false);*/
-
-	UE_LOG(LogWeaponSystem, Log, TEXT("Weapon unequipped: %s"), *CurrentWeapon->GetName());
-
-	// Сбрасываем указатель текущего оружия
-	CurrentWeapon = nullptr;
-
-	return true;
+	// Делегируем логику снятия оружия LogicComponent
+	return LogicComponent->UnequipWeapon();
 }
 
 bool UWeaponComponent::EquipWeaponByTag(FGameplayTag WeaponTag)
 {
-	if (!WeaponTag.IsValid())
+	if (!LogicComponent)
 	{
-		UE_LOG(LogWeaponSystem, Warning, TEXT("Attempted to equip weapon with invalid tag"));
+		UE_LOG(LogWeaponSystem, Warning, TEXT("WeaponComponent: LogicComponent is not valid"));
 		return false;
 	}
 
-	// Получаем менеджер ассетов оружия
-	UTronRpgWeaponAssetManager* WeaponManager = GetWeaponAssetManager();
-	if (!WeaponManager)
-	{
-		UE_LOG(LogWeaponSystem, Error, TEXT("Weapon asset manager not found"));
-		return false;
-	}
-
-	// Получаем список оружий с указанным тегом
-	TArray<UWeaponDataAsset*> Weapons = WeaponManager->GetWeaponsByTag(WeaponTag);
-	if (Weapons.Num() == 0)
-	{
-		UE_LOG(LogWeaponSystem, Warning, TEXT("No weapons found with tag: %s"), *WeaponTag.ToString());
-		return false;
-	}
-
-	// Выбираем первое оружие из списка
-	UWeaponDataAsset* TargetWeapon = Weapons[0];
-
-	// Если у нас уже экипировано оружие с этим тегом, снимаем его
-	if (CurrentWeapon && CurrentWeapon->WeaponTags.HasTagExact(WeaponTag))
-	{
-		return UnequipWeapon();
-	}
-
-	// Иначе экипируем новое оружие
-	return EquipWeapon(TargetWeapon);
+	// Делегируем логику экипировки по тегу LogicComponent
+	return LogicComponent->EquipWeaponByTag(WeaponTag);
 }
 
 void UWeaponComponent::UpdateWeaponVisuals(bool bIsVisible)
 {
-	// Обновляем визуализацию оружия
-	if (CurrentWeapon)
+	if (!VisualComponent || !LogicComponent)
 	{
-		// Устанавливаем меш для основной руки
-		if (MainHandMeshComponent)
-		{
-			bool bHasMainHandWeapon = CurrentWeapon->WeaponSlot.HasTag(TAG_Equipment_Slot_MainHand);
-			MainHandMeshComponent->SetStaticMesh(bHasMainHandWeapon ? CurrentWeapon->WeaponMesh.Get() : nullptr);
-			MainHandMeshComponent->SetVisibility(bIsVisible && bHasMainHandWeapon);
-		}
-
-		// Устанавливаем меш для дополнительной руки
-		if (OffHandMeshComponent)
-		{
-			bool bHasOffHandWeapon = CurrentWeapon->WeaponSlot.HasTag(TAG_Equipment_Slot_OffHand);
-			OffHandMeshComponent->SetStaticMesh(bHasOffHandWeapon ? CurrentWeapon->AdditionalWeaponMesh.Get() : nullptr);
-			OffHandMeshComponent->SetVisibility(bIsVisible && bHasOffHandWeapon);
-		}
+		UE_LOG(LogWeaponSystem, Warning, TEXT("WeaponComponent: VisualComponent or LogicComponent is not valid"));
+		return;
 	}
-	else
-	{
-		// Если нет текущего оружия, скрываем оба меша
-		if (MainHandMeshComponent)
-		{
-			MainHandMeshComponent->SetVisibility(false);
-		}
 
-		if (OffHandMeshComponent)
-		{
-			OffHandMeshComponent->SetVisibility(false);
-		}
-	}
+	// Делегируем обновление визуализации VisualComponent
+	VisualComponent->UpdateWeaponVisuals(LogicComponent->CurrentWeapon, bIsVisible);
 }
 
 FGameplayTagContainer UWeaponComponent::GetCurrentWeaponTags() const
 {
-	return CurrentWeapon ? CurrentWeapon->WeaponTags : FGameplayTagContainer();
+	if (!LogicComponent)
+	{
+		return FGameplayTagContainer();
+	}
+
+	// Делегируем получение тегов оружия LogicComponent
+	return LogicComponent->GetCurrentWeaponTags();
+}
+
+bool UWeaponComponent::IsWeaponEquipped() const
+{
+	if (!LogicComponent)
+	{
+		return false;
+	}
+
+	// Делегируем проверку наличия оружия LogicComponent
+	return LogicComponent->IsWeaponEquipped();
 }
 
 bool UWeaponComponent::HasWeaponWithTag(FGameplayTag Tag) const
 {
-	return CurrentWeapon && CurrentWeapon->WeaponTags.HasTag(Tag);
+	if (!LogicComponent)
+	{
+		return false;
+	}
+
+	// Делегируем проверку наличия тега LogicComponent
+	return LogicComponent->HasWeaponWithTag(Tag);
 }
 
-void UWeaponComponent::AddToWeaponHistory(UWeaponDataAsset* WeaponAsset)
+UWeaponDataAsset* UWeaponComponent::GetCurrentWeapon() const
 {
-	if (!WeaponAsset) return;
-
-	// Удаляем существующее вхождение этого оружия из истории
-	WeaponHistory.Remove(WeaponAsset);
-
-	// Добавляем оружие в начало истории
-	WeaponHistory.Insert(WeaponAsset, 0);
-
-	// Ограничиваем размер истории
-	if (WeaponHistory.Num() > MaxWeaponHistorySize)
+	if (!LogicComponent)
 	{
-		WeaponHistory.RemoveAt(MaxWeaponHistorySize, WeaponHistory.Num() - MaxWeaponHistorySize);
+		return nullptr;
 	}
+
+	// Возвращаем текущее оружие из LogicComponent
+	return LogicComponent->CurrentWeapon;
 }
 
-void UWeaponComponent::UpdateGameplayTags(UWeaponDataAsset* WeaponAsset, bool bAdd)
+void UWeaponComponent::OnWeaponChanged(UWeaponDataAsset* NewWeapon)
 {
-	if (!AbilitySystemComponent || !WeaponAsset) return;
-    
-	if (bAdd)
+	// Обработчик изменения оружия
+	// Вызывается из LogicComponent при изменении оружия
+
+	// Обновляем визуальное представление оружия
+	if (VisualComponent)
 	{
-		// Добавляем теги оружия
-		AbilitySystemComponent->AddLooseGameplayTags(WeaponAsset->WeaponTags);
-        
-		// Добавляем тег состояния "оружие экипировано"
-		AbilitySystemComponent->AddLooseGameplayTag(TAG_Weapon_Equipped);
-		AbilitySystemComponent->AddLooseGameplayTag(TAG_State_Equipment_Equipped);
+		VisualComponent->UpdateWeaponVisuals(NewWeapon, NewWeapon != nullptr);
+		UE_LOG(LogWeaponSystem, Log, TEXT("WeaponComponent: Weapon changed and visuals updated"));
 	}
-	else
-	{
-		// Удаляем теги оружия
-		AbilitySystemComponent->RemoveLooseGameplayTags(WeaponAsset->WeaponTags);
-        
-		// Удаляем тег состояния "оружие экипировано", если это было последнее оружие
-		if (!CurrentWeapon)
-		{
-			AbilitySystemComponent->RemoveLooseGameplayTag(TAG_Weapon_Equipped);
-			AbilitySystemComponent->RemoveLooseGameplayTag(TAG_State_Equipment_Equipped);
-		}
-	}
-}
 
-void UWeaponComponent::OnRep_CurrentWeapon()
-{
-	// Обновляем визуализацию при репликации
-	UpdateWeaponVisuals(CurrentWeapon != nullptr);
-
-	// Обновляем теги
-	if (AbilitySystemComponent)
-	{
-		// Сначала очищаем все теги оружия
-		AbilitySystemComponent->RemoveLooseGameplayTag(FGameplayTag::RequestGameplayTag(TEXT("State.Equipment.Equipped")));
-
-		// Затем обновляем теги для текущего оружия
-		if (CurrentWeapon)
-		{
-			UpdateGameplayTags(CurrentWeapon, true);
-		}
-	}
-}
-
-UTronRpgWeaponAssetManager* UWeaponComponent::GetWeaponAssetManager() const
-{
-	return GetOwner()->GetGameInstance() ? GetOwner()->GetGameInstance()->GetSubsystem<UTronRpgWeaponAssetManager>() : nullptr;
+	// Здесь можно добавить дополнительную логику при смене оружия
 }
 
 void UWeaponComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	// Репликация текущего оружия
-	DOREPLIFETIME(UWeaponComponent, CurrentWeapon);
+	// Добавлять здесь репликацию свойств, если необходимо
 }

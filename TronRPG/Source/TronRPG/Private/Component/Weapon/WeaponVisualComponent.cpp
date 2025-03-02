@@ -1,4 +1,6 @@
-﻿#include "Component/Weapon/WeaponVisualComponent.h"
+﻿// Tron
+
+#include "Component/Weapon/WeaponVisualComponent.h"
 #include "Data/Weapon/WeaponDataAsset.h"
 #include "Object/GameplayTagsLibrary.h"
 

@@ -9,7 +9,17 @@
 #include "Interface/Combat/CombatInterface.h"
 #include "TronRpgBaseCharacter.generated.h"
 
-// Остальной код без изменений
+class UTronRpgEnhancedInputComponent;
+// Форвард-декларации
+class UTronRpgAbilitySystemComponent;
+class UTronRpgAttributeSet;
+class UTronRpgComboComponent;
+class UAnimationComponent;
+class UDependencyInjectorComponent;
+class UEnhancedAbilityInputComponent; // Обновлено с UAbilityInputComponent
+class UWeaponComponent;
+class UWeaponDataAsset;
+class UGameplayAbility;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnWeaponVisibilityChanged, bool, bIsVisible);
 
@@ -93,7 +103,6 @@ protected:
 	/** Компонент для управления анимациями */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Animation")
 	UAnimationComponent* AnimationComponent;
-	
 
 	/** Компонент для внедрения зависимостей */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Dependencies")
@@ -101,7 +110,7 @@ protected:
 
 	/** Компонент для обработки ввода способностей */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Input")
-	UAbilityInputComponent* AbilityInputComponent;
+	UTronRpgEnhancedInputComponent* AbilityInputComponent; // Обновлено с UAbilityInputComponent
 
 	/** Компонент для управления оружием */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
