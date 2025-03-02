@@ -14,6 +14,7 @@
 #include "GameplayEffect.h"
 #include "GameplayAbilitySpec.h"
 #include "Object/GameplayTagsLibrary.h"
+#include "TronRPG/TronRPG.h"
 
 ATronRpgBaseCharacter::ATronRpgBaseCharacter()
 {
@@ -275,4 +276,138 @@ void ATronRpgBaseCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>
 	DOREPLIFETIME(ATronRpgBaseCharacter, AbilitySystemComponent);
 
 	// Можно добавить другие переменные для репликации при необходимости
+}
+
+bool ATronRpgBaseCharacter::EquipWeapon_Implementation(UWeaponDataAsset* WeaponAsset, float BlendSpaceTransitionDuration)
+{
+   return EquipWeapon(WeaponAsset, BlendSpaceTransitionDuration);
+}
+
+bool ATronRpgBaseCharacter::UnequipWeapon_Implementation()
+{
+   return UnequipWeapon();
+}
+
+bool ATronRpgBaseCharacter::ExecuteAttack_Implementation(const FGameplayTag& AttackTag)
+{
+   // Проверяем наличие способности с указанным тегом
+   return ActivateAbilityByTag(AttackTag);
+}
+
+float ATronRpgBaseCharacter::ApplyDamageToTarget_Implementation(AActor* Target, float DamageAmount, bool bIsCritical)
+{
+   if (!Target || DamageAmount <= 0.0f)
+   {
+       return 0.0f;
+   }
+   
+   // Получаем компонент AbilitySystem цели
+   UAbilitySystemComponent* TargetASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(Target);
+   if (!TargetASC)
+   {
+       return 0.0f;
+   }
+   
+   // Увеличиваем урон, если он критический
+   float FinalDamage = DamageAmount;
+   if (bIsCritical)
+   {
+       FinalDamage *= 2.0f;
+   }
+   
+   // Создаем контекст эффекта
+   FGameplayEffectContextHandle EffectContext = AbilitySystemComponent->MakeEffectContext();
+   EffectContext.AddSourceObject(this);
+   
+   // Ищем эффект урона
+   TSubclassOf<UGameplayEffect> DamageEffect = nullptr;
+   for (TSubclassOf<UGameplayEffect> Effect : PersistentEffects)
+   {
+       if (Effect->GetDefaultObject<UGameplayEffect>()->GameplayTags.HasTag(TAG_Damage))
+       {
+           DamageEffect = Effect;
+           break;
+       }
+   }
+   
+   if (DamageEffect)
+   {
+       // Создаем спецификацию эффекта
+       FGameplayEffectSpecHandle SpecHandle = AbilitySystemComponent->MakeOutgoingSpec(
+           DamageEffect, 1.0f, EffectContext);
+       
+       if (SpecHandle.IsValid())
+       {
+           // Устанавливаем значение урона
+           SpecHandle.Data->SetSetByCallerMagnitude(TAG_Damage, FinalDamage);
+           
+           // Если удар критический, добавляем соответствующий тег
+           if (bIsCritical)
+           {
+               SpecHandle.Data->AddDynamicAssetTag(TAG_Damage_Critical);
+           }
+           
+           // Применяем эффект к цели
+           FActiveGameplayEffectHandle ActiveHandle = TargetASC->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
+           
+           if (ActiveHandle.IsValid())
+           {
+               UE_LOG(LogWeaponSystem, Log, TEXT("Applied %.1f damage to %s (Critical: %s)"),
+                      FinalDamage, *Target->GetName(), bIsCritical ? TEXT("Yes") : TEXT("No"));
+               
+               return FinalDamage;
+           }
+       }
+   }
+   
+   return 0.0f;
+}
+
+bool ATronRpgBaseCharacter::HasWeaponEquipped_Implementation() const
+{
+   return WeaponComponent && WeaponComponent->IsWeaponEquipped();
+}
+
+bool ATronRpgBaseCharacter::ActivateAbilityByTag(const FGameplayTag& AbilityTag)
+{
+   if (!AbilitySystemComponent || !AbilityTag.IsValid())
+   {
+       return false;
+   }
+   
+   return AbilitySystemComponent->TryActivateAbilityByTag(AbilityTag);
+}
+
+bool ATronRpgBaseCharacter::IsAbilityActive(const FGameplayTag& AbilityTag) const
+{
+   if (!AbilitySystemComponent || !AbilityTag.IsValid())
+   {
+       return false;
+   }
+   
+   return AbilitySystemComponent->HasActiveAbilityWithTag(AbilityTag);
+}
+
+UGameplayAbility* ATronRpgBaseCharacter::GetAbilityByTag(const FGameplayTag& AbilityTag) const
+{
+   if (!AbilitySystemComponent || !AbilityTag.IsValid())
+   {
+       return nullptr;
+   }
+   
+   // Находим ручку спецификации способности
+   FGameplayAbilitySpecHandle Handle = AbilitySystemComponent->FindAbilitySpecHandleByTag(AbilityTag);
+   
+   if (Handle.IsValid())
+   {
+       // Получаем спецификацию по ручке
+       FGameplayAbilitySpec* AbilitySpec = AbilitySystemComponent->FindAbilitySpecFromHandle(Handle);
+       
+       if (AbilitySpec && AbilitySpec->Ability)
+       {
+           return AbilitySpec->Ability;
+       }
+   }
+   
+   return nullptr;
 }

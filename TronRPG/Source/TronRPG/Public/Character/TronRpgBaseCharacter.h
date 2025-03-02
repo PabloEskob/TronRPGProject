@@ -6,31 +6,15 @@
 #include "GameFramework/Character.h"
 #include "AbilitySystemInterface.h"
 #include "GameplayTagContainer.h"
+#include "Interface/Combat/CombatInterface.h"
 #include "TronRpgBaseCharacter.generated.h"
 
-class UWeaponDataAsset;
-class UCharacterAnimInstance;
-class UAbilityInputComponent;
-class UTronRpgAbilitySystemComponent;
-class UTronRpgAttributeSet;
-class UWeaponManagerComponent;
-class UInventoryComponent;
-class UTronRpgComboComponent;
-class UAnimationComponent;
-class UDependencyInjectorComponent;
-class UWeaponComponent;
+// Остальной код без изменений
 
-/**
- * Делегат для обработки изменения видимости оружия
- */
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnWeaponVisibilityChanged, bool, bIsVisible);
 
-/**
- * Базовый класс персонажа в TronRPG
- * Содержит основные компоненты и функциональность для всех персонажей игры
- */
 UCLASS(Abstract)
-class TRONRPG_API ATronRpgBaseCharacter : public ACharacter, public IAbilitySystemInterface
+class TRONRPG_API ATronRpgBaseCharacter : public ACharacter, public IAbilitySystemInterface, public ICombatInterface
 {
 	GENERATED_BODY()
 
@@ -43,91 +27,55 @@ public:
 	virtual void PossessedBy(AController* NewController) override;
 	virtual void OnRep_PlayerState() override;
 
-	/**
-	 * Обработчик делегата изменения видимости оружия
-	 * @param bIsVisible Флаг видимости оружия
-	 */
-	UFUNCTION()
-	void UpdateWeaponVisibility(bool bIsVisible);
-
-	/**
-	 * Экипировать указанное оружие
-	 * @param WeaponAsset Ассет оружия для экипировки
-	 * @param BlendSpaceTransitionDuration Длительность перехода анимации (в секундах)
-	 * @return true если экипировка прошла успешно
-	 */
-	UFUNCTION(BlueprintCallable, Category = "Weapon")
-	bool EquipWeapon(UWeaponDataAsset* WeaponAsset, float BlendSpaceTransitionDuration = 1.0f);
-	
-	/**
-	 * Снять текущее оружие
-	 * @return true если оружие было снято успешно
-	 */
-	UFUNCTION(BlueprintCallable, Category = "Weapon")
-	bool UnequipWeapon();
-
-	/**
-	 * Экипировать оружие по тегу
-	 * @param WeaponTag Геймплей-тег оружия
-	 * @return true если оружие было найдено и экипировано
-	 */
-	UFUNCTION(BlueprintCallable, Category = "Weapon")
-	bool EquipWeaponByTag(FGameplayTag WeaponTag);
-
-	/**
-	 * Получить компонент AbilitySystem (реализация интерфейса IAbilitySystemInterface)
-	 * @return Указатель на компонент AbilitySystem
-	 */
-	UFUNCTION(BlueprintPure, Category = "Abilities")
+	// Реализация IAbilitySystemInterface
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
-	/**
-	 * Инициализация способностей персонажа
-	 * Вызывается при получении контроля над персонажем
-	 */
-	UFUNCTION(BlueprintCallable, Category = "Abilities")
-	virtual void InitializeAbilities();
+	// Реализация ICombatInterface
+	virtual bool EquipWeapon_Implementation(UWeaponDataAsset* WeaponAsset, float BlendSpaceTransitionDuration = 1.0f) override;
+	virtual bool UnequipWeapon_Implementation() override;
+	virtual bool ExecuteAttack_Implementation(const FGameplayTag& AttackTag) override;
+	virtual float ApplyDamageToTarget_Implementation(AActor* Target, float DamageAmount, bool bIsCritical) override;
+	virtual bool HasWeaponEquipped_Implementation() const override;
 
-	/**
-	 * Получить AttributeSet персонажа
-	 * @return Указатель на AttributeSet
-	 */
+	// Дополнительные методы для работы с Ability System
+	UFUNCTION(BlueprintCallable, Category = "Abilities")
+	void InitializeAbilities();
+
+	UFUNCTION(BlueprintCallable, Category = "Abilities")
+	void ApplyBaseEffects();
+
+	// Методы для работы с конкретными способностями
+	UFUNCTION(BlueprintCallable, Category = "Abilities")
+	bool ActivateAbilityByTag(const FGameplayTag& AbilityTag);
+
+	UFUNCTION(BlueprintCallable, Category = "Abilities")
+	bool IsAbilityActive(const FGameplayTag& AbilityTag) const;
+
+	UFUNCTION(BlueprintCallable, Category = "Abilities")
+	UGameplayAbility* GetAbilityByTag(const FGameplayTag& AbilityTag) const;
+
+	// Методы для получения компонентов
 	UFUNCTION(BlueprintPure, Category = "Abilities")
 	UTronRpgAttributeSet* GetAttributeSet() const { return AttributeSet; }
 
-	/**
-	 * Получить компонент ComboComponent
-	 * @return Указатель на ComboComponent
-	 */
 	UFUNCTION(BlueprintPure, Category = "Combat")
 	UTronRpgComboComponent* GetComboComponent() const { return ComboComponent; }
 
-	/**
-	 * Получить компонент AnimationComponent
-	 * @return Указатель на AnimationComponent
-	 */
 	UFUNCTION(BlueprintPure, Category = "Animation")
 	UAnimationComponent* GetAnimationComponent() const { return AnimationComponent; }
 
-	/**
-	 * Получить компонент WeaponComponent
-	 * @return Указатель на WeaponComponent
-	 */
 	UFUNCTION(BlueprintPure, Category = "Weapon")
 	UWeaponComponent* GetWeaponComponent() const { return WeaponComponent; }
-
-	/**
-	 * Применить базовые эффекты к персонажу
-	 * Используется при инициализации персонажа
-	 */
-	UFUNCTION(BlueprintCallable, Category = "Abilities")
-	virtual void ApplyBaseEffects();
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	// Делегат для обработки изменения видимости оружия
 	UPROPERTY(BlueprintAssignable, Category = "Weapon")
 	FOnWeaponVisibilityChanged OnWeaponVisibilityChanged;
+
+	// Обработчик делегата изменения видимости оружия
+	UFUNCTION()
+	void UpdateWeaponVisibility(bool bIsVisible);
 
 protected:
 	/** Компонент системы способностей (GAS) */
@@ -145,6 +93,7 @@ protected:
 	/** Компонент для управления анимациями */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Animation")
 	UAnimationComponent* AnimationComponent;
+	
 
 	/** Компонент для внедрения зависимостей */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Dependencies")
@@ -170,35 +119,22 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Abilities")
 	TArray<TSubclassOf<class UGameplayEffect>> PersistentEffects;
 
-	/**
-	 * Флаг, указывающий, что базовые способности уже были выданы
-	 * Помогает избежать дублирования
-	 */
+	/** Флаг, указывающий, что базовые способности уже были выданы */
 	UPROPERTY(Transient)
 	bool bAbilitiesInitialized;
-	
-	/**
-	 * Инициализация компонентов
-	 * Вызывается из PostInitializeComponents
-	 */
+
+	/** Инициализация компонентов */
 	virtual void SetupComponents();
 
-	/**
-	 * Инициализация базового оружия
-	 * Вызывается из BeginPlay
-	 */
+	/** Инициализация базового оружия */
 	virtual void InitializeDefaultWeapon();
 
 private:
-	/**
-	 * Сервер-функция для экипировки оружия
-	 */
+	/** Серверная функция для экипировки оружия */
 	UFUNCTION(Server, Reliable)
 	void Server_EquipWeapon(UWeaponDataAsset* WeaponAsset, float BlendSpaceTransitionDuration);
 
-	/**
-	 * Сервер-функция для снятия оружия
-	 */
+	/** Серверная функция для снятия оружия */
 	UFUNCTION(Server, Reliable)
 	void Server_UnequipWeapon();
 };
