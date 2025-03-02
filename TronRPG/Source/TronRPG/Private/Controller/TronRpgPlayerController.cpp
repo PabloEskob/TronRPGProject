@@ -1,28 +1,34 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "Controller/TronRpgPlayerController.h"
 
 #include "EnhancedInputSubsystems.h"
 #include "Input/TronRpgEnhancedInputComponent.h"
+#include "Character/TronRpgBaseCharacter.h"
+#include "Component/Input/AbilityInputComponent.h"
+#include "Object/GameplayTagsLibrary.h"
 
 void ATronRpgPlayerController::BeginPlay()
 {
 	Super::BeginPlay();
 
+	// Добавляем контекст ввода в подсистему
 	if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(GetLocalPlayer()))
 	{
 		Subsystem->AddMappingContext(RpgContext, 0);
 	}
+
+	// Настраиваем привязки способностей при старте игры
+	SetupAbilityBindings();
 }
 
 void ATronRpgPlayerController::SetupInputComponent()
 {
 	Super::SetupInputComponent();
 
+	// Приводим InputComponent к нашему типу
 	UTronRpgEnhancedInputComponent* EnhancedInputComponent = Cast<UTronRpgEnhancedInputComponent>(InputComponent);
 	if (EnhancedInputComponent)
 	{
+		// Привязываем базовые действия движения и камеры
 		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &ATronRpgPlayerController::Move);
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ATronRpgPlayerController::Look);
 	}
@@ -40,7 +46,7 @@ void ATronRpgPlayerController::Move(const FInputActionValue& InputActionValue)
 	}
 
 	FVector2D MovementVector = InputActionValue.Get<FVector2D>();
-	
+
 	if (MovementVector.SizeSquared() > 1.0f)
 	{
 		MovementVector.Normalize();
@@ -69,4 +75,41 @@ void ATronRpgPlayerController::Look(const FInputActionValue& InputActionValue)
 		AddYawInput(LookAxisVector.X * YawSpeed);
 		AddPitchInput(LookAxisVector.Y * PitchSpeed);
 	}
+}
+
+void ATronRpgPlayerController::SetupAbilityBindings()
+{
+	// Получаем базового персонажа
+	ATronRpgBaseCharacter* BaseCharacter = Cast<ATronRpgBaseCharacter>(GetPawn());
+	if (!BaseCharacter)
+	{
+		return;
+	}
+
+	// Получаем компонент для обработки ввода способностей
+	UAbilityInputComponent* AbilityInputComp = BaseCharacter->FindComponentByClass<UAbilityInputComponent>();
+	if (!AbilityInputComp)
+	{
+		UE_LOG(LogTemp, Error, TEXT("AbilityInputComponent not found on character!"));
+		return;
+	}
+
+	// Добавляем привязки для наших способностей
+
+	// Привязка для атаки ближнего боя
+	if (PrimaryAttackAction)
+	{
+		AbilityInputComp->AddInputBinding(PrimaryAttackAction, TAG_Ability_Combat_Melee);
+	}
+
+	// Привязка для спринта (если есть)
+	if (SprintAction)
+	{
+		AbilityInputComp->AddInputBinding(SprintAction, TAG_State_Sprinting, true);
+	}
+
+	// Настраиваем InputComponent для наших привязок
+	AbilityInputComp->SetupPlayerInput(InputComponent);
+
+	UE_LOG(LogTemp, Log, TEXT("Ability input bindings setup complete"));
 }

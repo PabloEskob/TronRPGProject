@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+// Базовая реализация способности атаки ближнего боя с комбо-ударами
 
 #include "GameplayAbility/MeleeAttackAbility.h"
 
@@ -15,31 +15,39 @@
 
 UMeleeAttackAbility::UMeleeAttackAbility()
 {
+    // Настраиваем базовые параметры способности
     InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
-
-    // Настройка теговых ограничений
+    
+    // Настройка теговых ограничений - атака невозможна если персонаж мертв, оглушен, и т.д.
     BlockAbilitiesWithTag.AddTag(TAG_State_Dead);
     BlockAbilitiesWithTag.AddTag(TAG_State_Disabled);
     BlockAbilitiesWithTag.AddTag(TAG_State_Stunned);
-
-    // Новый способ установки тегов способности
-    FGameplayTagContainer AssetTags;
-    AssetTags.AddTag(TAG_Ability_Combat_Melee);
-    SetAssetTags(AssetTags);
-
+    
+    // Устанавливаем теги, идентифицирующие эту способность
+    FGameplayTagContainer AbilityAssetTags;
+    AbilityAssetTags.AddTag(TAG_Ability_Combat_Melee);
+    SetAssetTags(AbilityAssetTags);
+    
+    // Теги, которые добавляются при активации способности
     ActivationOwnedTags.AddTag(TAG_State_Attacking);
-    DamageEventTag =  DamageEventTag = TAG_Attack_Melee;
-
+    
+    // Настройка тега события урона
+    DamageEventTag = TAG_Attack_Melee;
+    
+    // Инициализация сокетов для трассировки оружия
     WeaponTraceSocketNames.Add(FName("Weapon_Tip"));
     WeaponTraceSocketNames.Add(FName("Weapon_Mid"));
     WeaponTraceSocketNames.Add(FName("Weapon_Root"));
+    
+    // Инициализация максимального количества ударов в комбо
+    MaxComboCount = 3;
 }
 
 bool UMeleeAttackAbility::CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
-                                           const FGameplayTagContainer* SourceTags, const FGameplayTagContainer* TargetTags,
-                                           OUT FGameplayTagContainer* OptionalRelevantTags) const
+                                          const FGameplayTagContainer* SourceTags, const FGameplayTagContainer* TargetTags,
+                                          OUT FGameplayTagContainer* OptionalRelevantTags) const
 {
-    // Проверяем базовые условия из родительского класса
+    // Сначала проверяем базовые условия из родительского класса
     if (!Super::CanActivateAbility(Handle, ActorInfo, SourceTags, TargetTags, OptionalRelevantTags))
     {
         return false;
@@ -52,11 +60,10 @@ bool UMeleeAttackAbility::CanActivateAbility(const FGameplayAbilitySpecHandle Ha
         return false;
     }
     
-    // Проверяем наличие оружия
+    // Проверяем наличие оружия - персонаж должен иметь экипированное оружие для атаки
     UTronRpgAbilitySystemComponent* ASC = Cast<UTronRpgAbilitySystemComponent>(Character->GetAbilitySystemComponent());
     if (ASC && !ASC->HasMatchingGameplayTag(TAG_Weapon_Equipped))
     {
-        // Персонаж должен иметь экипированное оружие для атаки
         if (OptionalRelevantTags)
         {
             OptionalRelevantTags->AddTag(TAG_Status_NoWeaponEquipped);
@@ -80,7 +87,7 @@ bool UMeleeAttackAbility::CanActivateAbility(const FGameplayAbilitySpecHandle Ha
 void UMeleeAttackAbility::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
                                         const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
-    // Выполняем базовую активацию способности
+    // Проверяем, можем ли мы активировать способность (списание стоимости, проверка кулдаунов и т.д.)
     if (!CommitAbility(Handle, ActorInfo, ActivationInfo))
     {
         EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
@@ -94,7 +101,7 @@ void UMeleeAttackAbility::ActivateAbility(const FGameplayAbilitySpecHandle Handl
         return;
     }
 
-    // Приводим нашего актёра к базовому классу
+    // Получаем персонажа
     ATronRpgBaseCharacter* BaseCharacter = Cast<ATronRpgBaseCharacter>(ActorInfo->AvatarActor.Get());
     if (!BaseCharacter)
     {
@@ -102,52 +109,55 @@ void UMeleeAttackAbility::ActivateAbility(const FGameplayAbilitySpecHandle Handl
         return;
     }
 
-    // Получаем компонент комбо
-    UTronRpgComboComponent* ComboComp = BaseCharacter->FindComponentByClass<UTronRpgComboComponent>();
-    int32 CurrentCombo = (ComboComp) ? ComboComp->ComboCount : 0;
+    // Получаем компонент комбо для определения текущего счетчика
+    UTronRpgComboComponent* ComboComp = BaseCharacter->GetComboComponent();
+    int32 CurrentCombo = (ComboComp) ? ComboComp->GetComboCount() : 0;
     
     // Ограничиваем комбо максимальным значением
     CurrentCombo = FMath::Min(CurrentCombo, MaxComboCount - 1);
 
-    // Добавляем теги состояния при активации
+    // Добавляем теги состояния атаки
     UTronRpgAbilitySystemComponent* ASC = Cast<UTronRpgAbilitySystemComponent>(BaseCharacter->GetAbilitySystemComponent());
     if (ASC)
     {
         ASC->AddLooseGameplayTags(ActivationOwnedTags);
     }
 
-    // Выбираем нужную секцию Montage
+    // Выбираем нужную секцию Montage для текущего комбо-удара
     FName MontageSection = GetMontageSectionName(CurrentCombo);
 
     // Получаем компонент анимации
-    UAnimationComponent* AnimComp = BaseCharacter->FindComponentByClass<UAnimationComponent>();
+    UAnimationComponent* AnimComp = BaseCharacter->GetAnimationComponent();
     if (AnimComp && MeleeAttackMontage)
     {
-        // Сохраняем ActorInfo и другие параметры для использования в OnMontageComplete
+        // Сохраняем информацию о текущей активации для использования в коллбэках
         CurrentSpecHandle = Handle;
         CurrentActorInfo = ActorInfo;
         CurrentActivationInfo = ActivationInfo;
         
-        // Устанавливаем делегат для обработки события нанесения урона
-        // Используем правильное имя делегата из UAnimationComponent
+        // Регистрируем обработчики для событий анимации
         AnimComp->OnMontageNotifyBegin.AddDynamic(this, &UMeleeAttackAbility::OnApplyDamageNotify);
-        
-        // Устанавливаем делегат для завершения монтажа
         AnimComp->OnMontageEnded.AddDynamic(this, &UMeleeAttackAbility::OnMontageComplete);
         
         // Запускаем анимацию атаки
         float PlayRate = 1.0f;
         AnimComp->PlayMontage(MeleeAttackMontage, PlayRate, MontageSection);
+        
+        UE_LOG(LogWeaponSystem, Log, TEXT("Playing MeleeAttack montage. Combo: %d, Section: %s"), 
+            CurrentCombo, *MontageSection.ToString());
     }
     else
     {
-        // Если компонент анимации или монтаж не найдены, просто наносим урон и завершаем способность
+        // Если компонент анимации или монтаж не найдены, сразу наносим урон и завершаем способность
+        UE_LOG(LogWeaponSystem, Warning, TEXT("Failed to play attack animation. AnimComp: %d, Montage: %d"), 
+            (AnimComp != nullptr), (MeleeAttackMontage != nullptr));
+            
         ApplyDamageToTargets(BaseCharacter, CurrentCombo);
         EndAbility(Handle, ActorInfo, ActivationInfo, false, false);
         return;
     }
 
-    // Вызываем Gameplay Cue для визуальных эффектов атаки
+    // Запускаем Gameplay Cue для визуальных эффектов атаки
     if (ASC)
     {
         FGameplayCueParameters CueParams;
@@ -155,7 +165,6 @@ void UMeleeAttackAbility::ActivateAbility(const FGameplayAbilitySpecHandle Handl
         CueParams.Instigator = BaseCharacter;
         CueParams.SourceObject = this;
         
-        // Используем GetOwnedGameplayTags() вместо GetGameplayTagContainer()
         FGameplayTagContainer SourceTags;
         ASC->GetOwnedGameplayTags(SourceTags);
         CueParams.AggregatedSourceTags = SourceTags;
@@ -167,30 +176,40 @@ void UMeleeAttackAbility::ActivateAbility(const FGameplayAbilitySpecHandle Handl
             CueParams);
     }
 
-    // Инкрементируем комбо
+    // Инкрементируем счетчик комбо
     if (ComboComp)
     {
-        ComboComp->IncrementCombo();
+        ComboComp->IncrementCombo(true); // true = сбросить таймер комбо
     }
 }
 
 void UMeleeAttackAbility::CancelAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
                                       const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateCancelAbility)
 {
-    // Прерываем любые выполняемые монтажи
+    // Прерываем любые выполняемые анимации атаки
     if (ActorInfo && ActorInfo->AvatarActor.IsValid())
     {
         if (ATronRpgBaseCharacter* BaseCharacter = Cast<ATronRpgBaseCharacter>(ActorInfo->AvatarActor.Get()))
         {
-            if (UAnimationComponent* AnimComp = BaseCharacter->FindComponentByClass<UAnimationComponent>())
+            if (UAnimationComponent* AnimComp = BaseCharacter->GetAnimationComponent())
             {
                 AnimComp->StopMontage(MeleeAttackMontage);
+                
+                // Отключаем делегаты
+                AnimComp->OnMontageNotifyBegin.RemoveDynamic(this, &UMeleeAttackAbility::OnApplyDamageNotify);
+                AnimComp->OnMontageEnded.RemoveDynamic(this, &UMeleeAttackAbility::OnMontageComplete);
             }
             
-            // Удаляем теги состояния
+            // Удаляем теги состояния атаки
             if (UTronRpgAbilitySystemComponent* ASC = Cast<UTronRpgAbilitySystemComponent>(BaseCharacter->GetAbilitySystemComponent()))
             {
                 ASC->RemoveLooseGameplayTags(ActivationOwnedTags);
+            }
+            
+            // Сбрасываем комбо при отмене
+            if (UTronRpgComboComponent* ComboComp = BaseCharacter->GetComboComponent())
+            {
+                ComboComp->ResetCombo(true);
             }
         }
     }
@@ -200,63 +219,71 @@ void UMeleeAttackAbility::CancelAbility(const FGameplayAbilitySpecHandle Handle,
 
 FName UMeleeAttackAbility::GetMontageSectionName(int32 ComboCount) const
 {
-    // Создаем имя секции на основе префикса и текущего счетчика комбо
-    // Например: "Attack_0", "Attack_1", "Attack_2", и т.д.
+    // Формируем имя секции в зависимости от номера комбо-удара
+    // Например: "Attack_1", "Attack_2", "Attack_3", и т.д.
     FString SectionName = FString::Printf(TEXT("%s%d"), *ComboSectionPrefix, ComboCount + 1);
     return FName(*SectionName);
 }
 
 void UMeleeAttackAbility::OnMontageComplete(UAnimMontage* Montage, bool bInterrupted)
 {
-    // Удаляем локальные объявления и используем члены класса напрямую
+    // Обрабатываем завершение анимации атаки
     if (CurrentActorInfo && CurrentActorInfo->AvatarActor.IsValid())
     {
         ATronRpgBaseCharacter* BaseChar = Cast<ATronRpgBaseCharacter>(CurrentActorInfo->AvatarActor.Get());
         if (BaseChar)
         {
-            UAnimationComponent* AnimComponent = BaseChar->FindComponentByClass<UAnimationComponent>();
+            // Отписываемся от делегатов
+            UAnimationComponent* AnimComponent = BaseChar->GetAnimationComponent();
             if (AnimComponent)
             {
                 AnimComponent->OnMontageNotifyBegin.RemoveDynamic(this, &UMeleeAttackAbility::OnApplyDamageNotify);
                 AnimComponent->OnMontageEnded.RemoveDynamic(this, &UMeleeAttackAbility::OnMontageComplete);
             }
 
+            // Удаляем теги состояния атаки
             UTronRpgAbilitySystemComponent* ASC = Cast<UTronRpgAbilitySystemComponent>(BaseChar->GetAbilitySystemComponent());
             if (ASC)
             {
                 ASC->RemoveLooseGameplayTags(ActivationOwnedTags);
             }
 
+            // Если монтаж был прерван, сбрасываем комбо
             if (bInterrupted)
             {
-                UTronRpgComboComponent* ComboComp = BaseChar->FindComponentByClass<UTronRpgComboComponent>();
+                UTronRpgComboComponent* ComboComp = BaseChar->GetComboComponent();
                 if (ComboComp)
                 {
-                    ComboComp->ResetCombo();
+                    ComboComp->ResetCombo(true);
                 }
             }
         }
     }
 
+    // Завершаем способность
     EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, false, false);
 }
 
 void UMeleeAttackAbility::OnApplyDamageNotify(FName NotifyName)
 {
-    // Это callback, который вызывается из Animation Notify
-    if (const FGameplayAbilityActorInfo* ActorInfo = GetCurrentActorInfo())
+    // Этот метод вызывается когда анимация достигает Animation Notify с указанным именем
+    // Например, имя "ApplyDamage" будет соответствовать моменту нанесения урона в анимации
+    
+    if (NotifyName == FName("ApplyDamage") && CurrentActorInfo)
     {
-        if (ATronRpgBaseCharacter* BaseCharacter = Cast<ATronRpgBaseCharacter>(ActorInfo->AvatarActor.Get()))
+        if (ATronRpgBaseCharacter* BaseCharacter = Cast<ATronRpgBaseCharacter>(CurrentActorInfo->AvatarActor.Get()))
         {
-            // Получаем компонент комбо для определения текущего счетчика
-            UTronRpgComboComponent* ComboComp = BaseCharacter->FindComponentByClass<UTronRpgComboComponent>();
-            int32 CurrentCombo = (ComboComp) ? ComboComp->ComboCount - 1 : 0;
+            // Получаем текущий счетчик комбо
+            UTronRpgComboComponent* ComboComp = BaseCharacter->GetComboComponent();
+            int32 CurrentCombo = (ComboComp) ? ComboComp->GetComboCount() - 1 : 0;
             
             // Ограничиваем значение комбо
             CurrentCombo = FMath::Clamp(CurrentCombo, 0, MaxComboCount - 1);
             
-            // Применяем урон
+            // Применяем урон в момент указанный в анимации
             ApplyDamageToTargets(BaseCharacter, CurrentCombo);
+            
+            UE_LOG(LogWeaponSystem, Log, TEXT("Apply damage notify triggered. Combo: %d"), CurrentCombo);
         }
     }
 }
@@ -265,11 +292,19 @@ void UMeleeAttackAbility::ApplyDamageToTargets(ATronRpgBaseCharacter* SourceChar
 {
     if (!SourceCharacter || !DamageEffect)
     {
+        UE_LOG(LogWeaponSystem, Warning, TEXT("Invalid parameters for ApplyDamageToTargets"));
         return;
     }
     
     // Находим цели в радиусе атаки
     TArray<AActor*> TargetsInRange = FindTargetsInAttackRange(SourceCharacter);
+    
+    // Если не нашли ни одной цели, выходим
+    if (TargetsInRange.Num() == 0)
+    {
+        UE_LOG(LogWeaponSystem, Log, TEXT("No targets found in attack range"));
+        return;
+    }
     
     // Для каждой найденной цели проверяем возможность нанесения урона и применяем его
     for (AActor* Target : TargetsInRange)
@@ -287,7 +322,8 @@ void UMeleeAttackAbility::ApplyDamageToTargets(ATronRpgBaseCharacter* SourceChar
             if (DamageSpecHandle.IsValid())
             {
                 // Получаем ASC цели
-                if (UAbilitySystemComponent* TargetASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(Target))
+                UAbilitySystemComponent* TargetASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(Target);
+                if (TargetASC)
                 {
                     // Применяем эффект к цели
                     FActiveGameplayEffectHandle ActiveGEHandle = TargetASC->ApplyGameplayEffectSpecToSelf(*DamageSpecHandle.Data.Get());
@@ -311,13 +347,7 @@ void UMeleeAttackAbility::ApplyDamageToTargets(ATronRpgBaseCharacter* SourceChar
 bool UMeleeAttackAbility::CanApplyDamageToTarget(AActor* Target) const
 {
     // Проверка валидности цели
-    if (!Target)
-    {
-        return false;
-    }
-    
-    // Замена устаревшего метода IsPendingKill() на более современный IsValid()
-    if (!IsValid(Target))
+    if (!Target || !IsValid(Target))
     {
         return false;
     }
@@ -338,7 +368,7 @@ bool UMeleeAttackAbility::CanApplyDamageToTarget(AActor* Target) const
         return false;
     }
     
-    // Проверка тегов цели
+    // Проверка тегов цели - теги, требуемые для возможности атаковать цель
     if (!AttackConfig.TargetRequiredTags.IsEmpty())
     {
         FGameplayTagContainer TargetTags;
@@ -351,7 +381,7 @@ bool UMeleeAttackAbility::CanApplyDamageToTarget(AActor* Target) const
         }
     }
     
-    // Проверка блокирующих тегов
+    // Проверка блокирующих тегов - теги, которые делают цель неуязвимой
     if (!AttackConfig.TargetBlockedTags.IsEmpty())
     {
         FGameplayTagContainer TargetTags;
@@ -376,17 +406,18 @@ TArray<AActor*> UMeleeAttackAbility::FindTargetsInAttackRange(ATronRpgBaseCharac
         return TargetsInRange;
     }
     
-    // Получаем меш оружия
+    // Получаем меш оружия для более точной трассировки
     UStaticMeshComponent* WeaponMesh = nullptr;
-    UWeaponComponent* WeaponComp = SourceCharacter->FindComponentByClass<UWeaponComponent>();
+    UWeaponComponent* WeaponComp = SourceCharacter->GetWeaponComponent();
     if (WeaponComp)
     {
         WeaponMesh = WeaponComp->MainHandMeshComponent;
     }
     
-    if (!WeaponMesh)
+    if (!WeaponMesh || !WeaponMesh->IsVisible())
     {
-        // Если не найден меш оружия, используем сферическую трассировку от персонажа
+        // Если не найден меш оружия или оно невидимо, 
+        // используем сферическую трассировку от позиции персонажа
         FVector CharacterLocation = SourceCharacter->GetActorLocation();
         FVector ForwardVector = SourceCharacter->GetActorForwardVector();
         
@@ -430,7 +461,6 @@ TArray<AActor*> UMeleeAttackAbility::FindTargetsInAttackRange(ATronRpgBaseCharac
     else
     {
         // Если меш оружия найден, используем сокеты для более точной трассировки
-        USkeletalMeshComponent* CharacterMesh = SourceCharacter->GetMesh();
         
         // Игнорируем источник атаки и его компоненты
         TArray<AActor*> ActorsToIgnore;
@@ -475,7 +505,6 @@ TArray<AActor*> UMeleeAttackAbility::FindTargetsInAttackRange(ATronRpgBaseCharac
         FVector CharacterLocation = SourceCharacter->GetActorLocation();
         FVector ForwardVector = SourceCharacter->GetActorForwardVector();
         
-        // Выполняем сферическую трассировку перед персонажем для дополнительных целей
         TArray<AActor*> ForwardActors;
         FVector SphereCenter = CharacterLocation + ForwardVector * AttackConfig.AttackRadius * 0.5f;
         UKismetSystemLibrary::SphereOverlapActors(
@@ -529,7 +558,7 @@ float UMeleeAttackAbility::CalculateDamage(int32 ComboCount, bool& bIsCritical) 
     else
     {
         // Если кривая не задана, используем линейное увеличение урона с каждым комбо
-        Damage *= (1.0f + 0.2f * ComboCount);
+        Damage *= (1.0f + 0.2f * ComboCount); // 20% увеличение за каждый удар в комбо
     }
     
     // Проверка на критический удар
@@ -558,17 +587,21 @@ FGameplayEffectSpecHandle UMeleeAttackAbility::CreateDamageEffectSpec(AActor* Ta
         return FGameplayEffectSpecHandle();
     }
 
+    // Создаем контекст эффекта
     FGameplayEffectContextHandle EffectContext = ActorInfo->AbilitySystemComponent->MakeEffectContext();
-    EffectContext.AddSourceObject(this);
+    EffectContext.AddSourceObject(this); // Источник эффекта - сама способность
     EffectContext.AddInstigator(ActorInfo->OwnerActor.Get(), ActorInfo->AvatarActor.Get());
 
+    // Создаем спецификацию эффекта
     FGameplayEffectSpecHandle SpecHandle = ActorInfo->AbilitySystemComponent->MakeOutgoingSpec(
         DamageEffect, 1.0f, EffectContext);
 
     if (SpecHandle.IsValid())
     {
+        // Устанавливаем значение урона через SetByCallerMagnitude
         SpecHandle.Data->SetSetByCallerMagnitude(TAG_Damage, DamageAmount);
 
+        // Если удар критический, добавляем соответствующий тег
         if (bIsCritical)
         {
             SpecHandle.Data->AddDynamicAssetTag(TAG_Damage_Critical);
