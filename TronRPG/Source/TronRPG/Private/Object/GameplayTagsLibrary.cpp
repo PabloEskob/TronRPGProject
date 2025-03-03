@@ -34,3 +34,5 @@ UE_DEFINE_GAMEPLAY_TAG(TAG_Status_NoWeaponEquipped, "Status.NoWeaponEquipped");
 
 // New tags for abilities
 UE_DEFINE_GAMEPLAY_TAG(TAG_Ability_Combat_Melee, "Ability.Combat.Melee");
+
+UE_DEFINE_GAMEPLAY_TAG(TAG_Input_Attack, "Input.Attack");

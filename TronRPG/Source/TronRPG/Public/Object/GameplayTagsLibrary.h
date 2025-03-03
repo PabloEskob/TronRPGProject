@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include "NativeGameplayTags.h"
+
 UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_WeaponType_Sword)
 UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_WeaponType_SwordAndShield)
 UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_WeaponType_None)
@@ -32,3 +33,5 @@ UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Status_NoWeaponEquipped)
 
 // New tags for abilities
 UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Ability_Combat_Melee)
+
+UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Input_Attack)
