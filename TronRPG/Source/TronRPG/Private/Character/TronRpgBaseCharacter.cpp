@@ -57,15 +57,30 @@ ATronRpgBaseCharacter::ATronRpgBaseCharacter()
 
 int32 ATronRpgBaseCharacter::GetComboCount_Implementation() const
 {
-	return 0;
+	return ComboComponent ? ComboComponent->GetCurrentComboCount() : 0;
 }
 
 void ATronRpgBaseCharacter::IncrementCombo_Implementation(bool bResetTimer)
 {
+	if (ComboComponent)
+	{
+		ComboComponent->IncrementCombo();
+        
+		// Если нужно сбросить таймер окна комбо
+		if (bResetTimer)
+		{
+			ComboComponent->CloseComboWindow();
+			ComboComponent->OpenComboWindow();
+		}
+	}
 }
 
 void ATronRpgBaseCharacter::ResetCombo_Implementation(bool bFireEvent)
 {
+	if (ComboComponent)
+	{
+		ComboComponent->ResetCombo();
+	}
 }
 
 TArray<FName> ATronRpgBaseCharacter::GetWeaponTraceSocketNames_Implementation() const
