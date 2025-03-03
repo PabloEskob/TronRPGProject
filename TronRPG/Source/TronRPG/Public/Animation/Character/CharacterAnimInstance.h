@@ -102,7 +102,7 @@ protected:
 	/** Флаг бега трусцой */
 	UPROPERTY(BlueprintReadOnly, Category = "Movement")
 	bool bIsJogging = false;
-
+	
 	/** Флаг бега (спринта) */
 	UPROPERTY(BlueprintReadOnly, Category = "Movement")
 	bool bIsSprinting = false;
