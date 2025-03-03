@@ -133,6 +133,8 @@ public:
 	virtual void ApplyBaseEffects();
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	
+	bool GetCurrentWeaponTag();
 
 	// Делегат для обработки изменения видимости оружия
 	UPROPERTY(BlueprintAssignable, Category = "Weapon")

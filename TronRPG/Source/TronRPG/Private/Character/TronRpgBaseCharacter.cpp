@@ -57,28 +57,20 @@ ATronRpgBaseCharacter::ATronRpgBaseCharacter()
 
 int32 ATronRpgBaseCharacter::GetComboCount_Implementation() const
 {
-	return ComboComponent ? ComboComponent->GetComboCount() : 0;
+	return 0;
 }
 
 void ATronRpgBaseCharacter::IncrementCombo_Implementation(bool bResetTimer)
 {
-	if (ComboComponent)
-	{
-		ComboComponent->IncrementCombo(bResetTimer);
-	}
 }
 
 void ATronRpgBaseCharacter::ResetCombo_Implementation(bool bFireEvent)
 {
-	if (ComboComponent)
-	{
-		ComboComponent->ResetCombo(bFireEvent);
-	}
 }
 
 TArray<FName> ATronRpgBaseCharacter::GetWeaponTraceSocketNames_Implementation() const
 {
-	return { FName("Weapon_Tip"), FName("Weapon_Mid"), FName("Weapon_Root") };
+	return {FName("Weapon_Tip"), FName("Weapon_Mid"), FName("Weapon_Root")};
 }
 
 bool ATronRpgBaseCharacter::HasWeaponWithTag_Implementation(const FGameplayTag& WeaponTag) const
@@ -103,7 +95,7 @@ void ATronRpgBaseCharacter::SetupComponents()
 	if (AbilitySystemComponent)
 	{
 		// Настройка обработки тегов для ASC
-		
+
 		AbilitySystemComponent->SetTagMapCount((TAG_State_Running), 0);
 		AbilitySystemComponent->SetTagMapCount((TAG_State_Sprinting), 0);
 	}
@@ -115,7 +107,7 @@ void ATronRpgBaseCharacter::SetupComponents()
 void ATronRpgBaseCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
 	// Инициализация базового оружия, если указано
 	InitializeDefaultWeapon();
 
@@ -311,4 +303,9 @@ void ATronRpgBaseCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>
 	DOREPLIFETIME(ATronRpgBaseCharacter, AbilitySystemComponent);
 
 	// Можно добавить другие переменные для репликации при необходимости
+}
+
+bool ATronRpgBaseCharacter::GetCurrentWeaponTag()
+{
+	return true;
 }
