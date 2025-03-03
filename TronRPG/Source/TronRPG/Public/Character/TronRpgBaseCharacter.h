@@ -200,6 +200,9 @@ protected:
 	 */
 	virtual void InitializeDefaultWeapon();
 
+	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Weapon")
+	bool bIsPlayingEquipAnimation;
+
 private:
 	/**
 	 * Сервер-функция для экипировки оружия

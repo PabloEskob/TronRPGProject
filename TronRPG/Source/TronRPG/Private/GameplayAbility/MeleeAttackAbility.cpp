@@ -5,6 +5,7 @@
 #include "Component/Animation/AnimationComponent.h"
 #include "Component/TronRpgComboComponent.h"
 #include "AbilitySystemBlueprintLibrary.h"
+#include "Component/Weapon/WeaponComponent.h"
 #include "Object/GameplayTagsLibrary.h"
 
 UMeleeAttackAbility::UMeleeAttackAbility()
@@ -74,8 +75,8 @@ void UMeleeAttackAbility::OnRemoveAbility(const FGameplayAbilityActorInfo* Actor
 }
 
 bool UMeleeAttackAbility::CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
-                                             const FGameplayTagContainer* SourceTags, const FGameplayTagContainer* TargetTags,
-                                             FGameplayTagContainer* OptionalRelevantTags) const
+										 const FGameplayTagContainer* SourceTags, const FGameplayTagContainer* TargetTags,
+										 FGameplayTagContainer* OptionalRelevantTags) const
 {
 	// Проверяем базовые условия активации
 	if (!Super::CanActivateAbility(Handle, ActorInfo, SourceTags, TargetTags, OptionalRelevantTags))
@@ -89,7 +90,21 @@ bool UMeleeAttackAbility::CanActivateAbility(const FGameplayAbilitySpecHandle Ha
 	{
 		return false;
 	}
-	
+    
+	// Проверяем, не находится ли персонаж в процессе экипировки/снятия оружия
+	UAbilitySystemComponent* ASC = ActorInfo->AbilitySystemComponent.Get();
+	if (ASC && ASC->HasMatchingGameplayTag(TAG_State_Equipment_Changing))
+	{
+		return false;
+	}
+    
+	// Проверяем, есть ли у персонажа оружие
+	UWeaponComponent* WeaponComp = Character->GetWeaponComponent();
+	if (!WeaponComp || !WeaponComp->IsWeaponEquipped())
+	{
+		return false;
+	}
+    
 	return true;
 }
 

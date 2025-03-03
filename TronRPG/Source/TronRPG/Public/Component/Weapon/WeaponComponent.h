@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
 #include "GameplayTagContainer.h"
+#include "Component/Animation/AnimationComponent.h"
 #include "WeaponComponent.generated.h"
 
 class UWeaponDataAsset;
@@ -95,6 +96,9 @@ public:
 	UFUNCTION(BlueprintPure, Category = "Weapon")
 	bool HasWeaponWithTag(FGameplayTag Tag) const;
 
+	UPROPERTY(BlueprintReadOnly, Category = "Weapon")
+	bool bIsChangingEquipment = false;
+
 protected:
 	/**
 	 * Компонент системы способностей для управления тегами
@@ -141,4 +145,21 @@ protected:
 	 * @return Указатель на Asset Manager
 	 */
 	class UTronRpgWeaponAssetManager* GetWeaponAssetManager() const;
+
+	UPROPERTY()
+	UAnimationComponent* AnimationComponent;
+
+	// Добавить в публичный раздел:
+	UFUNCTION()
+	void OnEquipAnimationEnded(UAnimMontage* Montage, bool bInterrupted);
+
+	UFUNCTION()
+	void OnUnequipAnimationEnded(UAnimMontage* Montage, bool bInterrupted);
+
+	// Добавить в публичный раздел:
+	UFUNCTION(BlueprintCallable, Category = "Weapon")
+	void FinishEquipping();
+
+	UFUNCTION(BlueprintCallable, Category = "Weapon")
+	void FinishUnequipping();
 };

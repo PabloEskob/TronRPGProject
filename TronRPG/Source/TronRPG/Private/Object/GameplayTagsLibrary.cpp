@@ -36,3 +36,5 @@ UE_DEFINE_GAMEPLAY_TAG(TAG_Status_NoWeaponEquipped, "Status.NoWeaponEquipped");
 UE_DEFINE_GAMEPLAY_TAG(TAG_Ability_Combat_Melee, "Ability.Combat.Melee");
 
 UE_DEFINE_GAMEPLAY_TAG(TAG_Input_Attack, "Input.Attack");
+
+UE_DEFINE_GAMEPLAY_TAG(TAG_State_Equipment_Changing, "State.Equipment.Changing");

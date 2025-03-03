@@ -248,19 +248,32 @@ bool ATronRpgBaseCharacter::EquipWeapon(UWeaponDataAsset* WeaponAsset, float Ble
 		return true; // Предполагаем успех на клиенте, сервер проверит
 	}
 
-	// Логика экипировки на сервере
-	if (WeaponComponent && AnimationComponent)
+	// Проверка, не находится ли персонаж в анимации атаки
+	if (AbilitySystemComponent && AbilitySystemComponent->HasMatchingGameplayTag(FGameplayTag::RequestGameplayTag("State.Attacking")))
 	{
-		WeaponComponent->EquipWeapon(WeaponAsset);
-		AnimationComponent->PlayMontage(WeaponAsset->EquipMontage.Get());
+		UE_LOG(LogTemp, Warning, TEXT("Cannot equip weapon: character is attacking"));
+		return false;
+	}
+
+	// Вызов экипировки через компонент оружия
+	if (!WeaponComponent)
+	{
+		return false;
+	}
+
+	bool success = WeaponComponent->EquipWeapon(WeaponAsset);
+    
+	// Если экипировка прошла успешно, настраиваем BlendSpace
+	if (success && AnimationComponent && WeaponAsset)
+	{
 		AnimationComponent->TransitionToNewBlendSpace(
 			WeaponAsset->WalkForwardBlendSpace.Get(),
 			WeaponAsset->WalkBackwardBlendSpace.Get(),
 			BlendSpaceTransitionDuration
 		);
-		return true;
 	}
-	return false;
+    
+	return success;
 }
 
 void ATronRpgBaseCharacter::Server_EquipWeapon_Implementation(UWeaponDataAsset* WeaponAsset, float BlendSpaceTransitionDuration)
@@ -282,19 +295,27 @@ bool ATronRpgBaseCharacter::UnequipWeapon()
 		return true; // Предполагаем успех на клиенте, сервер проверит
 	}
 
-	// Логика снятия оружия на сервере
-	if (AnimationComponent && DefaultWeaponAsset)
+	// Проверка, не находится ли персонаж в анимации атаки
+	if (AbilitySystemComponent && AbilitySystemComponent->HasMatchingGameplayTag(FGameplayTag::RequestGameplayTag("State.Attacking")))
 	{
-		AnimationComponent->PlayMontage(WeaponComponent->CurrentWeapon->UnequipMontage.Get());
+		UE_LOG(LogTemp, Warning, TEXT("Cannot unequip weapon: character is attacking"));
+		return false;
+	}
+
+	// Вызов снятия оружия через компонент
+	bool success = WeaponComponent->UnequipWeapon();
+    
+	// Если снятие прошло успешно, настраиваем BlendSpace
+	if (success && AnimationComponent && DefaultWeaponAsset)
+	{
 		AnimationComponent->TransitionToNewBlendSpace(
 			DefaultWeaponAsset->WalkForwardBlendSpace.Get(),
 			DefaultWeaponAsset->WalkBackwardBlendSpace.Get(),
 			1.0f
 		);
-		WeaponComponent->UnequipWeapon();
-		return true;
 	}
-	return false;
+    
+	return success;
 }
 
 void ATronRpgBaseCharacter::Server_UnequipWeapon_Implementation()
@@ -314,10 +335,11 @@ void ATronRpgBaseCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	// Репликация компонента AbilitySystem
+	// Добавляем репликацию флага
+	DOREPLIFETIME(ATronRpgBaseCharacter, bIsPlayingEquipAnimation);
+    
+	// Существующие репликации
 	DOREPLIFETIME(ATronRpgBaseCharacter, AbilitySystemComponent);
-
-	// Можно добавить другие переменные для репликации при необходимости
 }
 
 bool ATronRpgBaseCharacter::GetCurrentWeaponTag()
