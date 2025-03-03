@@ -31,6 +31,11 @@ public:
 	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
 	                        const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
 
+	/**
+	 * Продолжить комбо-атаку, переходя к следующей секции
+	 */
+	void ContinueComboAttack();
+
 protected:
 	/** Монтаж атаки по умолчанию */
 	UPROPERTY(EditDefaultsOnly, Category = "Attack|Animation")

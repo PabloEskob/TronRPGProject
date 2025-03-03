@@ -4,6 +4,7 @@
 #include "Component/TronRpgComboComponent.h"
 #include "GAS/TronRpgAbilitySystemComponent.h"
 #include "Object/GameplayTagsLibrary.h"
+#include "GameplayAbility/MeleeAttackAbility.h"
 
 UTronRpgEnhancedInputComponent::UTronRpgEnhancedInputComponent()
 {
@@ -33,28 +34,49 @@ void UTronRpgEnhancedInputComponent::ProcessComboInput(const FInputActionValue& 
     
     // Получаем компонент комбо
     UTronRpgComboComponent* ComboComp = OwningCharacter->GetComboComponent();
-    if (!ComboComp)
+    if (!ComboComp || !ComboComp->IsComboWindowOpen())
     {
-        UE_LOG(LogTemp, Warning, TEXT("TronRpgEnhancedInputComponent: Failed to find combo component"));
         return;
     }
     
-    // Если окно комбо открыто, обрабатываем ввод
-    if (ComboComp->IsComboWindowOpen())
+    // Получаем AbilitySystemComponent
+    UAbilitySystemComponent* ASC = OwningCharacter->GetAbilitySystemComponent();
+    if (!ASC)
     {
-        // Обрабатываем ввод комбо
-        ComboComp->ProcessComboInput();
-        
-        // Активируем способность атаки через AbilitySystemComponent
-        TryActivateAbilityByTag(TAG_Ability_Combat_Melee);
-        
-        UE_LOG(LogTemp, Log, TEXT("TronRpgEnhancedInputComponent: Processed combo input, current combo: %d"), 
-               ComboComp->GetCurrentComboCount());
+        return;
     }
-    else
+    
+    // Ищем активную способность атаки
+    TArray<FGameplayAbilitySpec*> ActiveAbilities;
+    ASC->GetActivatableGameplayAbilitySpecsByAllMatchingTags(
+        FGameplayTagContainer(TAG_Ability_Combat_Melee), 
+        ActiveAbilities
+    );
+    
+    // Если нашли активную способность, продолжаем комбо
+    for (FGameplayAbilitySpec* AbilitySpec : ActiveAbilities)
     {
-        UE_LOG(LogTemp, Verbose, TEXT("TronRpgEnhancedInputComponent: Combo window not open, ignoring input"));
+        if (AbilitySpec && AbilitySpec->IsActive())
+        {
+            UMeleeAttackAbility* MeleeAbility = Cast<UMeleeAttackAbility>(AbilitySpec->GetPrimaryInstance());
+            if (MeleeAbility)
+            {
+                // Обрабатываем ввод комбо в компоненте
+                ComboComp->ProcessComboInput();
+                
+                // Продолжаем комбо в способности
+                MeleeAbility->ContinueComboAttack();
+                
+                UE_LOG(LogTemp, Log, TEXT("Combo continued, new count: %d"), 
+                       ComboComp->GetCurrentComboCount());
+                return;
+            }
+        }
     }
+    
+    // Если активной атаки не нашли, пытаемся активировать новую
+    UE_LOG(LogTemp, Log, TEXT("No active melee ability found, trying to activate new one"));
+    TryActivateAbilityByTag(TAG_Ability_Combat_Melee);
 }
 
 bool UTronRpgEnhancedInputComponent::TryActivateAbilityByTag(const FGameplayTag& AbilityTag)

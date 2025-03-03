@@ -39,7 +39,15 @@ void ATronRpgPlayerController::SetupInputComponent()
         EnhancedInputComp->BindAction(LookAction, ETriggerEvent::Triggered, this, &ATronRpgPlayerController::Look);
         
         // Привязываем действие комбо-атаки напрямую к EnhancedInputComponent
-        EnhancedInputComp->BindAction(ComboAttackAction, ETriggerEvent::Triggered, this, &ATronRpgPlayerController::ProcessComboInput);
+        if (ComboAttackAction)
+        {
+            EnhancedInputComp->BindAction(ComboAttackAction, ETriggerEvent::Triggered, this, &ATronRpgPlayerController::ProcessComboInput);
+            UE_LOG(LogTemp, Log, TEXT("Bound combo attack action"));
+        }
+        else
+        {
+            UE_LOG(LogTemp, Warning, TEXT("ComboAttackAction is not set in TronRpgPlayerController"));
+        }
     }
     else
     {
@@ -99,6 +107,8 @@ void ATronRpgPlayerController::ProcessComboInput(const FInputActionValue& InputA
         }
     }
     
+    UE_LOG(LogTemp, Log, TEXT("TronRpgPlayerController: Processing combo input"));
+    
     // Делегируем обработку комбо-ввода расширенному компоненту
     EnhancedInputComp->ProcessComboInput(InputActionValue);
 }
@@ -109,6 +119,7 @@ void ATronRpgPlayerController::SetupAbilityBindings()
     ATronRpgBaseCharacter* BaseCharacter = Cast<ATronRpgBaseCharacter>(GetPawn());
     if (!BaseCharacter)
     {
+        UE_LOG(LogTemp, Warning, TEXT("SetupAbilityBindings: No valid character found"));
         return;
     }
 
@@ -124,12 +135,14 @@ void ATronRpgPlayerController::SetupAbilityBindings()
     if (PrimaryAttackAction)
     {
         AbilityInputComp->AddInputBinding(PrimaryAttackAction, TAG_Ability_Combat_Melee);
+        UE_LOG(LogTemp, Log, TEXT("Added primary attack binding"));
     }
 
     // Привязка для спринта (если есть)
     if (SprintAction)
     {
         AbilityInputComp->AddInputBinding(SprintAction, TAG_State_Sprinting, true);
+        UE_LOG(LogTemp, Log, TEXT("Added sprint binding"));
     }
 
     // Проверяем наличие расширенного компонента ввода
@@ -142,6 +155,11 @@ void ATronRpgPlayerController::SetupAbilityBindings()
     if (EnhancedInputComp)
     {
         EnhancedInputComp->SetAbilityInputComponent(AbilityInputComp);
+        UE_LOG(LogTemp, Log, TEXT("Set ability input component reference"));
+    }
+    else
+    {
+        UE_LOG(LogTemp, Warning, TEXT("EnhancedInputComponent not valid in SetupAbilityBindings"));
     }
 
     // Настраиваем InputComponent для наших привязок

@@ -124,18 +124,20 @@ void UTronRpgComboComponent::ResetCombo()
 
 void UTronRpgComboComponent::ProcessComboInput()
 {
-	if (bComboWindowOpen)
-	{
-		// Закрываем текущее окно комбо
-		bComboWindowOpen = false;
-		GetWorld()->GetTimerManager().ClearTimer(ComboWindowTimerHandle);
-		
-		// Увеличиваем счетчик комбо
-		IncrementCombo();
-		
-		// Отправляем событие для продолжения комбо
-		OnComboContinue.Broadcast(CurrentComboCount);
-	}
+    if (bComboWindowOpen)
+    {
+        // Закрываем текущее окно комбо
+        bComboWindowOpen = false;
+        GetWorld()->GetTimerManager().ClearTimer(ComboWindowTimerHandle);
+        
+        // Увеличиваем счетчик комбо
+        IncrementCombo();
+        
+        // Отправляем событие для продолжения комбо
+        OnComboContinue.Broadcast(CurrentComboCount);
+        
+        UE_LOG(LogTemp, Log, TEXT("Combo input processed, combo count: %d"), CurrentComboCount);
+    }
 }
 
 bool UTronRpgComboComponent::IsComboWindowOpen() const
