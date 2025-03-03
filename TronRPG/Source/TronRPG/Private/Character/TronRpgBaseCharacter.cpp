@@ -55,6 +55,42 @@ ATronRpgBaseCharacter::ATronRpgBaseCharacter()
 	bAbilitiesInitialized = false;
 }
 
+int32 ATronRpgBaseCharacter::GetComboCount_Implementation() const
+{
+	return ComboComponent ? ComboComponent->GetComboCount() : 0;
+}
+
+void ATronRpgBaseCharacter::IncrementCombo_Implementation(bool bResetTimer)
+{
+	if (ComboComponent)
+	{
+		ComboComponent->IncrementCombo(bResetTimer);
+	}
+}
+
+void ATronRpgBaseCharacter::ResetCombo_Implementation(bool bFireEvent)
+{
+	if (ComboComponent)
+	{
+		ComboComponent->ResetCombo(bFireEvent);
+	}
+}
+
+TArray<FName> ATronRpgBaseCharacter::GetWeaponTraceSocketNames_Implementation() const
+{
+	return { FName("Weapon_Tip"), FName("Weapon_Mid"), FName("Weapon_Root") };
+}
+
+bool ATronRpgBaseCharacter::HasWeaponWithTag_Implementation(const FGameplayTag& WeaponTag) const
+{
+	return WeaponComponent ? WeaponComponent->HasWeaponWithTag(WeaponTag) : false;
+}
+
+float ATronRpgBaseCharacter::PlayAttackAnimation_Implementation(UAnimMontage* Montage, float PlayRate, FName SectionName)
+{
+	return AnimationComponent ? AnimationComponent->PlayMontage(Montage, PlayRate, SectionName) : 0.0f;
+}
+
 void ATronRpgBaseCharacter::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();

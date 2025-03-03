@@ -6,6 +6,7 @@
 #include "GameFramework/Character.h"
 #include "AbilitySystemInterface.h"
 #include "GameplayTagContainer.h"
+#include "Interface/Weapon/MeleeAttackInterface.h"
 #include "TronRpgBaseCharacter.generated.h"
 
 class UWeaponDataAsset;
@@ -30,12 +31,20 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnWeaponVisibilityChanged, bool, bI
  * Содержит основные компоненты и функциональность для всех персонажей игры
  */
 UCLASS(Abstract)
-class TRONRPG_API ATronRpgBaseCharacter : public ACharacter, public IAbilitySystemInterface
+class TRONRPG_API ATronRpgBaseCharacter : public ACharacter, public IAbilitySystemInterface, public IMeleeAttackInterface
 {
 	GENERATED_BODY()
 
 public:
 	ATronRpgBaseCharacter();
+
+	// Реализация IMeleeAttackInterface
+	virtual int32 GetComboCount_Implementation() const override;
+	virtual void IncrementCombo_Implementation(bool bResetTimer) override;
+	virtual void ResetCombo_Implementation(bool bFireEvent) override;
+	virtual TArray<FName> GetWeaponTraceSocketNames_Implementation() const override;
+	virtual bool HasWeaponWithTag_Implementation(const FGameplayTag& WeaponTag) const override;
+	virtual float PlayAttackAnimation_Implementation(UAnimMontage* Montage, float PlayRate, FName SectionName) override;
 
 	// Методы жизненного цикла
 	virtual void BeginPlay() override;
@@ -58,7 +67,7 @@ public:
 	 */
 	UFUNCTION(BlueprintCallable, Category = "Weapon")
 	bool EquipWeapon(UWeaponDataAsset* WeaponAsset, float BlendSpaceTransitionDuration = 1.0f);
-	
+
 	/**
 	 * Снять текущее оружие
 	 * @return true если оружие было снято успешно
@@ -176,7 +185,7 @@ protected:
 	 */
 	UPROPERTY(Transient)
 	bool bAbilitiesInitialized;
-	
+
 	/**
 	 * Инициализация компонентов
 	 * Вызывается из PostInitializeComponents

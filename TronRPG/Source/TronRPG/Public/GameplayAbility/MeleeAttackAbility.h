@@ -1,10 +1,11 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #pragma once
 
 #include "CoreMinimal.h"
 #include "Abilities/GameplayAbility.h"
 #include "GameplayTagContainer.h"
+#include "GameplayEffect.h"
+#include "Config/MeleeAttackConfig.h"
+#include "Engine/DataTable.h"
 #include "MeleeAttackAbility.generated.h"
 
 class ATronRpgBaseCharacter;
@@ -12,45 +13,8 @@ class UAnimMontage;
 class UCurveFloat;
 
 /**
- * Настройки для атаки ближнего боя
- */
-USTRUCT(BlueprintType)
-struct FMeleeAttackConfig
-{
-    GENERATED_BODY()
-
-    /** Базовый урон атаки */
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Damage")
-    float BaseDamage = 20.0f;
-
-    /** Радиус атаки */
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Damage", meta = (ClampMin = "10.0"))
-    float AttackRadius = 150.0f;
-
-    /** Угол атаки (в градусах) */
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Damage", meta = (ClampMin = "0.0", ClampMax = "180.0"))
-    float AttackAngle = 60.0f;
-
-    /** Множитель критического урона */
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Damage", meta = (ClampMin = "1.0"))
-    float CriticalMultiplier = 2.0f;
-
-    /** Шанс критического удара (0.0 - 1.0) */
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Damage", meta = (ClampMin = "0.0", ClampMax = "1.0"))
-    float CriticalChance = 0.1f;
-
-    /** Теги, которые должны быть у цели для получения урона */
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Targeting")
-    FGameplayTagContainer TargetRequiredTags;
-
-    /** Теги, которые блокируют нанесение урона цели */
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Targeting")
-    FGameplayTagContainer TargetBlockedTags;
-};
-
-/**
- * Способность атаки ближнего боя
- * Обрабатывает логику нанесения урона, проигрывания анимаций и комбо-атак
+ * Способность ближнего боя для нанесения урона, проигрывания анимаций и управления комбо-атаками.
+ * Использует GAS для интеграции с системой способностей и тегов.
  */
 UCLASS()
 class TRONRPG_API UMeleeAttackAbility : public UGameplayAbility
@@ -60,116 +24,118 @@ class TRONRPG_API UMeleeAttackAbility : public UGameplayAbility
 public:
     UMeleeAttackAbility();
 
-    /**
-     * Активация способности
-     */
+    /** Активирует способность, запуская анимацию и подготавливая урон */
     virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
-                               const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
+                                 const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 
-    /**
-     * Отмена способности
-     */
+    /** Отменяет способность, прерывая анимацию и очищая состояние */
     virtual void CancelAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
-                              const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateCancelAbility) override;
+                               const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateCancelAbility) override;
 
-    /**
-     * Проверка возможности активации способности
-     */
+    /** Проверяет, может ли способность быть активирована */
     virtual bool CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
-                                  const FGameplayTagContainer* SourceTags, const FGameplayTagContainer* TargetTags,
-                                  OUT FGameplayTagContainer* OptionalRelevantTags) const override;
+                                    const FGameplayTagContainer* SourceTags, const FGameplayTagContainer* TargetTags,
+                                    OUT FGameplayTagContainer* OptionalRelevantTags) const override;
+
+    /** Завершает способность, очищая состояние */
+    virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
+                            const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
 
 protected:
-    /** Анимационный монтаж атаки */
+    /** Анимация атаки ближнего боя */
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Animation")
     UAnimMontage* MeleeAttackMontage;
 
-    /** Настройки атаки ближнего боя */
+    /** Конфигурация параметров атаки */
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Attack")
     FMeleeAttackConfig AttackConfig;
 
-    /** Массив возможных атакуемых костей (имена сокетов) */
-    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Attack")
-    TArray<FName> WeaponTraceSocketNames;
+    /** Конфигурация комбо-системы */
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Combo")
+    FComboConfig ComboConfig;
 
-    /** Кривая изменения урона в зависимости от комбо */
+    /** Таблица конфигураций трассировки для оружия */
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
+    UDataTable* WeaponTraceConfigTable;
+
+    /** Сокеты трассировки по умолчанию */
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
+    TArray<FName> DefaultTraceSocketNames;
+
+    /** Радиус трассировки по умолчанию */
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon", meta = (ClampMin = "1.0"))
+    float DefaultTraceRadius = 10.0f;
+
+    /** Кривая модификации урона в зависимости от комбо */
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Attack")
     UCurveFloat* ComboDamageCurve;
 
-    /** Максимальное количество комбо-ударов */
-    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Combo", meta = (ClampMin = "1"))
-    int32 MaxComboCount = 3;
-
-    /** Префикс секции в монтаже для комбо (например, Attack_1, Attack_2, ...) */
-    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Combo")
-    FString ComboSectionPrefix = "Attack_";
-
-    /** Событие для нанесения урона (вызывается из AnimNotify) */
+    /** Тег события нанесения урона */
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Gameplay Cues")
     FGameplayTag DamageEventTag;
 
-    /** Эффект, применяемый при нанесении урона */
+    /** Эффект урона для применения к целям */
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Effects")
     TSubclassOf<UGameplayEffect> DamageEffect;
 
-    /**
-     * Получение имени секции монтажа на основе текущего комбо
-     * @param ComboCount Текущий счетчик комбо
-     * @return Имя секции для воспроизведения
-     */
+    /** Имя профиля трассировки для отладки */
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Debug")
+    FName TraceProfileName = TEXT("Weapon");
+
+    /** Включение логирования производительности */
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Debug")
+    bool bEnablePerformanceLogging = false;
+
+    /** Контекст текущей активации способности */
+    struct FActivationContext
+    {
+        FGameplayAbilitySpecHandle SpecHandle;
+        const FGameplayAbilityActorInfo* ActorInfo = nullptr;
+        FGameplayAbilityActivationInfo ActivationInfo;
+        int32 ComboCount = 0;
+        TArray<AActor*> HitActors;
+    };
+    FActivationContext CurrentActivation;
+
+    /** Получает имя секции монтажа для текущего комбо */
     FName GetMontageSectionName(int32 ComboCount) const;
 
-    /**
-     * Применение урона к целям в радиусе атаки
-     * @param SourceCharacter Персонаж, выполняющий атаку
-     * @param ComboCount Текущий счетчик комбо для расчета урона
-     */
+    /** Применяет урон к целям в зоне атаки */
     UFUNCTION()
-    void ApplyDamageToTargets(ATronRpgBaseCharacter* SourceCharacter, int32 ComboCount);
+    void ApplyDamageToTargets(AActor* SourceActor, int32 ComboCount);
 
-    /**
-     * Callback для обработки события нанесения урона
-     * Вызывается из Animation Notify
-     */
+    /** Обрабатывает уведомление о нанесении урона из анимации */
     UFUNCTION()
     void OnApplyDamageNotify(FName NotifyName);
 
-    /**
-     * Обработчик завершения монтажа
-     * @param Montage Завершившийся монтаж
-     * @param bInterrupted Флаг прерывания монтажа
-     */
+    /** Обрабатывает завершение анимации */
     UFUNCTION()
     void OnMontageComplete(UAnimMontage* Montage, bool bInterrupted);
 
-    /**
-     * Проверка возможности нанесения урона цели
-     * @param Target Целевой актор
-     * @return true если цель может получить урон
-     */
+    /** Проверяет, можно ли нанести урон цели */
     bool CanApplyDamageToTarget(AActor* Target) const;
 
-    /**
-     * Поиск потенциальных целей для атаки
-     * @param SourceCharacter Атакующий персонаж
-     * @return Массив целей в радиусе атаки
-     */
-    TArray<AActor*> FindTargetsInAttackRange(ATronRpgBaseCharacter* SourceCharacter) const;
+    /** Находит цели в зоне атаки */
+    TArray<AActor*> FindTargetsInAttackRange(AActor* SourceActor);
 
-    /**
-     * Расчет фактического урона атаки
-     * @param ComboCount Текущий счетчик комбо
-     * @param bIsCritical Флаг критического удара
-     * @return Значение урона
-     */
+    /** Рассчитывает урон на основе комбо */
     float CalculateDamage(int32 ComboCount, bool& bIsCritical) const;
 
-    /**
-     * Создание контекста нанесения урона
-     * @param Target Целевой актор
-     * @param DamageAmount Величина урона
-     * @param bIsCritical Флаг критического удара
-     * @return Спецификация эффекта для нанесения урона
-     */
+    /** Создает спецификацию эффекта урона */
     FGameplayEffectSpecHandle CreateDamageEffectSpec(AActor* Target, float DamageAmount, bool bIsCritical);
+
+    /** Получает конфигурацию трассировки для оружия */
+    bool GetWeaponTraceConfig(const FGameplayTag& WeaponTypeTag, TArray<FName>& OutSocketNames, float& OutTraceRadius) const;
+
+    /** Получает сокеты трассировки для актора */
+    TArray<FName> GetTraceSocketsForActor(AActor* SourceActor) const;
+
+    /** Выполняет оптимизированную трассировку для поиска целей */
+    void PerformOptimizedTargetTrace(AActor* SourceActor, TArray<AActor*>& OutHitActors);
+
+    /** Проверяет поддержку интерфейса ближнего боя */
+    bool SupportsMeleeInterface(AActor* Actor) const;
+
+    /** Логирует производительность */
+    void LogPerformance(const FString& FunctionName, float StartTime) const;
 };
