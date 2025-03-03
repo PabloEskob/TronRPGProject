@@ -137,7 +137,17 @@ void UMeleeAttackAbility::ActivateAbility(const FGameplayAbilitySpecHandle Handl
             AnimComp->OnMontageNotifyBegin.AddDynamic(this, &UMeleeAttackAbility::OnApplyDamageNotify);
             AnimComp->OnMontageEnded.AddDynamic(this, &UMeleeAttackAbility::OnMontageComplete);
             bAnimationStarted = AnimComp->PlayMontage(MeleeAttackMontage, PlayRate, MontageSection) > 0.0f;
-            if (!bAnimationStarted && !ComboConfig.bRequireAnimationForDamage)
+        
+            if (bAnimationStarted)
+            {
+                // Увеличиваем комбо сразу после начала анимации
+                if (UTronRpgComboComponent* ComboComp = BaseCharacter->GetComboComponent())
+                {
+                    ComboComp->IncrementCombo(true);
+                    CurrentActivation.ComboCount = FMath::Min(ComboComp->GetComboCount(), ComboConfig.MaxComboCount - 1);
+                }
+            }
+            else if (!ComboConfig.bRequireAnimationForDamage)
             {
                 ApplyDamageToTargets(SourceActor, CurrentActivation.ComboCount);
                 if (UTronRpgComboComponent* ComboComp = BaseCharacter->GetComboComponent())
