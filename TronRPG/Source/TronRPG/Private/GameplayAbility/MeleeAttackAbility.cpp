@@ -52,18 +52,27 @@ void UMeleeAttackAbility::OnGiveAbility(const FGameplayAbilityActorInfo* ActorIn
 		return;
 	}
 
+	// Настройка анимационного компонента
 	UAnimationComponent* AnimComp = OwningCharacter->GetAnimationComponent();
 	if (AnimComp)
 	{
 		bool bAlreadyBound = AnimComp->OnMontageNotifyBegin.IsAlreadyBound(this, &UMeleeAttackAbility::OnAnimNotifyBegin);
-		UE_LOG(LogTemp, Log, TEXT("Binding to OnMontageNotifyBegin. Already bound: %s"), bAlreadyBound ? TEXT("Yes") : TEXT("No"));
 		if (!bAlreadyBound)
 		{
 			AnimComp->OnMontageNotifyBegin.AddDynamic(this, &UMeleeAttackAbility::OnAnimNotifyBegin);
 			UE_LOG(LogTemp, Log, TEXT("Successfully bound to AnimationComponent's OnMontageNotifyBegin"));
 		}
 	}
+
+	// Настройка комбо-компонента
+	UTronRpgComboComponent* ComboComp = OwningCharacter->GetComboComponent();
+	if (ComboComp)
+	{
+		ComboComp->OnComboInputReceived.AddDynamic(this, &UMeleeAttackAbility::HandleComboInputReceived);
+		ComboComp->OnComboWindowExpired.AddDynamic(this, &UMeleeAttackAbility::HandleComboWindowExpired);
+	}
 }
+
 
 void UMeleeAttackAbility::OnRemoveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec)
 {
@@ -73,6 +82,13 @@ void UMeleeAttackAbility::OnRemoveAbility(const FGameplayAbilityActorInfo* Actor
 		if (AnimComp && AnimComp->OnMontageNotifyBegin.IsAlreadyBound(this, &UMeleeAttackAbility::OnAnimNotifyBegin))
 		{
 			AnimComp->OnMontageNotifyBegin.RemoveDynamic(this, &UMeleeAttackAbility::OnAnimNotifyBegin);
+		}
+
+		UTronRpgComboComponent* ComboComp = OwningCharacter->GetComboComponent();
+		if (ComboComp)
+		{
+			ComboComp->OnComboInputReceived.RemoveDynamic(this, &UMeleeAttackAbility::HandleComboInputReceived);
+			ComboComp->OnComboWindowExpired.RemoveDynamic(this, &UMeleeAttackAbility::HandleComboWindowExpired);
 		}
 	}
 
@@ -198,19 +214,13 @@ void UMeleeAttackAbility::ResetComboState(UTronRpgComboComponent* ComboComp)
 }
 
 void UMeleeAttackAbility::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
-                                     const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
+								 const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
 {
 	bCanCombo = false;
 	bApplyingDamage = false;
 	bAttackInputPressed = false;
 
-	// Очищаем task и таймеры
-	if (ComboInputTask)
-	{
-		ComboInputTask->EndTask();
-		ComboInputTask = nullptr;
-	}
-
+	// Очищаем таймеры
 	if (GetWorld())
 	{
 		GetWorld()->GetTimerManager().ClearTimer(ComboCheckTimerHandle);
@@ -341,8 +351,16 @@ void UMeleeAttackAbility::OnAnimNotifyBegin(FName NotifyName)
 	// Обрабатываем уведомление об открытии окна комбо
 	if (NotifyName == FName("ComboWindow"))
 	{
-		// Вместо прямой установки флага, запускаем task
-		WaitForComboInput();
+		// Делегируем обработку комбо-компоненту
+		if (OwningCharacter)
+		{
+			UTronRpgComboComponent* ComboComp = OwningCharacter->GetComboComponent();
+			if (ComboComp)
+			{
+				ComboComp->StartWaitingForComboInput(this, CurrentComboCount);
+				bCanCombo = true; // Устанавливаем флаг возможности комбо
+			}
+		}
 	}
 	else if (NotifyName == FName("ApplyDamage"))
 	{
@@ -414,81 +432,26 @@ void UMeleeAttackAbility::OnAttackMontageEnded(UAnimMontage* Montage, bool bInte
 	}
 }
 
-void UMeleeAttackAbility::WaitForComboInput()
+void UMeleeAttackAbility::HandleComboInputReceived(int32 NewComboCount)
 {
-	// Создаем и активируем task для ожидания ввода
-	ComboInputTask = UAbilityTask_WaitForComboInput::WaitForComboInput(
-		this, ComboWindowTime, CurrentComboCount);
-
-	if (ComboInputTask)
-	{
-		// Подписываемся на события task'а
-		ComboInputTask->OnComboInputReceived.AddDynamic(this, &UMeleeAttackAbility::OnComboInputReceived);
-		ComboInputTask->OnComboWindowExpired.AddDynamic(this, &UMeleeAttackAbility::OnComboWindowExpired);
-
-		// Активируем task
-		ComboInputTask->ReadyForActivation();
-
-		// Устанавливаем флаг открытого окна комбо
-		bCanCombo = true;
-
-		UE_LOG(LogTemp, Log, TEXT("MeleeAttackAbility: ComboWindow opened for combo count: %d"), CurrentComboCount);
-
-		// Уведомляем UI или другие системы через событие
-		if (OwningCharacter)
-		{
-			UTronRpgComboComponent* ComboComp = OwningCharacter->GetComboComponent();
-			if (ComboComp)
-			{
-				ComboComp->OpenComboWindow();
-			}
-		}
-	}
-}
-
-void UMeleeAttackAbility::OnComboInputReceived(int32 NewComboCount)
-{
-	// Инкрементируем счетчик один раз здесь
-	CurrentComboCount++;
+	// Обновляем счетчик комбо
+	CurrentComboCount = NewComboCount;
     
+	// Закрываем окно комбо
 	bCanCombo = false;
-	ComboInputTask = nullptr;
     
-	UE_LOG(LogTemp, Log, TEXT("MeleeAttackAbility: Combo input received, new count: %d"), CurrentComboCount);
-    
-	// Синхронизируем значения с ComboComponent
-	if (OwningCharacter)
-	{
-		UTronRpgComboComponent* ComboComp = OwningCharacter->GetComboComponent();
-		if (ComboComp)
-		{
-			ComboComp->SetComboCount(CurrentComboCount);
-			ComboComp->CloseComboWindow();
-		}
-	}
+	UE_LOG(LogTemp, Log, TEXT("MeleeAttackAbility: Received combo input, new count: %d"), CurrentComboCount);
     
 	// Переходим к следующей секции монтажа
 	ContinueComboAttack();
 }
 
-void UMeleeAttackAbility::OnComboWindowExpired(int32 ComboCount)
+// Добавьте новый метод для обработки истечения окна комбо
+void UMeleeAttackAbility::HandleComboWindowExpired(int32 ComboCount)
 {
-	// Окно комбо истекло без ввода
-	UE_LOG(LogTemp, Log, TEXT("MeleeAttackAbility: Combo window expired without input"));
-
+	UE_LOG(LogTemp, Log, TEXT("MeleeAttackAbility: Combo window expired"));
 	bCanCombo = false;
-	ComboInputTask = nullptr;
-
-	// Закрываем окно комбо в UI
-	if (OwningCharacter)
-	{
-		UTronRpgComboComponent* ComboComp = OwningCharacter->GetComboComponent();
-		if (ComboComp)
-		{
-			ComboComp->CloseComboWindow();
-		}
-	}
-
+    
 	// Если анимация еще не завершена, она закончит способность через OnMontageEnded
 	// Не вызываем EndAbility здесь, чтобы дать анимации доиграть
 }

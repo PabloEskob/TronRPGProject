@@ -5,6 +5,7 @@
 #include "GAS/TronRpgAbilitySystemComponent.h"
 #include "Object/GameplayTagsLibrary.h"
 #include "GameplayAbility/MeleeAttackAbility.h"
+#include "Task/AbilityTask_WaitForComboInput.h"
 
 UTronRpgEnhancedInputComponent::UTronRpgEnhancedInputComponent()
 {
@@ -48,6 +49,8 @@ void UTronRpgEnhancedInputComponent::ProcessComboInput(const FInputActionValue& 
     );
     
     bool bFoundActiveAttackAbility = false;
+
+    UTronRpgComboComponent* ComboComp = OwningCharacter->GetComboComponent();
     
     // Проверяем все активные способности
     for (FGameplayAbilitySpec* AbilitySpec : ActiveAbilities)
@@ -58,10 +61,10 @@ void UTronRpgEnhancedInputComponent::ProcessComboInput(const FInputActionValue& 
             UMeleeAttackAbility* MeleeAbility = Cast<UMeleeAttackAbility>(AbilitySpec->GetPrimaryInstance());
             
             // 2. Если это способность ближнего боя и есть открытое окно комбо (через ComboInputTask)
-            if (MeleeAbility && MeleeAbility->ComboInputTask)
+            if (MeleeAbility && ComboComp->ComboInputTask)
             {
                 // Вызываем обработку комбо-ввода
-                MeleeAbility->ComboInputTask->ProcessComboInput();
+                ComboComp->ComboInputTask->ProcessComboInput();
                 UE_LOG(LogTemp, Log, TEXT("TronRpgEnhancedInputComponent: Processed combo input for ability %s"), 
                        *MeleeAbility->GetName());
                 return;

@@ -21,6 +21,13 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnComboWindowOpened);
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnComboWindowClosed);
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnComboInputReceived, int32, NewComboCount);
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnComboWindowExpired, int32, ComboCount);
+
+class UMeleeAttackAbility;
+class UAbilityTask_WaitForComboInput;
+
 /**
  * Компонент для управления комбо-атаками
  * Отслеживает текущее количество ударов в комбо и обеспечивает таймер сброса комбо
@@ -97,6 +104,30 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "Combat|Combo|Events")
 	FOnComboWindowClosed OnComboWindowClosed;
 
+	UFUNCTION(BlueprintCallable, Category = "Combat|Combo")
+	void StartWaitingForComboInput(UMeleeAttackAbility* OwningAbility, int32 ComboCount);
+
+	// Метод для обработки ввода от AbilityTask
+	UFUNCTION()
+	void OnComboInputTaskReceived(int32 ComboCount);
+
+	// Метод для обработки истечения окна от AbilityTask
+	UFUNCTION()
+	void OnComboInputTaskExpired(int32 ComboCount);
+
+	// Метод для проверки, принадлежит ли запрос на комбо текущей активной способности
+	bool IsValidComboRequest(UMeleeAttackAbility* RequestingAbility) const;
+
+	// Инициализирует связь с AbilityTask
+	UPROPERTY(BlueprintAssignable, Category = "Combat|Combo|Events")
+	FOnComboInputReceived OnComboInputReceived;
+
+	UPROPERTY(BlueprintAssignable, Category = "Combat|Combo|Events")
+	FOnComboWindowExpired OnComboWindowExpired;
+
+	UPROPERTY()
+	UAbilityTask_WaitForComboInput* ComboInputTask;
+
 protected:
 	/** Максимальное количество ударов в комбо */
 	UPROPERTY(EditDefaultsOnly, Category = "Combat|Combo", meta = (ClampMin = "1", ClampMax = "10"))
@@ -116,7 +147,7 @@ protected:
 
 	/** Ссылка на владельца компонента (персонажа) */
 	UPROPERTY(Transient)
-	class ACharacter* OwnerCharacter;
+	ACharacter* OwnerCharacter;
 
 	/** Таймер для закрытия окна комбо */
 	FTimerHandle ComboWindowTimerHandle;
@@ -124,4 +155,15 @@ protected:
 	/** Обработчик получения уведомления из анимации */
 	UFUNCTION()
 	void OnAnimNotifyReceived(FName NotifyName);
+
+	// Текущая способность атаки
+	UPROPERTY()
+	UMeleeAttackAbility* CurrentAttackAbility;
+
+	// Задача ожидания ввода комбо
+
+
+	// Длительность окна комбо (в секундах)
+	UPROPERTY(EditDefaultsOnly, Category = "Combat|Combo", meta = (ClampMin = "0.1", ClampMax = "5.0"))
+	float ComboWindowTime = 0.4f;
 };
