@@ -41,7 +41,7 @@ void ATronRpgPlayerController::SetupInputComponent()
         // Привязываем действие комбо-атаки напрямую к EnhancedInputComponent
         if (ComboAttackAction)
         {
-            EnhancedInputComp->BindAction(ComboAttackAction, ETriggerEvent::Triggered, this, &ATronRpgPlayerController::ProcessComboInput);
+            EnhancedInputComp->BindAction(ComboAttackAction, ETriggerEvent::Started, this, &ATronRpgPlayerController::ProcessComboInput);
             UE_LOG(LogTemp, Log, TEXT("Bound combo attack action"));
         }
         else
