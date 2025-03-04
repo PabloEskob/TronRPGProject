@@ -2,30 +2,35 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+#include "Component/DI/DIAwareComponent.h"
 #include "TronRpgComboComponent.generated.h"
 
-// Делегат для событий изменения комбо
+// Делегат для изменения счетчика комбо
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnComboCountChanged, int32, NewComboCount);
 
-// Делегат для события завершения комбо
+// Делегат для завершения комбо
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnComboEnded);
 
-// Делегат для события сброса комбо
+// Делегат для сброса комбо
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnComboReset);
 
-// Делегат для события продолжения комбо
+// Делегат для продолжения комбо
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnComboContinue, int32, CurrentComboCount);
 
-// Делегаты для открытия/закрытия окна комбо
+// Делегаты для окна комбо
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnComboWindowOpened);
+
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnComboWindowClosed);
+
+// Делегат для достижения максимального комбо
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnMaxComboReached);
 
 /**
  * Компонент для управления комбо-атаками
  * Отслеживает текущее количество ударов в комбо и обеспечивает таймер сброса комбо
  */
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
-class TRONRPG_API UTronRpgComboComponent : public UActorComponent
+class TRONRPG_API UTronRpgComboComponent : public UDIAwareComponent
 {
 	GENERATED_BODY()
 
@@ -45,7 +50,7 @@ public:
 
 	/** Увеличить счетчик комбо */
 	UFUNCTION(BlueprintCallable, Category = "Combat|Combo")
-	void IncrementCombo();
+	bool IncrementCombo();
 
 	/** Сбросить счетчик комбо */
 	UFUNCTION(BlueprintCallable, Category = "Combat|Combo")
@@ -53,7 +58,7 @@ public:
 
 	/** Обработать ввод комбо от игрока */
 	UFUNCTION(BlueprintCallable, Category = "Combat|Combo")
-	void ProcessComboInput();
+	bool ProcessComboInput();
 
 	/** Проверить, открыто ли окно комбо */
 	UFUNCTION(BlueprintPure, Category = "Combat|Combo")
@@ -66,6 +71,22 @@ public:
 	/** Получить максимальное количество ударов в комбо */
 	UFUNCTION(BlueprintPure, Category = "Combat|Combo")
 	int32 GetMaxComboCount() const;
+
+	/** Установить текущий счетчик комбо */
+	UFUNCTION(BlueprintCallable, Category = "Combat|Combo")
+	void SetComboCount(int32 NewCount);
+
+	/** Установить максимальное количество ударов в комбо */
+	UFUNCTION(BlueprintCallable, Category = "Combat|Combo")
+	void SetMaxComboCount(int32 NewMaxCount);
+
+	/** Установить длительность окна комбо */
+	UFUNCTION(BlueprintCallable, Category = "Combat|Combo")
+	void SetComboWindowDuration(float NewDuration);
+
+	/** Получить оставшееся время в текущем окне комбо */
+	UFUNCTION(BlueprintPure, Category = "Combat|Combo")
+	float GetComboWindowTimeRemaining() const;
 
 	/** Событие изменения счетчика комбо */
 	UPROPERTY(BlueprintAssignable, Category = "Combat|Combo|Events")
@@ -91,6 +112,10 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "Combat|Combo|Events")
 	FOnComboWindowClosed OnComboWindowClosed;
 
+	/** Событие достижения максимального комбо */
+	UPROPERTY(BlueprintAssignable, Category = "Combat|Combo|Events")
+	FOnMaxComboReached OnMaxComboReached;
+
 protected:
 	/** Максимальное количество ударов в комбо */
 	UPROPERTY(EditDefaultsOnly, Category = "Combat|Combo", meta = (ClampMin = "1", ClampMax = "10"))
@@ -114,6 +139,12 @@ protected:
 
 	/** Таймер для закрытия окна комбо */
 	FTimerHandle ComboWindowTimerHandle;
+
+	/** Время, когда было открыто текущее окно комбо */
+	float ComboWindowStartTime;
+
+	/** Инициализация зависимостей через DI */
+	virtual void InitializeDependencies() override;
 
 	/** Обработчик получения уведомления из анимации */
 	UFUNCTION()
