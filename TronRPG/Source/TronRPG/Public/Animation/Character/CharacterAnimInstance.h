@@ -102,7 +102,7 @@ protected:
 	/** Флаг бега трусцой */
 	UPROPERTY(BlueprintReadOnly, Category = "Movement")
 	bool bIsJogging = false;
-	
+
 	/** Флаг бега (спринта) */
 	UPROPERTY(BlueprintReadOnly, Category = "Movement")
 	bool bIsSprinting = false;
@@ -178,9 +178,16 @@ protected:
 
 	/** Обновление параметров движения */
 	void UpdateMovementParameters(float DeltaSeconds);
+	bool EnsureMovementComponentValid();
+	void UpdateGroundSpeed();
+	void UpdateDirectionAngle();
+	void CalculateMovementAngle(const FVector& ForwardVector, const FVector& RightVector, const FVector& DirectionVector);
+	void UpdateMovementState();
 
 	/** Обновление параметров дыхания */
 	void UpdateBreathingParameters(float DeltaSeconds);
+	float CalculateTargetBreathingIntensity() const;
+	void SmoothlyUpdateBreathingIntensity(float TargetIntensity, float DeltaSeconds);
 
 	/** Обновление тегов состояния */
 	void UpdateStateTags();

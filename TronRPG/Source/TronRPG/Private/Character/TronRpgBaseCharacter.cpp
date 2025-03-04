@@ -17,42 +17,54 @@
 
 ATronRpgBaseCharacter::ATronRpgBaseCharacter()
 {
-	// Системные настройки
-	bReplicates = true;
-	SetNetUpdateFrequency(60.f); // Оптимизация для быстрого обновления в сети
+    // Системные настройки
+    bReplicates = true;
+    SetNetUpdateFrequency(60.f);
 
-	// Создание компонентов
-	AbilitySystemComponent = CreateDefaultSubobject<UTronRpgAbilitySystemComponent>(TEXT("AbilitySystemComponent"));
-	AbilitySystemComponent->SetIsReplicated(true);
-	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
+    // Создание компонентов - все вызовы CreateDefaultSubobject должны быть здесь
+    AbilitySystemComponent = CreateDefaultSubobject<UTronRpgAbilitySystemComponent>(TEXT("AbilitySystemComponent"));
+    AttributeSet = CreateDefaultSubobject<UTronRpgAttributeSet>(TEXT("AttributeSet"));
+    ComboComponent = CreateDefaultSubobject<UTronRpgComboComponent>(TEXT("ComboComponent"));
+    AnimationComponent = CreateDefaultSubobject<UAnimationComponent>(TEXT("AnimationComponent"));
+    DependencyInjector = CreateDefaultSubobject<UDependencyInjectorComponent>(TEXT("DependencyInjector"));
+    AbilityInputComponent = CreateDefaultSubobject<UAbilityInputComponent>(TEXT("AbilityInputComponent"));
+    WeaponComponent = CreateDefaultSubobject<UWeaponComponent>(TEXT("WeaponComponent"));
+    
+    // Создание компонентов оружия
+    WeaponComponent->MainHandMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MainHandMesh"));
+    WeaponComponent->OffHandMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("OffHandMesh"));
+    
+    // Конфигурация уже созданных компонентов может быть вынесена в отдельные методы
+    ConfigureAbilityComponents();
+    ConfigureWeaponComponents();
+    
+    // Привязка делегата
+    OnWeaponVisibilityChanged.AddDynamic(this, &ATronRpgBaseCharacter::UpdateWeaponVisibility);
+    
+    // Инициализация переменных состояния
+    bAbilitiesInitialized = false;
+}
 
-	AttributeSet = CreateDefaultSubobject<UTronRpgAttributeSet>(TEXT("AttributeSet"));
-	ComboComponent = CreateDefaultSubobject<UTronRpgComboComponent>(TEXT("ComboComponent"));
-	AnimationComponent = CreateDefaultSubobject<UAnimationComponent>(TEXT("AnimationComponent"));
-	DependencyInjector = CreateDefaultSubobject<UDependencyInjectorComponent>(TEXT("DependencyInjector"));
-	AbilityInputComponent = CreateDefaultSubobject<UAbilityInputComponent>(TEXT("AbilityInputComponent"));
-	WeaponComponent = CreateDefaultSubobject<UWeaponComponent>(TEXT("WeaponComponent"));
+void ATronRpgBaseCharacter::ConfigureAbilityComponents()
+{
+    AbilitySystemComponent->SetIsReplicated(true);
+    AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
+}
 
-	// Привязка делегата для обработки видимости оружия
-	OnWeaponVisibilityChanged.AddDynamic(this, &ATronRpgBaseCharacter::UpdateWeaponVisibility);
+void ATronRpgBaseCharacter::ConfigureWeaponComponents()
+{
+    // Настройка компонентов оружия
+    ConfigureWeaponMesh(WeaponComponent->MainHandMeshComponent, TEXT("WeaponSocket_MainHand"));
+    ConfigureWeaponMesh(WeaponComponent->OffHandMeshComponent, TEXT("WeaponSocket_OffHand"));
+}
 
-	// Создание и настройка компонентов оружия
-	WeaponComponent->MainHandMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MainHandMesh"));
-	WeaponComponent->MainHandMeshComponent->SetupAttachment(GetMesh(), TEXT("WeaponSocket_MainHand"));
-	WeaponComponent->MainHandMeshComponent->SetVisibility(false);
-	WeaponComponent->MainHandMeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	WeaponComponent->MainHandMeshComponent->SetCanEverAffectNavigation(false);
-	WeaponComponent->MainHandMeshComponent->SetIsReplicated(true);
-
-	WeaponComponent->OffHandMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("OffHandMesh"));
-	WeaponComponent->OffHandMeshComponent->SetupAttachment(GetMesh(), TEXT("WeaponSocket_OffHand"));
-	WeaponComponent->OffHandMeshComponent->SetVisibility(false);
-	WeaponComponent->OffHandMeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	WeaponComponent->OffHandMeshComponent->SetCanEverAffectNavigation(false);
-	WeaponComponent->OffHandMeshComponent->SetIsReplicated(true);
-
-	// Инициализация переменных состояния
-	bAbilitiesInitialized = false;
+void ATronRpgBaseCharacter::ConfigureWeaponMesh(UStaticMeshComponent* MeshComponent, const FName& SocketName)
+{
+    MeshComponent->SetupAttachment(GetMesh(), SocketName);
+    MeshComponent->SetVisibility(false);
+    MeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+    MeshComponent->SetCanEverAffectNavigation(false);
+    MeshComponent->SetIsReplicated(true);
 }
 
 int32 ATronRpgBaseCharacter::GetComboCount_Implementation() const

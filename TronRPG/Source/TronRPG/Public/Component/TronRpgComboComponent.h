@@ -66,6 +66,9 @@ public:
 	/** Получить максимальное количество ударов в комбо */
 	UFUNCTION(BlueprintPure, Category = "Combat|Combo")
 	int32 GetMaxComboCount() const;
+	void IncrementAndNotifyCombo();
+	void ClearComboTimer();
+	void NotifyComboWindowClosed();
 
 	/** Событие изменения счетчика комбо */
 	UPROPERTY(BlueprintAssignable, Category = "Combat|Combo|Events")

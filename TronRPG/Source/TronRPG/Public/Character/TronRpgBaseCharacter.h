@@ -37,6 +37,9 @@ class TRONRPG_API ATronRpgBaseCharacter : public ACharacter, public IAbilitySyst
 
 public:
 	ATronRpgBaseCharacter();
+	void ConfigureAbilityComponents();
+	void ConfigureWeaponComponents();
+	void ConfigureWeaponMesh(UStaticMeshComponent* MeshComponent, const FName& SocketName);
 
 	// Реализация IMeleeAttackInterface
 	virtual int32 GetComboCount_Implementation() const override;

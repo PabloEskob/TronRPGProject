@@ -51,6 +51,11 @@ public:
 	 */
 	UFUNCTION(BlueprintCallable, Category = "Weapon")
 	bool EquipWeapon(UWeaponDataAsset* WeaponAsset);
+	bool IsEquipmentChangeAllowed(UWeaponDataAsset* NewWeapon) const;
+	void HideCurrentWeapon();
+	void UpdateWeaponTags(UWeaponDataAsset* OldWeapon, UWeaponDataAsset* NewWeapon);
+	void BeginEquipmentChange();
+	bool PlayEquipAnimation();
 
 	/**
 	 * Снять текущее оружие
@@ -58,6 +63,7 @@ public:
 	 */
 	UFUNCTION(BlueprintCallable, Category = "Weapon")
 	bool UnequipWeapon();
+	bool PlayUnequipAnimation();
 
 	/**
 	 * Экипировать оружие по тегу

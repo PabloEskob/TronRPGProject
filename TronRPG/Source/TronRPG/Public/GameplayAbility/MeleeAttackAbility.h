@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "Abilities/GameplayAbility.h"
 #include "GameplayTagContainer.h"
+#include "Component/TronRpgComboComponent.h"
 #include "MeleeAttackAbility.generated.h"
 
 class ATronRpgBaseCharacter;
@@ -26,8 +27,17 @@ public:
 	virtual bool CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
 	                                const FGameplayTagContainer* SourceTags, const FGameplayTagContainer* TargetTags,
 	                                FGameplayTagContainer* OptionalRelevantTags) const override;
+	bool IsCharacterChangingEquipment(const FGameplayAbilityActorInfo* ActorInfo) const;
+	bool IsWeaponEquipped(const ATronRpgBaseCharacter* Character) const;
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
 	                             const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
+	bool CommitAbilityResources(FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
+	                            FGameplayAbilityActivationInfo ActivationInfo);
+	void SaveCurrentActivationContext(FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
+	                                  FGameplayAbilityActivationInfo ActivationInfo);
+	void InitializeOwningCharacter(const FGameplayAbilityActorInfo* ActorInfo);
+	bool ProcessComboState();
+	void ResetComboState(UTronRpgComboComponent* ComboComp);
 	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
 	                        const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
 

@@ -55,62 +55,89 @@ void UWeaponComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 
 bool UWeaponComponent::EquipWeapon(UWeaponDataAsset* WeaponAsset)
 {
-	// Проверка валидности параметров и наличия анимации в процессе
-	if (!WeaponAsset || CurrentWeapon == WeaponAsset || bIsChangingEquipment)
-	{
-		UE_LOG(LogWeaponSystem, Warning, TEXT("Invalid weapon asset, already equipped, or equipment change in progress"));
-		return false;
-	}
+    if (!IsEquipmentChangeAllowed(WeaponAsset))
+    {
+        UE_LOG(LogWeaponSystem, Warning, TEXT("Invalid weapon asset, already equipped, or equipment change in progress"));
+        return false;
+    }
 
-	// Скрываем старое оружие, если оно есть
-	if (CurrentWeapon)
-	{
-		UpdateWeaponVisuals(false);
-	}
+    // Скрываем старое оружие, если оно есть
+    HideCurrentWeapon();
     
-	// Сохраняем предыдущее оружие
-	UWeaponDataAsset* PreviousWeapon = CurrentWeapon;
+    // Сохраняем предыдущее оружие и обновляем текущее
+    UWeaponDataAsset* PreviousWeapon = CurrentWeapon;
+    CurrentWeapon = WeaponAsset;
     
-	// Обновляем текущее оружие
-	CurrentWeapon = WeaponAsset;
+    // Добавляем в историю
+    AddToWeaponHistory(WeaponAsset);
     
-	// Добавляем в историю
-	AddToWeaponHistory(WeaponAsset);
+    // Обновляем теги
+    UpdateWeaponTags(PreviousWeapon, CurrentWeapon);
     
-	// Обрабатываем предыдущее оружие
-	if (PreviousWeapon)
-	{
-		UpdateGameplayTags(PreviousWeapon, false);
-	}
+    // Начинаем процесс экипировки
+    BeginEquipmentChange();
     
-	// Применяем теги нового оружия
-	UpdateGameplayTags(CurrentWeapon, true);
+    // Воспроизведение анимации экипировки
+    if (PlayEquipAnimation())
+    {
+        // Анимация запущена, процесс завершится по её окончанию
+        return true;
+    }
     
-	// Указываем, что идет процесс смены оружия
-	bIsChangingEquipment = true;
+    // Если нет анимации, сразу завершаем экипировку
+    FinishEquipping();
+    return true;
+}
+
+bool UWeaponComponent::IsEquipmentChangeAllowed(UWeaponDataAsset* NewWeapon) const
+{
+    return NewWeapon && CurrentWeapon != NewWeapon && !bIsChangingEquipment;
+}
+
+void UWeaponComponent::HideCurrentWeapon()
+{
+    if (CurrentWeapon)
+    {
+        UpdateWeaponVisuals(false);
+    }
+}
+
+void UWeaponComponent::UpdateWeaponTags(UWeaponDataAsset* OldWeapon, UWeaponDataAsset* NewWeapon)
+{
+    // Убираем теги предыдущего оружия
+    if (OldWeapon)
+    {
+        UpdateGameplayTags(OldWeapon, false);
+    }
     
-	// Добавляем тег состояния экипировки для блокировки атак
-	if (AbilitySystemComponent)
-	{
-		AbilitySystemComponent->AddLooseGameplayTag(FGameplayTag::RequestGameplayTag("State.Equipment.Changing"));
-	}
+    // Добавляем теги нового оружия
+    if (NewWeapon)
+    {
+        UpdateGameplayTags(NewWeapon, true);
+    }
+}
+
+void UWeaponComponent::BeginEquipmentChange()
+{
+    bIsChangingEquipment = true;
     
-	// Воспроизведение анимации экипировки
-	if (AnimationComponent && WeaponAsset->EquipMontage.Get())
-	{
-		// Подписываемся на завершение анимации
-		AnimationComponent->OnMontageEnded.AddDynamic(this, &UWeaponComponent::OnEquipAnimationEnded);
-		AnimationComponent->PlayMontage(WeaponAsset->EquipMontage.Get());
-	}
-	else
-	{
-		// Если нет анимации, сразу завершаем экипировку
-		FinishEquipping();
-	}
+    if (AbilitySystemComponent)
+    {
+        AbilitySystemComponent->AddLooseGameplayTag(FGameplayTag::RequestGameplayTag("State.Equipment.Changing"));
+    }
+}
+
+bool UWeaponComponent::PlayEquipAnimation()
+{
+    if (AnimationComponent && CurrentWeapon && CurrentWeapon->EquipMontage.Get())
+    {
+        // Подписываемся на завершение анимации
+        AnimationComponent->OnMontageEnded.AddDynamic(this, &UWeaponComponent::OnEquipAnimationEnded);
+        AnimationComponent->PlayMontage(CurrentWeapon->EquipMontage.Get());
+        return true;
+    }
     
-	UE_LOG(LogWeaponSystem, Log, TEXT("Weapon equip started: %s"), *WeaponAsset->GetName());
-    
-	return true;
+    return false;
 }
 
 bool UWeaponComponent::UnequipWeapon()
@@ -121,32 +148,32 @@ bool UWeaponComponent::UnequipWeapon()
 		return false;
 	}
     
-	// Указываем, что идет процесс смены оружия
-	bIsChangingEquipment = true;
-    
-	// Добавляем тег состояния экипировки для блокировки атак
-	if (AbilitySystemComponent)
-	{
-		AbilitySystemComponent->AddLooseGameplayTag(FGameplayTag::RequestGameplayTag("State.Equipment.Changing"));
-	}
+	BeginEquipmentChange();
     
 	// Воспроизводим анимацию снятия оружия
-	if (AnimationComponent && CurrentWeapon->UnequipMontage.Get())
+	if (PlayUnequipAnimation())
+	{
+		// Анимация запущена, процесс завершится по её окончанию
+		return true;
+	}
+    
+	// Если нет анимации, сразу завершаем процесс
+	UpdateWeaponVisuals(false);
+	FinishUnequipping();
+	return true;
+}
+
+bool UWeaponComponent::PlayUnequipAnimation()
+{
+	if (AnimationComponent && CurrentWeapon && CurrentWeapon->UnequipMontage.Get())
 	{
 		// Подписываемся на завершение анимации
 		AnimationComponent->OnMontageEnded.AddDynamic(this, &UWeaponComponent::OnUnequipAnimationEnded);
 		AnimationComponent->PlayMontage(CurrentWeapon->UnequipMontage.Get());
-	}
-	else
-	{
-		// Если нет анимации, сразу завершаем процесс
-		UpdateWeaponVisuals(false);
-		FinishUnequipping();
+		return true;
 	}
     
-	UE_LOG(LogWeaponSystem, Log, TEXT("Weapon unequip started: %s"), *CurrentWeapon->GetName());
-    
-	return true;
+	return false;
 }
 
 bool UWeaponComponent::EquipWeaponByTag(FGameplayTag WeaponTag)

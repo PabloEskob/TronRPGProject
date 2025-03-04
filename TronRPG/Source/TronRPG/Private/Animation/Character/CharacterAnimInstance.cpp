@@ -58,110 +58,123 @@ void UCharacterAnimInstance::UpdateCachedReferences()
 
 void UCharacterAnimInstance::UpdateMovementParameters(float DeltaSeconds)
 {
-    if (!CachedMovementComponent)
-    {
-        // Если компонент движения не кэширован, пытаемся получить его
-        if (CachedCharacter)
-        {
-            CachedMovementComponent = CachedCharacter->GetCharacterMovement();
-        }
+	if (!EnsureMovementComponentValid())
+	{
+		return;
+	}
 
-        if (!CachedMovementComponent)
-        {
-            return;
-        }
-    }
+	UpdateGroundSpeed();
+	UpdateDirectionAngle();
+	UpdateMovementState();
+}
 
-    // Получаем скорость движения
-    FVector Velocity = CachedMovementComponent->Velocity;
-    GroundSpeed = Velocity.Size2D();
+bool UCharacterAnimInstance::EnsureMovementComponentValid()
+{
+	if (!CachedMovementComponent && CachedCharacter)
+	{
+		CachedMovementComponent = CachedCharacter->GetCharacterMovement();
+	}
+    
+	return CachedMovementComponent != nullptr;
+}
 
-    // Нормализация скорости для blend space
-    NormalizedSpeed = FMath::Clamp(GroundSpeed / MaxWalkSpeed, 0.0f, 1.0f);
+void UCharacterAnimInstance::UpdateGroundSpeed()
+{
+	const FVector Velocity = CachedMovementComponent->Velocity;
+	GroundSpeed = Velocity.Size2D();
+	NormalizedSpeed = FMath::Clamp(GroundSpeed / MaxWalkSpeed, 0.0f, 1.0f);
+}
 
-    // Определение направления движения
-    // Получаем последний входной вектор движения из компонента движения
-    FVector LastInputVector = CachedMovementComponent->GetLastInputVector();
-    float LastInputMagnitude = LastInputVector.Size2D();
-
-    // Вычисление угла направления для BlendSpace
-    if (GroundSpeed > 10.0f)
-    {
-        // Высокая скорость: используем фактический вектор скорости
-        FVector ForwardVector = CachedCharacter->GetActorForwardVector();
-        FVector RightVector = CachedCharacter->GetActorRightVector();
-        FVector VelocityDirection = Velocity.GetSafeNormal2D();
+void UCharacterAnimInstance::UpdateDirectionAngle()
+{
+	static const float MinSpeedThreshold = 10.0f;
+	static const float MinInputThreshold = 0.1f;
+    
+	FVector ForwardVector = CachedCharacter->GetActorForwardVector();
+	FVector RightVector = CachedCharacter->GetActorRightVector();
+    
+	if (GroundSpeed > MinSpeedThreshold)
+	{
+		// Высокая скорость: используем фактический вектор скорости
+		FVector VelocityDirection = CachedMovementComponent->Velocity.GetSafeNormal2D();
+		CalculateMovementAngle(ForwardVector, RightVector, VelocityDirection);
+	}
+	else 
+	{
+		FVector LastInputVector = CachedMovementComponent->GetLastInputVector();
+		float LastInputMagnitude = LastInputVector.Size2D();
         
-        // Вычисляем угол между направлением персонажа и его скоростью
-        float ForwardDot = FVector::DotProduct(ForwardVector, VelocityDirection);
-        float RightDot = FVector::DotProduct(RightVector, VelocityDirection);
-        
-        // Преобразуем в угол от -180 до 180 градусов
-        DirectionAngle = FMath::Atan2(RightDot, ForwardDot) * 180.0f / PI;
-        
-        // Для использования в определении направления вперед/назад
-        MovementDirection = ForwardDot;
-    }
-    else if (LastInputMagnitude > 0.1f)
-    {
-        // Низкая скорость, но есть ввод: используем вектор ввода
-        FVector ForwardVector = CachedCharacter->GetActorForwardVector();
-        FVector RightVector = CachedCharacter->GetActorRightVector();
-        FVector InputDirection = LastInputVector.GetSafeNormal2D();
-        
-        // Аналогично вычисляем угол, но используя вектор ввода
-        float ForwardDot = FVector::DotProduct(ForwardVector, InputDirection);
-        float RightDot = FVector::DotProduct(RightVector, InputDirection);
-        
-        DirectionAngle = FMath::Atan2(RightDot, ForwardDot) * 180.0f / PI;
-        MovementDirection = ForwardDot;
-    }
-    else
-    {
-        // Нет движения и нет ввода: считаем, что персонаж смотрит вперед
-        DirectionAngle = 0.0f;
-        MovementDirection = 0.0f;
-    }
+		if (LastInputMagnitude > MinInputThreshold)
+		{
+			// Низкая скорость, но есть ввод: используем вектор ввода
+			FVector InputDirection = LastInputVector.GetSafeNormal2D();
+			CalculateMovementAngle(ForwardVector, RightVector, InputDirection);
+		}
+		else
+		{
+			// Нет движения и нет ввода: считаем, что персонаж смотрит вперед
+			DirectionAngle = 0.0f;
+			MovementDirection = 0.0f;
+		}
+	}
+}
 
-    // Определение типа движения на основе скорости
-    if (CachedASC)
-    {
-        bIsJogging = GroundSpeed > MaxWalkSpeed * 0.5f;
-        bIsSprinting = CachedASC->HasMatchingGameplayTag(TAG_State_Sprinting);
-    }
+void UCharacterAnimInstance::CalculateMovementAngle(const FVector& ForwardVector, const FVector& RightVector, const FVector& DirectionVector)
+{
+	float ForwardDot = FVector::DotProduct(ForwardVector, DirectionVector);
+	float RightDot = FVector::DotProduct(RightVector, DirectionVector);
+    
+	DirectionAngle = FMath::Atan2(RightDot, ForwardDot) * 180.0f / PI;
+	MovementDirection = ForwardDot;
+}
+
+void UCharacterAnimInstance::UpdateMovementState()
+{
+	if (CachedASC)
+	{
+		bIsJogging = GroundSpeed > MaxWalkSpeed * 0.5f;
+		bIsSprinting = CachedASC->HasMatchingGameplayTag(TAG_State_Sprinting);
+	}
 }
 
 void UCharacterAnimInstance::UpdateBreathingParameters(float DeltaSeconds)
 {
-	// Обновляем интенсивность дыхания в зависимости от активности
-	float TargetBreathingIntensity = 0.0f;
+	float targetIntensity = CalculateTargetBreathingIntensity();
+	SmoothlyUpdateBreathingIntensity(targetIntensity, DeltaSeconds);
+}
 
+float UCharacterAnimInstance::CalculateTargetBreathingIntensity() const
+{
 	if (bIsSprinting)
 	{
-		// При спринте - максимальная интенсивность
-		TargetBreathingIntensity = 1.0f;
+		return 1.0f; // Максимальная интенсивность при спринте
 	}
-	else if (bIsJogging)
+    
+	if (bIsJogging)
 	{
-		// При беге - средняя интенсивность
-		TargetBreathingIntensity = 0.6f;
+		return 0.6f; // Средняя интенсивность при беге
 	}
-	else if (GroundSpeed > 10.0f)
+    
+	static const float MinMovementThreshold = 10.0f;
+	if (GroundSpeed > MinMovementThreshold)
 	{
-		// При ходьбе - низкая интенсивность
-		TargetBreathingIntensity = 0.3f;
+		return 0.3f; // Низкая интенсивность при ходьбе
 	}
+    
+	return 0.0f; // В состоянии покоя
+}
 
-	// Плавное изменение интенсивности дыхания
-	if (BreathingIntensity < TargetBreathingIntensity)
+void UCharacterAnimInstance::SmoothlyUpdateBreathingIntensity(float TargetIntensity, float DeltaSeconds)
+{
+	if (BreathingIntensity < TargetIntensity)
 	{
 		// Быстрое увеличение интенсивности при активности
-		BreathingIntensity = FMath::Min(BreathingIntensity + DeltaSeconds * BreathingBuildupRate, TargetBreathingIntensity);
+		BreathingIntensity = FMath::Min(BreathingIntensity + DeltaSeconds * BreathingBuildupRate, TargetIntensity);
 	}
-	else if (BreathingIntensity > TargetBreathingIntensity)
+	else if (BreathingIntensity > TargetIntensity)
 	{
 		// Медленное снижение интенсивности при отдыхе
-		BreathingIntensity = FMath::Max(BreathingIntensity - DeltaSeconds * BreathingDecayRate, TargetBreathingIntensity);
+		BreathingIntensity = FMath::Max(BreathingIntensity - DeltaSeconds * BreathingDecayRate, TargetIntensity);
 	}
 }
 

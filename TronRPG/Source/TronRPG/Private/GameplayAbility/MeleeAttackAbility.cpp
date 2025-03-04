@@ -75,94 +75,119 @@ void UMeleeAttackAbility::OnRemoveAbility(const FGameplayAbilityActorInfo* Actor
 }
 
 bool UMeleeAttackAbility::CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
-										 const FGameplayTagContainer* SourceTags, const FGameplayTagContainer* TargetTags,
-										 FGameplayTagContainer* OptionalRelevantTags) const
+										  const FGameplayTagContainer* SourceTags, const FGameplayTagContainer* TargetTags,
+										  FGameplayTagContainer* OptionalRelevantTags) const
 {
-	// Проверяем базовые условия активации
 	if (!Super::CanActivateAbility(Handle, ActorInfo, SourceTags, TargetTags, OptionalRelevantTags))
 	{
 		return false;
 	}
 
-	// Проверяем, что у персонажа есть меч
 	const ATronRpgBaseCharacter* Character = Cast<ATronRpgBaseCharacter>(ActorInfo->AvatarActor.Get());
 	if (!Character)
 	{
 		return false;
 	}
     
-	// Проверяем, не находится ли персонаж в процессе экипировки/снятия оружия
+	if (IsCharacterChangingEquipment(ActorInfo))
+	{
+		return false;
+	}
+    
+	return IsWeaponEquipped(Character);
+}
+
+bool UMeleeAttackAbility::IsCharacterChangingEquipment(const FGameplayAbilityActorInfo* ActorInfo) const
+{
 	UAbilitySystemComponent* ASC = ActorInfo->AbilitySystemComponent.Get();
-	if (ASC && ASC->HasMatchingGameplayTag(TAG_State_Equipment_Changing))
-	{
-		return false;
-	}
-    
-	// Проверяем, есть ли у персонажа оружие
+	return ASC && ASC->HasMatchingGameplayTag(TAG_State_Equipment_Changing);
+}
+
+bool UMeleeAttackAbility::IsWeaponEquipped(const ATronRpgBaseCharacter* Character) const
+{
 	UWeaponComponent* WeaponComp = Character->GetWeaponComponent();
-	if (!WeaponComp || !WeaponComp->IsWeaponEquipped())
-	{
-		return false;
-	}
-    
-	return true;
+	return WeaponComp && WeaponComp->IsWeaponEquipped();
 }
 
 void UMeleeAttackAbility::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
-                                          const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
+                                         const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
-	// Вызываем базовую реализацию активации
-	if (!CommitAbility(Handle, ActorInfo, ActivationInfo))
-	{
-		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
-		return;
-	}
+    if (!CommitAbilityResources(Handle, ActorInfo, ActivationInfo))
+    {
+        EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
+        return;
+    }
 
-	// Сохраняем текущий контекст
-	CurrentSpecHandle = Handle;
-	CurrentActorInfo = ActorInfo;
-	CurrentActivationInfo = ActivationInfo;
+    SaveCurrentActivationContext(Handle, ActorInfo, ActivationInfo);
+    InitializeOwningCharacter(ActorInfo);
 
-	// Получаем компонент ComboComponent
-	OwningCharacter = Cast<ATronRpgBaseCharacter>(ActorInfo->AvatarActor.Get());
-	if (!OwningCharacter)
-	{
-		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
-		return;
-	}
-	
-	UTronRpgComboComponent* ComboComp = OwningCharacter->GetComboComponent();
-	
-	// Проверяем, находимся ли мы в окне комбо
-	bool bInComboWindow = ComboComp && ComboComp->IsComboWindowOpen();
-	
-	// Если мы в окне комбо, продолжаем комбо, иначе начинаем новое
-	if (bInComboWindow)
-	{
-		// Обрабатываем ввод комбо
-		ComboComp->ProcessComboInput();
-		
-		// Получаем текущий счетчик комбо
-		CurrentComboCount = ComboComp->GetCurrentComboCount();
-	}
-	else
-	{
-		// Сбрасываем комбо и начинаем новое
-		if (ComboComp)
-		{
-			ComboComp->ResetCombo();
-		}
-		CurrentComboCount = 0;
-	}
+    if (!ProcessComboState())
+    {
+        EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
+        return;
+    }
 
-	// Устанавливаем флаг нажатия кнопки
-	bAttackInputPressed = true;
+    ExecuteAttack();
+}
 
-	// Выбираем подходящий монтаж атаки
-	AttackMontage = SelectAppropriateAttackMontage();
-	
-	// Выполняем атаку
-	ExecuteAttack();
+bool UMeleeAttackAbility::CommitAbilityResources(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
+                                               const FGameplayAbilityActivationInfo ActivationInfo)
+{
+    return CommitAbility(Handle, ActorInfo, ActivationInfo);
+}
+
+void UMeleeAttackAbility::SaveCurrentActivationContext(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
+                                                    const FGameplayAbilityActivationInfo ActivationInfo)
+{
+    CurrentSpecHandle = Handle;
+    CurrentActorInfo = ActorInfo;
+    CurrentActivationInfo = ActivationInfo;
+}
+
+void UMeleeAttackAbility::InitializeOwningCharacter(const FGameplayAbilityActorInfo* ActorInfo)
+{
+    OwningCharacter = Cast<ATronRpgBaseCharacter>(ActorInfo->AvatarActor.Get());
+}
+
+bool UMeleeAttackAbility::ProcessComboState()
+{
+    if (!OwningCharacter)
+    {
+        return false;
+    }
+    
+    UTronRpgComboComponent* ComboComp = OwningCharacter->GetComboComponent();
+    
+    // Проверяем, находимся ли мы в окне комбо
+    bool bInComboWindow = ComboComp && ComboComp->IsComboWindowOpen();
+    
+    if (bInComboWindow)
+    {
+        ComboComp->ProcessComboInput();
+        CurrentComboCount = ComboComp->GetCurrentComboCount();
+    }
+    else
+    {
+        ResetComboState(ComboComp);
+    }
+
+    // Устанавливаем флаг нажатия кнопки
+    bAttackInputPressed = true;
+
+    // Выбираем подходящий монтаж атаки
+    AttackMontage = SelectAppropriateAttackMontage();
+    
+    return true;
+}
+
+void UMeleeAttackAbility::ResetComboState(UTronRpgComboComponent* ComboComp)
+{
+    if (ComboComp)
+    {
+        ComboComp->ResetCombo();
+    }
+    
+    CurrentComboCount = 0;
 }
 
 void UMeleeAttackAbility::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,

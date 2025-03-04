@@ -88,12 +88,15 @@ void UTronRpgComboComponent::OpenComboWindow()
 
 void UTronRpgComboComponent::CloseComboWindow()
 {
-	if (bComboWindowOpen)
+	if (!bComboWindowOpen)
 	{
-		bComboWindowOpen = false;
-		OnComboWindowClosed.Broadcast();
-		UE_LOG(LogTemp, Log, TEXT("Combo window closed. Combo not continued."));
+		return;
 	}
+    
+	bComboWindowOpen = false;
+    
+	ClearComboTimer();
+	NotifyComboWindowClosed();
 }
 
 void UTronRpgComboComponent::IncrementCombo()
@@ -124,20 +127,13 @@ void UTronRpgComboComponent::ResetCombo()
 
 void UTronRpgComboComponent::ProcessComboInput()
 {
-    if (bComboWindowOpen)
-    {
-        // Закрываем текущее окно комбо
-        bComboWindowOpen = false;
-        GetWorld()->GetTimerManager().ClearTimer(ComboWindowTimerHandle);
-        
-        // Увеличиваем счетчик комбо
-        IncrementCombo();
-        
-        // Отправляем событие для продолжения комбо
-        OnComboContinue.Broadcast(CurrentComboCount);
-        
-        UE_LOG(LogTemp, Log, TEXT("Combo input processed, combo count: %d"), CurrentComboCount);
-    }
+	if (!IsComboWindowOpen())
+	{
+		return;
+	}
+    
+	CloseComboWindow();
+	IncrementAndNotifyCombo();
 }
 
 bool UTronRpgComboComponent::IsComboWindowOpen() const
@@ -153,4 +149,26 @@ int32 UTronRpgComboComponent::GetCurrentComboCount() const
 int32 UTronRpgComboComponent::GetMaxComboCount() const
 {
 	return MaxComboCount;
+}
+
+void UTronRpgComboComponent::IncrementAndNotifyCombo()
+{
+	IncrementCombo();
+	OnComboContinue.Broadcast(CurrentComboCount);
+    
+	UE_LOG(LogTemp, Log, TEXT("Combo input processed, combo count: %d"), CurrentComboCount);
+}
+
+void UTronRpgComboComponent::ClearComboTimer()
+{
+	if (GetWorld())
+	{
+		GetWorld()->GetTimerManager().ClearTimer(ComboWindowTimerHandle);
+	}
+}
+
+void UTronRpgComboComponent::NotifyComboWindowClosed()
+{
+	OnComboWindowClosed.Broadcast();
+	UE_LOG(LogTemp, Log, TEXT("Combo window closed. Combo not continued."));
 }
