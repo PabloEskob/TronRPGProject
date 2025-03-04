@@ -2,80 +2,77 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
-#include "Input/TronRpgEnhancedInputComponent.h"
 #include "TronRpgPlayerController.generated.h"
 
 struct FInputActionValue;
 class UInputAction;
 class UInputMappingContext;
+class UTronRpgEnhancedInputComponent;
 
-/**
- * Player controller for the TronRPG game
- * Handles player input, camera control, and ability activation
- */
 UCLASS()
 class TRONRPG_API ATronRpgPlayerController : public APlayerController
 {
-    GENERATED_BODY()
+	GENERATED_BODY()
 
 public:
-    ATronRpgPlayerController();
+	ATronRpgPlayerController();
 
 protected:
-    virtual void BeginPlay() override;
-    virtual void SetupInputComponent() override;
+	virtual void BeginPlay() override;
+	virtual void SetupInputComponent() override;
 
-    /**
-     * Set up ability bindings for the player character
-     */
-    UFUNCTION(BlueprintCallable, Category = "Input")
-    void SetupAbilityBindings();
+	/**
+	 * Настройка привязок способностей к действиям ввода
+	 */
+	UFUNCTION(BlueprintCallable, Category = "Input")
+	void SetupAbilityBindings();
 
-    /** Input mapping context for base RPG actions */
-    UPROPERTY(EditAnywhere, Category = "Input")
-    TObjectPtr<UInputMappingContext> RpgContext;
+	/** Контекст ввода для базовых действий */
+	UPROPERTY(EditAnywhere, Category = "Input")
+	TObjectPtr<UInputMappingContext> RpgContext;
 
-    /** Movement input action */
-    UPROPERTY(EditAnywhere, Category = "Input")
-    TObjectPtr<UInputAction> MoveAction;
+	/** Действие ввода для перемещения */
+	UPROPERTY(EditAnywhere, Category = "Input")
+	TObjectPtr<UInputAction> MoveAction;
 
-    /** Camera look input action */
-    UPROPERTY(EditAnywhere, Category = "Input")
-    TObjectPtr<UInputAction> LookAction;
+	/** Действие ввода для вращения камеры */
+	UPROPERTY(EditAnywhere, Category = "Input")
+	TObjectPtr<UInputAction> LookAction;
 
-    /** Primary attack input action */
-    UPROPERTY(EditAnywhere, Category = "Input|Abilities")
-    TObjectPtr<UInputAction> PrimaryAttackAction;
+	/** Действие ввода для основной атаки */
+	UPROPERTY(EditAnywhere, Category = "Input|Abilities")
+	TObjectPtr<UInputAction> PrimaryAttackAction;
 
-    /** Combo attack input action */
-    UPROPERTY(EditAnywhere, Category = "Input|Abilities")
-    TObjectPtr<UInputAction> ComboAttackAction;
+	/** Действие ввода для комбо-атаки */
+	UPROPERTY(EditAnywhere, Category = "Input|Abilities")
+	TObjectPtr<UInputAction> ComboAttackAction;
 
-    /** Sprint input action */
-    UPROPERTY(EditAnywhere, Category = "Input|Abilities")
-    TObjectPtr<UInputAction> SprintAction;
+	/** Действие ввода для спринта */
+	UPROPERTY(EditAnywhere, Category = "Input|Abilities")
+	TObjectPtr<UInputAction> SprintAction;
 
-    /** Handle movement input */
-    void Move(const FInputActionValue& InputActionValue);
+	/** Обработчик ввода для перемещения */
+	void Move(const FInputActionValue& InputActionValue);
 
-    /** Handle camera input */
-    void Look(const FInputActionValue& InputActionValue);
+	/** Обработчик ввода для вращения камеры */
+	void Look(const FInputActionValue& InputActionValue);
 
-    /**
-     * Process combo attack input
-     */
-    void ProcessComboInput(const FInputActionValue& InputActionValue);
+	/**
+	 * Обработчик ввода для комбо-атак
+	 * @param InputActionValue Значение ввода
+	 */
+	void ProcessComboInput(const FInputActionValue& InputActionValue);
 
-    /** Horizontal camera rotation speed */
-    UPROPERTY(EditAnywhere, Category = "Camera", meta = (ClampMin = "0.1", ClampMax = "10.0"))
-    float YawSpeed = 1.f;
+	/** Скорость вращения камеры по горизонтали */
+	UPROPERTY(EditAnywhere, Category = "Camera")
+	float YawSpeed = 1.f;
 
-    /** Vertical camera rotation speed */
-    UPROPERTY(EditAnywhere, Category = "Camera", meta = (ClampMin = "0.1", ClampMax = "10.0"))
-    float PitchSpeed = 1.f;
+	/** Скорость вращения камеры по вертикали */
+	UPROPERTY(EditAnywhere, Category = "Camera")
+	float PitchSpeed = 1.f;
 
 private:
-    /** Cached reference to the enhanced input component */
-    UPROPERTY()
-    UTronRpgEnhancedInputComponent* EnhancedInputComp;
+	/** Кэшированная ссылка на расширенный компонент ввода */
+	UPROPERTY()
+	UTronRpgEnhancedInputComponent* EnhancedInputComp;
 };

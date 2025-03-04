@@ -6,6 +6,7 @@
 #include "Component/TronRpgComboComponent.h"
 #include "Component/Animation/AnimationComponent.h"
 #include "Component/DI/DependencyInjectorComponent.h"
+#include "Component/Input/AbilityInputComponent.h"
 #include "Component/Weapon/WeaponComponent.h"
 #include "Data/Weapon/WeaponDataAsset.h"
 #include "Net/UnrealNetwork.h"
@@ -20,80 +21,38 @@ ATronRpgBaseCharacter::ATronRpgBaseCharacter()
 	bReplicates = true;
 	SetNetUpdateFrequency(60.f); // Оптимизация для быстрого обновления в сети
 
-	// Инициализация флагов
-	bAbilitiesInitialized = false;
-
-	DependencyInjector = CreateDefaultSubobject<UDependencyInjectorComponent>(TEXT("DependencyInjector"));
-	
+	// Создание компонентов
 	AbilitySystemComponent = CreateDefaultSubobject<UTronRpgAbilitySystemComponent>(TEXT("AbilitySystemComponent"));
 	AbilitySystemComponent->SetIsReplicated(true);
 	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
-	
+
 	AttributeSet = CreateDefaultSubobject<UTronRpgAttributeSet>(TEXT("AttributeSet"));
-	
 	ComboComponent = CreateDefaultSubobject<UTronRpgComboComponent>(TEXT("ComboComponent"));
-	
 	AnimationComponent = CreateDefaultSubobject<UAnimationComponent>(TEXT("AnimationComponent"));
-	
+	DependencyInjector = CreateDefaultSubobject<UDependencyInjectorComponent>(TEXT("DependencyInjector"));
+	AbilityInputComponent = CreateDefaultSubobject<UAbilityInputComponent>(TEXT("AbilityInputComponent"));
 	WeaponComponent = CreateDefaultSubobject<UWeaponComponent>(TEXT("WeaponComponent"));
-	WeaponComponent->MainHandMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MainHandMesh"));
-	WeaponComponent->MainHandMeshComponent->SetupAttachment(GetMesh(), TEXT("WeaponSocket_MainHand"));
-	WeaponComponent->OffHandMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("OffHandMesh"));
-	WeaponComponent->OffHandMeshComponent->SetupAttachment(GetMesh(), TEXT("WeaponSocket_OffHand"));
+
+	// Привязка делегата для обработки видимости оружия
 	OnWeaponVisibilityChanged.AddDynamic(this, &ATronRpgBaseCharacter::UpdateWeaponVisibility);
 
-	// Компоненты будут созданы в InitializeComponents
-}
-
-void ATronRpgBaseCharacter::PostInitializeComponents()
-{
-	Super::PostInitializeComponents();
-
-	// Инициализация компонентов в четком порядке
-	InitializeComponents();
-
-	// Регистрация компонентов в DI
-	RegisterComponentsInDI();
-}
-
-void ATronRpgBaseCharacter::InitializeComponents()
-{
-	
+	// Создание и настройка компонентов оружия
+	WeaponComponent->MainHandMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MainHandMesh"));
+	WeaponComponent->MainHandMeshComponent->SetupAttachment(GetMesh(), TEXT("WeaponSocket_MainHand"));
 	WeaponComponent->MainHandMeshComponent->SetVisibility(false);
 	WeaponComponent->MainHandMeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	WeaponComponent->MainHandMeshComponent->SetCanEverAffectNavigation(false);
 	WeaponComponent->MainHandMeshComponent->SetIsReplicated(true);
-	
+
+	WeaponComponent->OffHandMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("OffHandMesh"));
+	WeaponComponent->OffHandMeshComponent->SetupAttachment(GetMesh(), TEXT("WeaponSocket_OffHand"));
 	WeaponComponent->OffHandMeshComponent->SetVisibility(false);
 	WeaponComponent->OffHandMeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	WeaponComponent->OffHandMeshComponent->SetCanEverAffectNavigation(false);
 	WeaponComponent->OffHandMeshComponent->SetIsReplicated(true);
 
-	// Настройка тегов AbilitySystemComponent
-	if (AbilitySystemComponent)
-	{
-		AbilitySystemComponent->SetTagMapCount(TAG_State_Running, 0);
-		AbilitySystemComponent->SetTagMapCount(TAG_State_Sprinting, 0);
-	}
-}
-
-void ATronRpgBaseCharacter::RegisterComponentsInDI()
-{
-	// Регистрация компонентов в DI
-	if (DependencyInjector)
-	{
-		// Регистрируем компоненты
-		DependencyInjector->RegisterComponent(UTronRpgAbilitySystemComponent::StaticClass(), AbilitySystemComponent);
-		DependencyInjector->RegisterObject(UTronRpgAttributeSet::StaticClass(), AttributeSet);
-		DependencyInjector->RegisterComponent(UTronRpgComboComponent::StaticClass(), ComboComponent);
-		DependencyInjector->RegisterComponent(UAnimationComponent::StaticClass(), AnimationComponent);
-		DependencyInjector->RegisterComponent(UWeaponComponent::StaticClass(), WeaponComponent);
-
-		// Регистрируем интерфейсы
-		DependencyInjector->RegisterInterface(UAbilitySystemInterface::StaticClass(), this);
-		DependencyInjector->RegisterInterface(UMeleeAttackInterface::StaticClass(), this);
-		DependencyInjector->RegisterInterface(UAnimatableCharacter::StaticClass(), this);
-	}
+	// Инициализация переменных состояния
+	bAbilitiesInitialized = false;
 }
 
 int32 ATronRpgBaseCharacter::GetComboCount_Implementation() const
@@ -106,7 +65,7 @@ void ATronRpgBaseCharacter::IncrementCombo_Implementation(bool bResetTimer)
 	if (ComboComponent)
 	{
 		ComboComponent->IncrementCombo();
-
+        
 		// Если нужно сбросить таймер окна комбо
 		if (bResetTimer)
 		{
@@ -139,13 +98,25 @@ float ATronRpgBaseCharacter::PlayAttackAnimation_Implementation(UAnimMontage* Mo
 	return AnimationComponent ? AnimationComponent->PlayMontage(Montage, PlayRate, SectionName) : 0.0f;
 }
 
-FGameplayTagContainer ATronRpgBaseCharacter::GetCurrentGameplayTags_Implementation() const
+void ATronRpgBaseCharacter::PostInitializeComponents()
 {
+	Super::PostInitializeComponents();
+	SetupComponents();
+}
+
+void ATronRpgBaseCharacter::SetupComponents()
+{
+	// Проверка валидности и настройка дополнительных параметров компонентов
 	if (AbilitySystemComponent)
 	{
-		return AbilitySystemComponent->GetOwnedGameplayTags();
+		// Настройка обработки тегов для ASC
+
+		AbilitySystemComponent->SetTagMapCount((TAG_State_Running), 0);
+		AbilitySystemComponent->SetTagMapCount((TAG_State_Sprinting), 0);
 	}
-	return FGameplayTagContainer();
+
+	// Настройка отладочных сообщений для компонентов
+	UE_LOG(LogTemp, Log, TEXT("Components for %s have been set up"), *GetName());
 }
 
 void ATronRpgBaseCharacter::BeginPlay()
@@ -278,7 +249,7 @@ bool ATronRpgBaseCharacter::EquipWeapon(UWeaponDataAsset* WeaponAsset, float Ble
 	}
 
 	// Проверка, не находится ли персонаж в анимации атаки
-	if (AbilitySystemComponent && AbilitySystemComponent->HasMatchingGameplayTag(TAG_State_Attacking))
+	if (AbilitySystemComponent && AbilitySystemComponent->HasMatchingGameplayTag(FGameplayTag::RequestGameplayTag("State.Attacking")))
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Cannot equip weapon: character is attacking"));
 		return false;
@@ -291,7 +262,7 @@ bool ATronRpgBaseCharacter::EquipWeapon(UWeaponDataAsset* WeaponAsset, float Ble
 	}
 
 	bool success = WeaponComponent->EquipWeapon(WeaponAsset);
-
+    
 	// Если экипировка прошла успешно, настраиваем BlendSpace
 	if (success && AnimationComponent && WeaponAsset)
 	{
@@ -301,7 +272,7 @@ bool ATronRpgBaseCharacter::EquipWeapon(UWeaponDataAsset* WeaponAsset, float Ble
 			BlendSpaceTransitionDuration
 		);
 	}
-
+    
 	return success;
 }
 
@@ -312,7 +283,7 @@ void ATronRpgBaseCharacter::Server_EquipWeapon_Implementation(UWeaponDataAsset* 
 
 bool ATronRpgBaseCharacter::UnequipWeapon()
 {
-	if (!WeaponComponent || !WeaponComponent->IsWeaponEquipped())
+	if (!WeaponComponent || !WeaponComponent->CurrentWeapon)
 	{
 		return false;
 	}
@@ -325,7 +296,7 @@ bool ATronRpgBaseCharacter::UnequipWeapon()
 	}
 
 	// Проверка, не находится ли персонаж в анимации атаки
-	if (AbilitySystemComponent && AbilitySystemComponent->HasMatchingGameplayTag(TAG_State_Attacking))
+	if (AbilitySystemComponent && AbilitySystemComponent->HasMatchingGameplayTag(FGameplayTag::RequestGameplayTag("State.Attacking")))
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Cannot unequip weapon: character is attacking"));
 		return false;
@@ -333,7 +304,7 @@ bool ATronRpgBaseCharacter::UnequipWeapon()
 
 	// Вызов снятия оружия через компонент
 	bool success = WeaponComponent->UnequipWeapon();
-
+    
 	// Если снятие прошло успешно, настраиваем BlendSpace
 	if (success && AnimationComponent && DefaultWeaponAsset)
 	{
@@ -343,7 +314,7 @@ bool ATronRpgBaseCharacter::UnequipWeapon()
 			1.0f
 		);
 	}
-
+    
 	return success;
 }
 
@@ -366,12 +337,12 @@ void ATronRpgBaseCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>
 
 	// Добавляем репликацию флага
 	DOREPLIFETIME(ATronRpgBaseCharacter, bIsPlayingEquipAnimation);
-
+    
 	// Существующие репликации
 	DOREPLIFETIME(ATronRpgBaseCharacter, AbilitySystemComponent);
 }
 
 bool ATronRpgBaseCharacter::GetCurrentWeaponTag()
 {
-	return WeaponComponent && WeaponComponent->IsWeaponEquipped();
+	return true;
 }

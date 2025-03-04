@@ -5,17 +5,6 @@
 #include "GameplayTagContainer.h"
 #include "MeleeAttackAbility.generated.h"
 
-// Перечисление состояний комбо-атаки
-UENUM(BlueprintType)
-enum class EMeleeAttackState : uint8
-{
-	Idle,
-	Attacking,
-	ComboWindow,
-	ApplyingDamage,
-	Cancelling
-};
-
 class ATronRpgBaseCharacter;
 class UAnimMontage;
 
@@ -44,9 +33,8 @@ public:
 
 	/**
 	 * Продолжить комбо-атаку, переходя к следующей секции
-	 * @return true если комбо успешно продолжено
 	 */
-	bool ContinueComboAttack();
+	void ContinueComboAttack();
 
 protected:
 	/** Монтаж атаки по умолчанию */
@@ -85,15 +73,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Attack|Damage")
 	TSubclassOf<UGameplayEffect> DamageEffectClass;
 
-	/**
-	 * Текущее состояние атаки
-	 */
-	UPROPERTY(Transient, BlueprintReadOnly, Category = "Attack|State")
-	EMeleeAttackState AttackState = EMeleeAttackState::Idle;
-
 	/** Указатель на персонажа-владельца */
 	UPROPERTY()
-	AActor* OwningActor;
+	ATronRpgBaseCharacter* OwningCharacter;
 
 	/** Текущий счетчик комбо */
 	int32 CurrentComboCount;
@@ -118,23 +100,13 @@ protected:
 	FGameplayAbilitySpecHandle CurrentSpecHandle;
 
 	/** Информация об акторе для текущей активации */
-	const FGameplayAbilityActorInfo* CachedActorInfo;
+	const FGameplayAbilityActorInfo* CurrentActorInfo;
 
 	/** Информация об активации способности */
 	FGameplayAbilityActivationInfo CurrentActivationInfo;
 
 	/** Хэндл таймера для проверки комбо */
 	FTimerHandle ComboCheckTimerHandle;
-
-	/**
-	 * Установить состояние атаки
-	 */
-	void SetAttackState(EMeleeAttackState NewState);
-
-	/**
-	 * Обработать события на основе состояния
-	 */
-	void ProcessAttackState(float DeltaTime);
 
 	/**
 	 * Выполнить атаку
@@ -161,17 +133,12 @@ protected:
 	void OnAnimNotifyBegin(FName NotifyName);
 
 	/**
-	 * Применяет урон целям в области атаки через GameplayEffect
-	 */
-	void ApplyDamage();
-
-	/**
-	 * Проверяет ввод для комбо
+	 * Проверка ввода для комбо
 	 */
 	void CheckComboInput();
 
 	/**
-	 * Закрывает окно возможности комбо
+	 * Закрыть окно возможности комбо
 	 */
 	void CloseComboWindow();
 
@@ -182,4 +149,9 @@ protected:
 	 */
 	UFUNCTION()
 	void OnAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted);
+
+	/**
+	 * Применяет урон целям в области атаки
+	 */
+	void ApplyDamage();
 };
