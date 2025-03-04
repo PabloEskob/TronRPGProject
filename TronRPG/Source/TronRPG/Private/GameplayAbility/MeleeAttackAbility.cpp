@@ -45,27 +45,26 @@ void UMeleeAttackAbility::OnGiveAbility(const FGameplayAbilityActorInfo* ActorIn
 {
 	Super::OnGiveAbility(ActorInfo, Spec);
 
-	// Получаем ссылку на владельца
 	OwningCharacter = Cast<ATronRpgBaseCharacter>(ActorInfo->AvatarActor.Get());
-
-	if (OwningCharacter)
+	if (!OwningCharacter)
 	{
-		// Подключаемся к делегату анимационного уведомления
-		UAnimationComponent* AnimComp = OwningCharacter->GetAnimationComponent();
-		if (AnimComp)
-		{
-			AnimComp->OnMontageNotifyBegin.AddDynamic(this, &UMeleeAttackAbility::OnAnimNotifyBegin);
-		}
+		UE_LOG(LogTemp, Warning, TEXT("MeleeAttackAbility: OwningCharacter is null in OnGiveAbility"));
+		return;
+	}
+
+	UAnimationComponent* AnimComp = OwningCharacter->GetAnimationComponent();
+	if (AnimComp && !AnimComp->OnMontageNotifyBegin.IsAlreadyBound(this, &UMeleeAttackAbility::OnAnimNotifyBegin))
+	{
+		AnimComp->OnMontageNotifyBegin.AddDynamic(this, &UMeleeAttackAbility::OnAnimNotifyBegin);
 	}
 }
 
 void UMeleeAttackAbility::OnRemoveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec)
 {
-	// Отключаемся от делегата при удалении способности
 	if (OwningCharacter)
 	{
 		UAnimationComponent* AnimComp = OwningCharacter->GetAnimationComponent();
-		if (AnimComp)
+		if (AnimComp && AnimComp->OnMontageNotifyBegin.IsAlreadyBound(this, &UMeleeAttackAbility::OnAnimNotifyBegin))
 		{
 			AnimComp->OnMontageNotifyBegin.RemoveDynamic(this, &UMeleeAttackAbility::OnAnimNotifyBegin);
 		}
@@ -191,32 +190,31 @@ void UMeleeAttackAbility::ResetComboState(UTronRpgComboComponent* ComboComp)
 }
 
 void UMeleeAttackAbility::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
-                                     const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
+									 const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
 {
-	// Сбрасываем флаги состояния
 	bCanCombo = false;
 	bApplyingDamage = false;
+	bAttackInputPressed = false;
 
-	// Останавливаем таймер проверки комбо
 	if (GetWorld())
 	{
 		GetWorld()->GetTimerManager().ClearTimer(ComboCheckTimerHandle);
 	}
 
-	// Отключаем обработчик завершения монтажа и останавливаем монтаж
 	if (OwningCharacter)
 	{
 		UAnimationComponent* AnimComp = OwningCharacter->GetAnimationComponent();
 		if (AnimComp)
 		{
 			AnimComp->OnMontageEnded.RemoveDynamic(this, &UMeleeAttackAbility::OnAttackMontageEnded);
-
 			if (bWasCancelled && AttackMontage)
 			{
 				AnimComp->StopMontage(AttackMontage);
 			}
 		}
 	}
+
+	UE_LOG(LogTemp, Log, TEXT("MeleeAttackAbility ended. Cancelled: %d, ComboCount: %d"), bWasCancelled, CurrentComboCount);
 
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 }
