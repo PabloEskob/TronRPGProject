@@ -1,4 +1,6 @@
 ﻿#include "Object/GameplayTagsLibrary.h"
+
+#include "GAS/TronRpgAttributeSet.h"
 #include "Logging/LogMacros.h"
 
 // Existing tags
@@ -38,3 +40,20 @@ UE_DEFINE_GAMEPLAY_TAG(TAG_Ability_Combat_Melee, "Ability.Combat.Melee");
 UE_DEFINE_GAMEPLAY_TAG(TAG_Input_Attack, "Input.Attack");
 
 UE_DEFINE_GAMEPLAY_TAG(TAG_State_Equipment_Changing, "State.Equipment.Changing");
+
+UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_State_ComboWindowOpen)
+UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Ability_Combo_Continue)
+
+// Теги для эффектов и урона
+UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Effect_Damage_Melee)
+UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Effect_Damage_Critical)
+UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Effect_Damage_ComboMultiplier)
+
+// GameplayTagsLibrary.cpp - Добавьте определения новых тегов
+UE_DEFINE_GAMEPLAY_TAG(TAG_State_ComboWindowOpen, "State.ComboWindowOpen");
+UE_DEFINE_GAMEPLAY_TAG(TAG_Ability_Combo_Continue, "Ability.Combo.Continue");
+UE_DEFINE_GAMEPLAY_TAG(TAG_Effect_Damage_Melee, "Effect.Damage.Melee");
+UE_DEFINE_GAMEPLAY_TAG(TAG_Effect_Damage_Critical, "Effect.Damage.Critical");
+UE_DEFINE_GAMEPLAY_TAG(TAG_Effect_Damage_ComboMultiplier, "Effect.Damage.ComboMultiplier");
+
+

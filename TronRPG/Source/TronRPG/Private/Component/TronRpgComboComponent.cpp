@@ -6,7 +6,7 @@ UTronRpgComboComponent::UTronRpgComboComponent()
 {
 	PrimaryComponentTick.bCanEverTick = false;
 	SetIsReplicatedByDefault(true);
-	
+
 	// Инициализация параметров комбо по умолчанию
 	CurrentComboCount = 0;
 	MaxComboCount = 3;
@@ -17,7 +17,7 @@ UTronRpgComboComponent::UTronRpgComboComponent()
 void UTronRpgComboComponent::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
 	// Получаем AnimInstance для подписки на события анимации
 	if (AActor* Owner = GetOwner())
 	{
@@ -44,13 +44,13 @@ void UTronRpgComboComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 			AnimInstance->OnAnimNotifyBegin.RemoveDynamic(this, &UTronRpgComboComponent::OnAnimNotifyReceived);
 		}
 	}
-	
+
 	// Очищаем таймер
 	if (GetWorld())
 	{
 		GetWorld()->GetTimerManager().ClearTimer(ComboWindowTimerHandle);
 	}
-	
+
 	Super::EndPlay(EndPlayReason);
 }
 
@@ -67,10 +67,10 @@ void UTronRpgComboComponent::OpenComboWindow()
 {
 	// Открываем окно комбо
 	bComboWindowOpen = true;
-	
+
 	// Оповещаем интерфейс о том, что окно комбо открыто
 	OnComboWindowOpened.Broadcast();
-	
+
 	// Устанавливаем таймер для закрытия окна
 	if (GetWorld())
 	{
@@ -82,7 +82,7 @@ void UTronRpgComboComponent::OpenComboWindow()
 			ComboTimeWindow,
 			false);
 	}
-	
+
 	UE_LOG(LogTemp, Log, TEXT("Combo window opened. Current combo: %d"), CurrentComboCount);
 }
 
@@ -92,9 +92,9 @@ void UTronRpgComboComponent::CloseComboWindow()
 	{
 		return;
 	}
-    
+
 	bComboWindowOpen = false;
-    
+
 	ClearComboTimer();
 	NotifyComboWindowClosed();
 }
@@ -117,7 +117,7 @@ void UTronRpgComboComponent::ResetCombo()
 		OnComboReset.Broadcast();
 		UE_LOG(LogTemp, Log, TEXT("Combo reset"));
 	}
-	
+
 	bComboWindowOpen = false;
 	if (GetWorld())
 	{
@@ -131,7 +131,7 @@ void UTronRpgComboComponent::ProcessComboInput()
 	{
 		return;
 	}
-    
+
 	CloseComboWindow();
 	IncrementAndNotifyCombo();
 }
@@ -155,7 +155,7 @@ void UTronRpgComboComponent::IncrementAndNotifyCombo()
 {
 	IncrementCombo();
 	OnComboContinue.Broadcast(CurrentComboCount);
-    
+
 	UE_LOG(LogTemp, Log, TEXT("Combo input processed, combo count: %d"), CurrentComboCount);
 }
 
@@ -171,4 +171,14 @@ void UTronRpgComboComponent::NotifyComboWindowClosed()
 {
 	OnComboWindowClosed.Broadcast();
 	UE_LOG(LogTemp, Log, TEXT("Combo window closed. Combo not continued."));
+}
+
+void UTronRpgComboComponent::SetComboCount(int32 NewCount)
+{
+	if (NewCount >= 0 && NewCount < MaxComboCount)
+	{
+		CurrentComboCount = NewCount;
+		OnComboCountChanged.Broadcast(CurrentComboCount);
+		UE_LOG(LogTemp, Log, TEXT("Combo explicitly set to: %d"), CurrentComboCount);
+	}
 }

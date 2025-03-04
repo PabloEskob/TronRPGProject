@@ -100,14 +100,7 @@ public:
      */
     UFUNCTION(BlueprintPure, Category = "Animation")
     float GetMontageRemainingTime(UAnimMontage* Montage = nullptr) const;
-
-    /**
-     * Установить теги для анимационного инстанса
-     * @param Tags Контейнер тегов
-     */
-    UFUNCTION(BlueprintCallable, Category = "Animation")
-    void SetAnimationTags(const FGameplayTagContainer& Tags);
-
+ 
     /**
      * Получить AnimInstance
      * @return Указатель на CharacterAnimInstance

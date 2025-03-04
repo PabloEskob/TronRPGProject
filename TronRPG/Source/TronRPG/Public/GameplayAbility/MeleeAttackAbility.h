@@ -4,6 +4,7 @@
 #include "Abilities/GameplayAbility.h"
 #include "GameplayTagContainer.h"
 #include "Component/TronRpgComboComponent.h"
+#include "Task/AbilityTask_WaitForComboInput.h"
 #include "MeleeAttackAbility.generated.h"
 
 class ATronRpgBaseCharacter;
@@ -45,6 +46,9 @@ public:
 	 * Продолжить комбо-атаку, переходя к следующей секции
 	 */
 	void ContinueComboAttack();
+
+	UPROPERTY()
+	UAbilityTask_WaitForComboInput* ComboInputTask;
 
 protected:
 	/** Монтаж атаки по умолчанию */
@@ -164,4 +168,25 @@ protected:
 	 * Применяет урон целям в области атаки
 	 */
 	void ApplyDamage();
+
+	/**
+	 * Запускает ожидание ввода комбо через Ability Task
+	 * Вызывается из нотифая анимации или по таймингу
+	 */
+	UFUNCTION()
+	void WaitForComboInput();
+
+	/**
+	 * Обработчик получения ввода комбо
+	 * @param NewComboCount Новый счётчик комбо
+	 */
+	UFUNCTION()
+	void OnComboInputReceived(int32 NewComboCount);
+
+	/**
+	 * Обработчик истечения окна комбо
+	 * @param ComboCount Текущий счётчик комбо
+	 */
+	UFUNCTION()
+	void OnComboWindowExpired(int32 ComboCount);
 };

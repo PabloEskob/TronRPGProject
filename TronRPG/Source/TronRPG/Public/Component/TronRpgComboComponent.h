@@ -18,6 +18,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnComboContinue, int32, CurrentComb
 
 // Делегаты для открытия/закрытия окна комбо
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnComboWindowOpened);
+
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnComboWindowClosed);
 
 /**
@@ -69,6 +70,8 @@ public:
 	void IncrementAndNotifyCombo();
 	void ClearComboTimer();
 	void NotifyComboWindowClosed();
+
+	void SetComboCount(int32 NewCount);
 
 	/** Событие изменения счетчика комбо */
 	UPROPERTY(BlueprintAssignable, Category = "Combat|Combo|Events")

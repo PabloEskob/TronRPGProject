@@ -22,21 +22,27 @@ void UAnimationComponent::BeginPlay()
 {
     Super::BeginPlay();
     
-    // Получаем SkeletalMeshComponent из владельца
+    // Get SkeletalMeshComponent from owner
     SkeletalMeshComponent = GetOwner()->FindComponentByClass<USkeletalMeshComponent>();
     
-    // Получаем AnimInstance и настраиваем делегаты
+    // Get AnimInstance and set up delegates
     if (SkeletalMeshComponent)
     {
         UAnimInstance* BaseAnimInstance = SkeletalMeshComponent->GetAnimInstance();
         if (BaseAnimInstance)
         {
-            // Регистрируем обработчик завершения монтажа
+            // Register montage end handler
             BaseAnimInstance->OnMontageEnded.AddDynamic(this, &UAnimationComponent::OnMontageEnded_Native);
             
-            // Пытаемся привести к нашему типу AnimInstance
+            // Try to cast to our AnimInstance type
             AnimInstance = Cast<UCharacterAnimInstance>(BaseAnimInstance);
-            if (!AnimInstance)
+            if (AnimInstance)
+            {
+                // ADD THIS LINE - Subscribe to OnAnimNotifyBegin from CharacterAnimInstance
+                AnimInstance->OnAnimNotifyBegin.AddDynamic(this, &UAnimationComponent::OnMontageNotifyBegin_Native);
+                UE_LOG(LogTemp, Log, TEXT("AnimationComponent: Successfully subscribed to CharacterAnimInstance's OnAnimNotifyBegin"));
+            }
+            else
             {
                 UE_LOG(LogTemp, Warning, TEXT("AnimInstance is not UCharacterAnimInstance in %s"), *GetOwner()->GetName());
             }
@@ -287,17 +293,6 @@ float UAnimationComponent::GetMontageRemainingTime(UAnimMontage* Montage) const
     }
     
     return 0.0f;
-}
-
-void UAnimationComponent::SetAnimationTags(const FGameplayTagContainer& Tags)
-{
-    // Эта функция должна быть реализована в AnimInstance
-    // Пример: передача тегов в AnimInstance для изменения состояния
-    if (AnimInstance)
-    {
-        // Здесь можно добавить логику для передачи тегов в AnimInstance
-        // Например, через специальный метод в CharacterAnimInstance
-    }
 }
 
 void UAnimationComponent::OnMontageEnded_Native(UAnimMontage* Montage, bool bInterrupted)
