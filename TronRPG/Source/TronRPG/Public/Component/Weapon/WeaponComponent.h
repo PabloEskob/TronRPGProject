@@ -24,7 +24,6 @@ public:
 	UWeaponComponent();
 
 	virtual void BeginPlay() override;
-	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 	/**
 	 * Текущее экипированное оружие

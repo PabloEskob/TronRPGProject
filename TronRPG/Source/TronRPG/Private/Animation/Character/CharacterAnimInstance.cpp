@@ -27,22 +27,45 @@ void UCharacterAnimInstance::NativeInitializeAnimation()
 void UCharacterAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 {
 	Super::NativeUpdateAnimation(DeltaSeconds);
-
-	// Проверка кэшированных компонентов
-	if (!CachedCharacter)
+    
+	// Кэширование компонентов только при необходимости
+	if (!CachedCharacter || !IsComponentValid())
 	{
 		UpdateCachedReferences();
-		if (!CachedCharacter)
+		if (!CachedCharacter || !IsComponentValid())
 		{
 			return;
 		}
 	}
-
-	// Обновление различных аспектов анимации
+    
+	// Используем тик-группы для распределения нагрузки
+	const uint8 FrameCounter = GFrameCounter & 0x03; // Модуль 4
+    
+	// Обновление каждый кадр
 	UpdateMovementParameters(DeltaSeconds);
-	UpdateBreathingParameters(DeltaSeconds);
-	UpdateStateTags();
-	UpdateBlendSpaceTransition(DeltaSeconds);
+    
+	// Обновление каждый второй кадр
+	if (FrameCounter % 2 == 0)
+	{
+		UpdateBreathingParameters(DeltaSeconds);
+	}
+    
+	// Обновление каждый четвертый кадр
+	if (FrameCounter == 0)
+	{
+		UpdateStateTags();
+	}
+    
+	// Обновление при необходимости
+	if (TransitionTimeRemaining > 0.f)
+	{
+		UpdateBlendSpaceTransition(DeltaSeconds);
+	}
+}
+
+bool UCharacterAnimInstance::IsComponentValid() const
+{
+	return CachedMovementComponent != nullptr && CachedASC != nullptr;
 }
 
 void UCharacterAnimInstance::UpdateCachedReferences()

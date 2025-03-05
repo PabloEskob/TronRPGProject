@@ -108,7 +108,10 @@ UTronRpgWeaponAssetManager* UTronRpgWeaponAssetManager::Get(const UObject* World
 
 TArray<UWeaponDataAsset*> UTronRpgWeaponAssetManager::GetWeaponsByTag(FGameplayTag Tag) const
 {
+	// Предварительное резервирование памяти для массива
 	TArray<UWeaponDataAsset*> MatchingWeapons;
+	MatchingWeapons.Reserve(LoadedWeaponAssets.Num() / 2); // Примерная оценка
+    
 	for (const auto& Pair : LoadedWeaponAssets)
 	{
 		UWeaponDataAsset* Weapon = Pair.Value;
@@ -117,5 +120,6 @@ TArray<UWeaponDataAsset*> UTronRpgWeaponAssetManager::GetWeaponsByTag(FGameplayT
 			MatchingWeapons.Add(Weapon);
 		}
 	}
+    
 	return MatchingWeapons;
 }

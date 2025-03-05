@@ -13,8 +13,7 @@
 UWeaponComponent::UWeaponComponent()
 {
 	// Настройки компонента
-	PrimaryComponentTick.bCanEverTick = true;
-	PrimaryComponentTick.TickInterval = 0.1f; // Оптимизация производительности, тик каждые 100мс
+	PrimaryComponentTick.bCanEverTick = false;
 	SetIsReplicatedByDefault(true);
 
 	// Инициализация указателей
@@ -43,14 +42,6 @@ void UWeaponComponent::BeginPlay()
 
 	// Инициализация истории оружия
 	WeaponHistory.Empty(MaxWeaponHistorySize);
-}
-
-void UWeaponComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
-{
-	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-
-	// Регулярные проверки или обновления состояния оружия можно реализовать здесь
-	// Например, проверка условий повреждения оружия, износа и т.д.
 }
 
 bool UWeaponComponent::EquipWeapon(UWeaponDataAsset* WeaponAsset)
