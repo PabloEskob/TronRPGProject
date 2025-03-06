@@ -6,6 +6,10 @@
 #include "GameplayAbilitySpec.h"
 #include "Config/AbilityInputConfig.h"
 #include "Struct/Input/AbilityInputBinding.h"
+#include "Logging/LogMacros.h"
+
+// Определяем логирование для компонента
+DEFINE_LOG_CATEGORY_STATIC(LogTronAbilityInput, Log, All);
 
 UAbilityInputComponent::UAbilityInputComponent()
 {
@@ -25,6 +29,12 @@ void UAbilityInputComponent::BeginPlay()
 	{
 		LoadInputBindingsFromConfig(InputConfig, false);
 	}
+
+	// Загружаем способности из набора, если он указан
+	if (AbilitySet && AbilitySystemComponent)
+	{
+		InitializeFromAbilitySet(AbilitySet);
+	}
 }
 
 void UAbilityInputComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -35,15 +45,15 @@ void UAbilityInputComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 		UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(BoundInputComponent);
 		if (EnhancedInputComponent)
 		{
-			for (const FAbilityInputBinding& Binding : InputConfig->AbilityBindings)
-			{
-				if (Binding.InputAction)
-				{
-					EnhancedInputComponent->ClearBindingsForObject(this);
-				}
-			}
+			EnhancedInputComponent->ClearBindingsForObject(this);
 		}
 		BoundInputComponent = nullptr;
+	}
+
+	// Отписываемся от событий ASC
+	if (AbilitySystemComponent)
+	{
+		AbilitySystemComponent->OnAbilityEnded.RemoveAll(this);
 	}
 
 	Super::EndPlay(EndPlayReason);
@@ -60,13 +70,68 @@ void UAbilityInputComponent::InitializeAbilitySystem()
 
 		if (!AbilitySystemComponent)
 		{
-			UE_LOG(LogTemp, Error, TEXT("[%s] AbilityInputComponent: Failed to find AbilitySystemComponent"), *GetOwner()->GetName());
+			UE_LOG(LogTronAbilityInput, Error, TEXT("[%s] AbilityInputComponent: Failed to find AbilitySystemComponent"), *GetOwner()->GetName());
 		}
 		else
 		{
-			UE_LOG(LogTemp, Log, TEXT("[%s] AbilityInputComponent: Successfully initialized AbilitySystemComponent"), *GetOwner()->GetName());
+			UE_LOG(LogTronAbilityInput, Log, TEXT("[%s] AbilityInputComponent: Successfully initialized AbilitySystemComponent"),
+			       *GetOwner()->GetName());
+
+			// Подписываемся на события ASC
+			BindToAbilitySystemEvents();
+
+			// Проверяем отложенные активации
+			CheckPendingActivations();
 		}
 	}
+}
+
+void UAbilityInputComponent::BindToAbilitySystemEvents()
+{
+	if (!AbilitySystemComponent)
+	{
+		return;
+	}
+	AbilitySystemComponent->OnAbilityEnded.AddUObject(this, &UAbilityInputComponent::OnAbilityEnded);
+}
+
+void UAbilityInputComponent::OnAbilityEnded(const FAbilityEndedData& AbilityEndedData)
+{
+	if (!AbilityEndedData.AbilityThatEnded)
+	{
+		return;
+	}
+
+	// Получаем теги способности
+	FGameplayTagContainer AbilityTags = AbilityEndedData.AbilityThatEnded->GetAssetTags();
+
+	// Находим все совпадающие теги в наших привязках
+	for (const FAbilityInputBinding& Binding : InputConfig->AbilityBindings)
+	{
+		if (AbilityTags.HasTag(Binding.AbilityTag))
+		{
+			// Вызываем делегат завершения способности
+			OnAbilityActivationEnded.Broadcast(Binding.AbilityTag, AbilityEndedData.bWasCancelled);
+			break;
+		}
+	}
+}
+
+void UAbilityInputComponent::CheckPendingActivations()
+{
+	if (!AbilitySystemComponent || PendingActivationTags.Num() == 0)
+	{
+		return;
+	}
+
+	// Активируем отложенные способности
+	for (const FGameplayTag& AbilityTag : PendingActivationTags)
+	{
+		TryActivateAbilityByTag(AbilityTag, true);
+	}
+
+	// Очищаем список
+	PendingActivationTags.Empty();
 }
 
 void UAbilityInputComponent::SetupPlayerInput(UInputComponent* PlayerInputComponent)
@@ -75,7 +140,7 @@ void UAbilityInputComponent::SetupPlayerInput(UInputComponent* PlayerInputCompon
 
 	if (!PlayerInputComponent || !AbilitySystemComponent)
 	{
-		UE_LOG(LogTemp, Error, TEXT("[%s] AbilityInputComponent: SetupPlayerInput failed - invalid components"), *GetOwner()->GetName());
+		UE_LOG(LogTronAbilityInput, Error, TEXT("[%s] AbilityInputComponent: SetupPlayerInput failed - invalid components"), *GetOwner()->GetName());
 		return;
 	}
 
@@ -83,7 +148,8 @@ void UAbilityInputComponent::SetupPlayerInput(UInputComponent* PlayerInputCompon
 	UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent);
 	if (!EnhancedInputComponent)
 	{
-		UE_LOG(LogTemp, Error, TEXT("[%s] AbilityInputComponent: PlayerInputComponent is not UEnhancedInputComponent"), *GetOwner()->GetName());
+		UE_LOG(LogTronAbilityInput, Error, TEXT("[%s] AbilityInputComponent: PlayerInputComponent is not UEnhancedInputComponent"),
+		       *GetOwner()->GetName());
 		return;
 	}
 
@@ -102,10 +168,70 @@ void UAbilityInputComponent::SetupPlayerInput(UInputComponent* PlayerInputCompon
 			EnhancedInputComponent->BindAction(Binding.InputAction, ETriggerEvent::Completed,
 			                                   this, &UAbilityInputComponent::OnAbilityInputReleased, Binding);
 
-			UE_LOG(LogTemp, Log, TEXT("[%s] AbilityInputComponent: Bound input action %s to tag %s"),
+			UE_LOG(LogTronAbilityInput, Log, TEXT("[%s] AbilityInputComponent: Bound input action %s to tag %s"),
 			       *GetOwner()->GetName(), *Binding.InputAction->GetName(), *Binding.AbilityTag.ToString());
 		}
 	}
+}
+
+void UAbilityInputComponent::InitializeFromAbilitySet(UTronAbilitySet* InAbilitySet)
+{
+	if (!InAbilitySet)
+	{
+		UE_LOG(LogTronAbilityInput, Warning, TEXT("[%s] AbilityInputComponent: InitializeFromAbilitySet failed - invalid ability set"),
+		       *GetOwner()->GetName());
+		return;
+	}
+
+	// Сохраняем ссылку на набор способностей
+	AbilitySet = InAbilitySet;
+
+	// Если ASC не инициализирован, выходим (будет проверено снова в BeginPlay)
+	if (!AbilitySystemComponent)
+	{
+		UE_LOG(LogTronAbilityInput, Warning,
+		       TEXT("[%s] AbilityInputComponent: AbilitySystemComponent not initialized, deferring ability initialization"),
+		       *GetOwner()->GetName());
+		return;
+	}
+
+	// Получаем все способности из набора
+	TArray<FTronAbilityInfo> Abilities;
+	AbilitySet->GetAllAbilities(Abilities);
+
+	// Выдаем способности через ASC
+	for (const FTronAbilityInfo& AbilityInfo : Abilities)
+	{
+		if (AbilityInfo.AbilityClass)
+		{
+			// Создаем спецификацию способности с правильными параметрами
+			FGameplayAbilitySpec AbilitySpec(
+				AbilityInfo.AbilityClass,
+				AbilityInfo.AbilityLevel,
+				INDEX_NONE // InputID (не тег!)
+			);
+
+			// Добавляем тег как динамический тег источника
+			AbilitySpec.GetDynamicSpecSourceTags().AddTag(AbilityInfo.AbilityTag);
+
+			// Выдаем способность
+			FGameplayAbilitySpecHandle Handle = AbilitySystemComponent->GiveAbility(AbilitySpec);
+
+			if (Handle.IsValid())
+			{
+				UE_LOG(LogTronAbilityInput, Log, TEXT("[%s] AbilityInputComponent: Successfully granted ability %s with tag %s"),
+				       *GetOwner()->GetName(), *AbilityInfo.AbilityClass->GetName(), *AbilityInfo.AbilityTag.ToString());
+			}
+			else
+			{
+				UE_LOG(LogTronAbilityInput, Warning, TEXT("[%s] AbilityInputComponent: Failed to grant ability %s with tag %s"),
+				       *GetOwner()->GetName(), *AbilityInfo.AbilityClass->GetName(), *AbilityInfo.AbilityTag.ToString());
+			}
+		}
+	}
+
+	UE_LOG(LogTronAbilityInput, Log, TEXT("[%s] AbilityInputComponent: Initialized %d abilities from ability set"),
+	       *GetOwner()->GetName(), Abilities.Num());
 }
 
 void UAbilityInputComponent::AddInputBinding(UInputAction* InputAction, FGameplayTag AbilityTag, bool bCancelOnRelease, int32 Priority)
@@ -113,7 +239,7 @@ void UAbilityInputComponent::AddInputBinding(UInputAction* InputAction, FGamepla
 	// Проверка валидности входных параметров
 	if (!InputAction || !AbilityTag.IsValid())
 	{
-		UE_LOG(LogTemp, Warning, TEXT("[%s] AbilityInputComponent: AddInputBinding failed - invalid parameters"), *GetOwner()->GetName());
+		UE_LOG(LogTronAbilityInput, Warning, TEXT("[%s] AbilityInputComponent: AddInputBinding failed - invalid parameters"), *GetOwner()->GetName());
 		return;
 	}
 
@@ -127,7 +253,7 @@ void UAbilityInputComponent::AddInputBinding(UInputAction* InputAction, FGamepla
 			// Если существующая привязка имеет более высокий приоритет, сохраняем её
 			if (InputConfig->AbilityBindings[i].Priority > Priority)
 			{
-				UE_LOG(LogTemp, Warning, TEXT("[%s] AbilityInputComponent: Binding with higher priority already exists for tag %s"),
+				UE_LOG(LogTronAbilityInput, Warning, TEXT("[%s] AbilityInputComponent: Binding with higher priority already exists for tag %s"),
 				       *GetOwner()->GetName(), *AbilityTag.ToString());
 				return;
 			}
@@ -139,6 +265,7 @@ void UAbilityInputComponent::AddInputBinding(UInputAction* InputAction, FGamepla
 
 	// Добавляем или обновляем привязку
 	FAbilityInputBinding NewBinding;
+	NewBinding.BindingName = InputAction->GetName();
 	NewBinding.InputAction = InputAction;
 	NewBinding.AbilityTag = AbilityTag;
 	NewBinding.bCancelOnRelease = bCancelOnRelease;
@@ -153,7 +280,7 @@ void UAbilityInputComponent::AddInputBinding(UInputAction* InputAction, FGamepla
 		InputConfig->AbilityBindings.Add(NewBinding);
 	}
 
-	UE_LOG(LogTemp, Log, TEXT("[%s] AbilityInputComponent: Added/Updated input binding for action %s with tag %s (Priority: %d)"),
+	UE_LOG(LogTronAbilityInput, Log, TEXT("[%s] AbilityInputComponent: Added/Updated input binding for action %s with tag %s (Priority: %d)"),
 	       *GetOwner()->GetName(), *InputAction->GetName(), *AbilityTag.ToString(), Priority);
 
 	// Если ввод уже настроен, перепривязываем
@@ -182,7 +309,7 @@ void UAbilityInputComponent::RemoveInputBindingByTag(FGameplayTag AbilityTag)
 
 	if (RemovedCount > 0)
 	{
-		UE_LOG(LogTemp, Log, TEXT("[%s] AbilityInputComponent: Removed %d input bindings for tag %s"),
+		UE_LOG(LogTronAbilityInput, Log, TEXT("[%s] AbilityInputComponent: Removed %d input bindings for tag %s"),
 		       *GetOwner()->GetName(), RemovedCount, *AbilityTag.ToString());
 
 		// Если ввод уже настроен, перепривязываем
@@ -212,7 +339,7 @@ void UAbilityInputComponent::RemoveInputBindingByAction(UInputAction* InputActio
 
 	if (RemovedCount > 0)
 	{
-		UE_LOG(LogTemp, Log, TEXT("[%s] AbilityInputComponent: Removed %d input bindings for action %s"),
+		UE_LOG(LogTronAbilityInput, Log, TEXT("[%s] AbilityInputComponent: Removed %d input bindings for action %s"),
 		       *GetOwner()->GetName(), RemovedCount, *InputAction->GetName());
 
 		// Если ввод уже настроен, перепривязываем
@@ -227,7 +354,7 @@ void UAbilityInputComponent::LoadInputBindingsFromConfig(UAbilityInputConfig* In
 {
 	if (!InInputConfig)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("[%s] AbilityInputComponent: LoadInputBindingsFromConfig failed - invalid config"),
+		UE_LOG(LogTronAbilityInput, Warning, TEXT("[%s] AbilityInputComponent: LoadInputBindingsFromConfig failed - invalid config"),
 		       *GetOwner()->GetName());
 		return;
 	}
@@ -262,7 +389,7 @@ void UAbilityInputComponent::LoadInputBindingsFromConfig(UAbilityInputConfig* In
 			{
 				InputConfig->AbilityBindings.Add(Binding);
 
-				UE_LOG(LogTemp, Log, TEXT("[%s] AbilityInputComponent: Added binding from config: %s (Action: %s, Tag: %s)"),
+				UE_LOG(LogTronAbilityInput, Log, TEXT("[%s] AbilityInputComponent: Added binding from config: %s (Action: %s, Tag: %s)"),
 				       *GetOwner()->GetName(),
 				       *Binding.BindingName,
 				       *Binding.InputAction->GetName(),
@@ -271,13 +398,21 @@ void UAbilityInputComponent::LoadInputBindingsFromConfig(UAbilityInputConfig* In
 		}
 	}
 
-	UE_LOG(LogTemp, Log, TEXT("[%s] AbilityInputComponent: Loaded %d bindings from config"),
+	UE_LOG(LogTronAbilityInput, Log, TEXT("[%s] AbilityInputComponent: Loaded %d bindings from config"),
 	       *GetOwner()->GetName(), ConfigBindings.Num());
 }
 
 void UAbilityInputComponent::SetInputConfig(UAbilityInputConfig* InInputConfig, bool bClearExisting)
 {
+	if (!InInputConfig)
+	{
+		UE_LOG(LogTronAbilityInput, Warning, TEXT("[%s] AbilityInputComponent: SetInputConfig failed - invalid config"),
+		       *GetOwner()->GetName());
+		return;
+	}
+
 	InputConfig = InInputConfig;
+
 	if (InputConfig)
 	{
 		LoadInputBindingsFromConfig(InputConfig, bClearExisting);
@@ -286,9 +421,14 @@ void UAbilityInputComponent::SetInputConfig(UAbilityInputConfig* InInputConfig, 
 
 void UAbilityInputComponent::ClearAllInputBindings()
 {
+	if (!InputConfig)
+	{
+		return;
+	}
+
 	InputConfig->AbilityBindings.Empty();
 
-	// Если ввод уже настроен, перепривязываем
+	// Если ввод уже настроен, очищаем привязки
 	if (BoundInputComponent)
 	{
 		UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(BoundInputComponent);
@@ -298,7 +438,7 @@ void UAbilityInputComponent::ClearAllInputBindings()
 		}
 	}
 
-	UE_LOG(LogTemp, Log, TEXT("[%s] AbilityInputComponent: Cleared all input bindings"), *GetOwner()->GetName());
+	UE_LOG(LogTronAbilityInput, Log, TEXT("[%s] AbilityInputComponent: Cleared all input bindings"), *GetOwner()->GetName());
 }
 
 bool UAbilityInputComponent::SimulateAbilityInputPressed(FGameplayTag AbilityTag)
@@ -313,7 +453,7 @@ bool UAbilityInputComponent::SimulateAbilityInputPressed(FGameplayTag AbilityTag
 	{
 		if (Binding.AbilityTag == AbilityTag)
 		{
-			// Вызываем обработчик нажатия
+			// Вызываем обработчик нажатия с пустым значением
 			OnAbilityInputPressed(FInputActionValue(), Binding);
 			return true;
 		}
@@ -327,6 +467,8 @@ bool UAbilityInputComponent::ActivateAbilityByTag(FGameplayTag AbilityTag)
 {
 	if (!AbilitySystemComponent || !AbilityTag.IsValid())
 	{
+		UE_LOG(LogTronAbilityInput, Warning, TEXT("[%s] AbilityInputComponent: ActivateAbilityByTag failed - invalid parameters"),
+		       *GetOwner()->GetName());
 		return false;
 	}
 
@@ -339,13 +481,102 @@ bool UAbilityInputComponent::ActivateAbilityByTag(FGameplayTag AbilityTag)
 		return ActivateAbilitySpec(FoundSpec, AbilityTag);
 	}
 
-	UE_LOG(LogTemp, Warning, TEXT("[%s] AbilityInputComponent: No ability found with tag %s"),
+	UE_LOG(LogTronAbilityInput, Warning, TEXT("[%s] AbilityInputComponent: No ability found with tag %s"),
 	       *GetOwner()->GetName(), *AbilityTag.ToString());
 
 	// Вызываем делегат с отрицательным результатом
 	OnAbilityInputActivated.Broadcast(AbilityTag, false);
+	OnAbilityActivationFailed.Broadcast(AbilityTag);
 
 	return false;
+}
+
+bool UAbilityInputComponent::TryActivateAbilityByTag(FGameplayTag AbilityTag, bool bAllowRemoteActivation)
+{
+	if (!AbilitySystemComponent || !AbilityTag.IsValid())
+	{
+		// Если ASC еще не готов, добавляем тег в список ожидания
+		if (!AbilitySystemComponent && AbilityTag.IsValid())
+		{
+			PendingActivationTags.AddUnique(AbilityTag);
+			UE_LOG(LogTronAbilityInput, Log, TEXT("[%s] AbilityInputComponent: Added tag %s to pending activations"),
+			       *GetOwner()->GetName(), *AbilityTag.ToString());
+			return true; // Оптимистично предполагаем, что активация произойдет позже
+		}
+
+		return false;
+	}
+
+	// Ищем способность с соответствующим тегом
+	FGameplayAbilitySpec* FoundSpec = FindAbilitySpecByTag(AbilityTag);
+
+	// Если нашли способность, активируем её
+	if (FoundSpec)
+	{
+		bool bSuccess = AbilitySystemComponent->TryActivateAbility(FoundSpec->Handle, bAllowRemoteActivation);
+
+		// Вызываем делегат с результатом активации
+		OnAbilityInputActivated.Broadcast(AbilityTag, bSuccess);
+
+		if (!bSuccess)
+		{
+			OnAbilityActivationFailed.Broadcast(AbilityTag);
+		}
+
+		UE_LOG(LogTronAbilityInput, Log, TEXT("[%s] AbilityInputComponent: TryActivateAbilityByTag %s - %s"),
+		       *GetOwner()->GetName(), *AbilityTag.ToString(), bSuccess ? TEXT("SUCCESS") : TEXT("FAILED"));
+
+		return bSuccess;
+	}
+
+	UE_LOG(LogTronAbilityInput, Warning, TEXT("[%s] AbilityInputComponent: No ability found with tag %s for TryActivateAbilityByTag"),
+	       *GetOwner()->GetName(), *AbilityTag.ToString());
+
+	OnAbilityActivationFailed.Broadcast(AbilityTag);
+	return false;
+}
+
+bool UAbilityInputComponent::TryActivateAbilityByTagWithContext(FGameplayTag AbilityTag, const FGameplayEventData& EventData)
+{
+	if (!AbilitySystemComponent || !AbilityTag.IsValid())
+	{
+		return false;
+	}
+
+	// Проверяем наличие способности с указанным тегом
+	FGameplayAbilitySpec* FoundSpec = FindAbilitySpecByTag(AbilityTag);
+	bool bFoundAbility = (FoundSpec != nullptr);
+
+	if (bFoundAbility)
+	{
+		// Создаем контейнер тегов для активации
+		FGameplayTagContainer TagContainer;
+		TagContainer.AddTag(AbilityTag);
+
+		// Версия, которая не вызовет предупреждений компилятора
+		// Вместо передачи указателя на EventData, передаем саму структуру
+		AbilitySystemComponent->TryActivateAbilitiesByTag(TagContainer);
+
+		// После активации проверяем, стала ли способность активной
+		bFoundAbility = FoundSpec->IsActive();
+	}
+
+	// Вызываем делегаты в зависимости от результата
+	OnAbilityInputActivated.Broadcast(AbilityTag, bFoundAbility);
+
+	if (!bFoundAbility)
+	{
+		OnAbilityActivationFailed.Broadcast(AbilityTag);
+		UE_LOG(LogTronAbilityInput, Warning, TEXT("[%s] AbilityInputComponent: Failed to activate ability with tag %s using context"),
+		       *GetOwner()->GetName(), *AbilityTag.ToString());
+	}
+	else
+	{
+		UE_LOG(LogTronAbilityInput, Log, TEXT("[%s] AbilityInputComponent: Successfully activated ability with tag %s using context"),
+		       *GetOwner()->GetName(), *AbilityTag.ToString());
+	}
+
+	return bFoundAbility;
 }
 
 bool UAbilityInputComponent::CancelAbilityByTag(FGameplayTag AbilityTag)
@@ -355,19 +586,61 @@ bool UAbilityInputComponent::CancelAbilityByTag(FGameplayTag AbilityTag)
 		return false;
 	}
 
-	// Ищем способность с соответствующим тегом
-	FGameplayAbilitySpec* FoundSpec = FindAbilitySpecByTag(AbilityTag);
-
-	// Если нашли активную способность, отменяем её
-	if (FoundSpec && FoundSpec->IsActive())
+	// Проверяем, есть ли активные способности с этим тегом
+	bool bHasActiveAbility = false;
+	for (const FGameplayAbilitySpec& Spec : AbilitySystemComponent->GetActivatableAbilities())
 	{
-		AbilitySystemComponent->CancelAbilityHandle(FoundSpec->Handle);
-		UE_LOG(LogTemp, Log, TEXT("[%s] AbilityInputComponent: Canceled ability with tag %s"),
-		       *GetOwner()->GetName(), *AbilityTag.ToString());
-		return true;
+		if ((Spec.Ability && Spec.Ability->GetAssetTags().HasTag(AbilityTag) ||
+				Spec.GetDynamicSpecSourceTags().HasTag(AbilityTag)) &&
+			Spec.IsActive())
+		{
+			bHasActiveAbility = true;
+			break;
+		}
 	}
 
-	return false;
+	if (bHasActiveAbility)
+	{
+		// Создаем контейнер тегов для отмены
+		FGameplayTagContainer TagContainer;
+		TagContainer.AddTag(AbilityTag);
+
+		// Вызываем метод отмены (не возвращает результат)
+		AbilitySystemComponent->CancelAbilities(&TagContainer);
+
+		UE_LOG(LogTronAbilityInput, Log, TEXT("[%s] AbilityInputComponent: Canceled abilities with tag %s"),
+		       *GetOwner()->GetName(), *AbilityTag.ToString());
+
+		return true; // Предполагаем успех, если были активные способности
+	}
+
+	return false; // Не было активных способностей с этим тегом
+}
+
+bool UAbilityInputComponent::IsAbilityActive(FGameplayTag AbilityTag) const
+{
+	if (!AbilitySystemComponent || !AbilityTag.IsValid())
+	{
+		return false;
+	}
+
+	// Проверяем, активна ли способность с данным тегом
+	FGameplayAbilitySpec* FoundSpec = const_cast<UAbilityInputComponent*>(this)->FindAbilitySpecByTag(AbilityTag);
+
+	return FoundSpec && FoundSpec->IsActive();
+}
+
+int32 UAbilityInputComponent::GetAbilityLevel(FGameplayTag AbilityTag) const
+{
+	if (!AbilitySystemComponent || !AbilityTag.IsValid())
+	{
+		return 0;
+	}
+
+	// Получаем уровень способности с данным тегом
+	FGameplayAbilitySpec* FoundSpec = const_cast<UAbilityInputComponent*>(this)->FindAbilitySpecByTag(AbilityTag);
+
+	return FoundSpec ? FoundSpec->Level : 0;
 }
 
 void UAbilityInputComponent::OnAbilityInputPressed(const FInputActionValue& InputValue, FAbilityInputBinding Binding)
@@ -378,7 +651,7 @@ void UAbilityInputComponent::OnAbilityInputPressed(const FInputActionValue& Inpu
 	}
 
 	// Логируем нажатие клавиши для отладки
-	UE_LOG(LogTemp, Log, TEXT("[%s] AbilityInputComponent: Input pressed for tag %s"),
+	UE_LOG(LogTronAbilityInput, Log, TEXT("[%s] AbilityInputComponent: Input pressed for tag %s"),
 	       *GetOwner()->GetName(), *Binding.AbilityTag.ToString());
 
 	// Пытаемся найти способность с соответствующим тегом
@@ -391,11 +664,12 @@ void UAbilityInputComponent::OnAbilityInputPressed(const FInputActionValue& Inpu
 	}
 	else
 	{
-		UE_LOG(LogTemp, Warning, TEXT("[%s] AbilityInputComponent: No ability found with tag %s"),
+		UE_LOG(LogTronAbilityInput, Warning, TEXT("[%s] AbilityInputComponent: No ability found with tag %s"),
 		       *GetOwner()->GetName(), *Binding.AbilityTag.ToString());
 
 		// Вызываем делегат с отрицательным результатом
 		OnAbilityInputActivated.Broadcast(Binding.AbilityTag, false);
+		OnAbilityActivationFailed.Broadcast(Binding.AbilityTag);
 	}
 }
 
@@ -416,7 +690,7 @@ void UAbilityInputComponent::OnAbilityInputReleased(const FInputActionValue& Inp
 		if (FoundSpec && FoundSpec->IsActive())
 		{
 			AbilitySystemComponent->CancelAbilityHandle(FoundSpec->Handle);
-			UE_LOG(LogTemp, Log, TEXT("[%s] AbilityInputComponent: Canceled ability with tag %s"),
+			UE_LOG(LogTronAbilityInput, Log, TEXT("[%s] AbilityInputComponent: Canceled ability with tag %s"),
 			       *GetOwner()->GetName(), *Binding.AbilityTag.ToString());
 		}
 	}
@@ -431,12 +705,12 @@ FGameplayAbilitySpec* UAbilityInputComponent::FindAbilitySpecByTag(FGameplayTag 
 
 	// Ищем способность с соответствующим тегом в двух местах:
 	// 1. В тегах самого класса способности (AbilityTags)
-	// 2. В теге активации способности (InputTag)
+	// 2. В динамических тегах способности (DynamicAbilityTags)
 	for (FGameplayAbilitySpec& Spec : AbilitySystemComponent->GetActivatableAbilities())
 	{
 		if (Spec.Ability)
 		{
-			// Проверяем теги самой способности
+			// Проверяем теги класса способности
 			if (Spec.Ability->GetAssetTags().HasTag(AbilityTag))
 			{
 				return &Spec;
@@ -458,6 +732,7 @@ bool UAbilityInputComponent::ActivateAbilitySpec(FGameplayAbilitySpec* AbilitySp
 	if (!AbilitySystemComponent || !AbilitySpec)
 	{
 		OnAbilityInputActivated.Broadcast(AbilityTag, false);
+		OnAbilityActivationFailed.Broadcast(AbilityTag);
 		return false;
 	}
 
@@ -468,13 +743,14 @@ bool UAbilityInputComponent::ActivateAbilitySpec(FGameplayAbilitySpec* AbilitySp
 
 	if (bSuccess)
 	{
-		UE_LOG(LogTemp, Log, TEXT("[%s] AbilityInputComponent: Successfully activated ability with tag %s"),
+		UE_LOG(LogTronAbilityInput, Log, TEXT("[%s] AbilityInputComponent: Successfully activated ability with tag %s"),
 		       *GetOwner()->GetName(), *AbilityTag.ToString());
 	}
 	else
 	{
-		UE_LOG(LogTemp, Warning, TEXT("[%s] AbilityInputComponent: Failed to activate ability with tag %s"),
+		UE_LOG(LogTronAbilityInput, Warning, TEXT("[%s] AbilityInputComponent: Failed to activate ability with tag %s"),
 		       *GetOwner()->GetName(), *AbilityTag.ToString());
+		OnAbilityActivationFailed.Broadcast(AbilityTag);
 	}
 
 	return bSuccess;
@@ -504,6 +780,6 @@ void UAbilityInputComponent::RebindAbilitiesToInput()
 		}
 	}
 
-	UE_LOG(LogTemp, Log, TEXT("[%s] AbilityInputComponent: Rebound %d ability inputs"),
+	UE_LOG(LogTronAbilityInput, Log, TEXT("[%s] AbilityInputComponent: Rebound %d ability inputs"),
 	       *GetOwner()->GetName(), InputConfig->AbilityBindings.Num());
 }
