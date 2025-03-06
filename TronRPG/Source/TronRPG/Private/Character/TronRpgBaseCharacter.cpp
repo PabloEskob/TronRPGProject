@@ -135,6 +135,8 @@ void ATronRpgBaseCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
+	AbilityInputComponent->SetupPlayerInput(GetController()->InputComponent);
+
 	// Инициализация базового оружия, если указано
 	InitializeDefaultWeapon();
 
