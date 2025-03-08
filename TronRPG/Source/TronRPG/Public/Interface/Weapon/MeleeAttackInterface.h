@@ -22,21 +22,6 @@ class TRONRPG_API IMeleeAttackInterface
 	GENERATED_BODY()
 
 public:
-	/** Получить текущий счетчик комбо */
-	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Melee")
-	int32 GetComboCount() const;
-	virtual int32 GetComboCount_Implementation() const = 0;
-
-	/** Увеличить счетчик комбо */
-	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Melee")
-	void IncrementCombo(bool bResetTimer);
-	virtual void IncrementCombo_Implementation(bool bResetTimer) = 0;
-
-	/** Сбросить счетчик комбо */
-	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Melee")
-	void ResetCombo(bool bFireEvent);
-	virtual void ResetCombo_Implementation(bool bFireEvent) = 0;
-
 	/** Получить сокеты для трассировки атаки */
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Melee")
 	TArray<FName> GetWeaponTraceSocketNames() const;

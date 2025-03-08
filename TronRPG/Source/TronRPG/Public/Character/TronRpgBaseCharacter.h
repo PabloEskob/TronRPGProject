@@ -42,9 +42,6 @@ public:
 	void ConfigureWeaponMesh(UStaticMeshComponent* MeshComponent, const FName& SocketName);
 
 	// Реализация IMeleeAttackInterface
-	virtual int32 GetComboCount_Implementation() const override;
-	virtual void IncrementCombo_Implementation(bool bResetTimer) override;
-	virtual void ResetCombo_Implementation(bool bFireEvent) override;
 	virtual TArray<FName> GetWeaponTraceSocketNames_Implementation() const override;
 	virtual bool HasWeaponWithTag_Implementation(const FGameplayTag& WeaponTag) const override;
 	virtual float PlayAttackAnimation_Implementation(UAnimMontage* Montage, float PlayRate, FName SectionName) override;
@@ -106,14 +103,7 @@ public:
 	 */
 	UFUNCTION(BlueprintPure, Category = "Abilities")
 	UTronRpgAttributeSet* GetAttributeSet() const { return AttributeSet; }
-
-	/**
-	 * Получить компонент ComboComponent
-	 * @return Указатель на ComboComponent
-	 */
-	UFUNCTION(BlueprintPure, Category = "Combat")
-	UTronRpgComboComponent* GetComboComponent() const { return ComboComponent; }
-
+	
 	/**
 	 * Получить компонент AnimationComponent
 	 * @return Указатель на AnimationComponent
@@ -151,11 +141,7 @@ protected:
 	/** Набор атрибутов персонажа */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Abilities")
 	UTronRpgAttributeSet* AttributeSet;
-
-	/** Компонент для комбо-атак */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat")
-	UTronRpgComboComponent* ComboComponent;
-
+	
 	/** Компонент для управления анимациями */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Animation")
 	UAnimationComponent* AnimationComponent;

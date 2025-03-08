@@ -54,6 +54,26 @@
 			"Type": "RequiredResource"
 		},
 		{
+			"Path": "$(ProjectDir)/Plugins/ComboGraph/Binaries/Win64/UnrealEditor-ComboGraph.dll",
+			"Type": "DynamicLibrary"
+		},
+		{
+			"Path": "$(ProjectDir)/Plugins/ComboGraph/Binaries/Win64/UnrealEditor-ComboGraph.pdb",
+			"Type": "SymbolFile"
+		},
+		{
+			"Path": "$(ProjectDir)/Plugins/ComboGraph/Binaries/Win64/UnrealEditor-ComboGraphEditor.dll",
+			"Type": "DynamicLibrary"
+		},
+		{
+			"Path": "$(ProjectDir)/Plugins/ComboGraph/Binaries/Win64/UnrealEditor-ComboGraphEditor.pdb",
+			"Type": "SymbolFile"
+		},
+		{
+			"Path": "$(ProjectDir)/Plugins/ComboGraph/Binaries/Win64/UnrealEditor.modules",
+			"Type": "RequiredResource"
+		},
+		{
 			"Path": "$(ProjectDir)/Plugins/ElectronicNodes/Binaries/Win64/UnrealEditor-ElectronicNodes.dll",
 			"Type": "DynamicLibrary"
 		},
@@ -8209,6 +8229,10 @@
 	"RuntimeDependencies": [
 		{
 			"Path": "$(ProjectDir)/Plugins/AuroraDevs_UGC/AuroraDevs_UGC.uplugin",
+			"Type": "UFS"
+		},
+		{
+			"Path": "$(ProjectDir)/Plugins/ComboGraph/ComboGraph.uplugin",
 			"Type": "UFS"
 		},
 		{
@@ -34020,6 +34044,7 @@
 		"CmdLinkServer",
 		"CodeLiteSourceCodeAccess",
 		"ColorGrading",
+		"ComboGraph",
 		"ComputeFramework",
 		"ConcertMain",
 		"ConcertSyncClient",

@@ -3,7 +3,6 @@
 #include "Animation/Character/CharacterAnimInstance.h"
 #include "GAS/TronRpgAbilitySystemComponent.h"
 #include "GAS/TronRpgAttributeSet.h"
-#include "Component/TronRpgComboComponent.h"
 #include "Component/Animation/AnimationComponent.h"
 #include "Component/DI/DependencyInjectorComponent.h"
 #include "Component/Input/AbilityInputComponent.h"
@@ -17,82 +16,53 @@
 
 ATronRpgBaseCharacter::ATronRpgBaseCharacter()
 {
-    // Системные настройки
-    bReplicates = true;
-    SetNetUpdateFrequency(60.f);
+	// Системные настройки
+	bReplicates = true;
+	SetNetUpdateFrequency(60.f);
 
-    // Создание компонентов - все вызовы CreateDefaultSubobject должны быть здесь
-    AbilitySystemComponent = CreateDefaultSubobject<UTronRpgAbilitySystemComponent>(TEXT("AbilitySystemComponent"));
-    AttributeSet = CreateDefaultSubobject<UTronRpgAttributeSet>(TEXT("AttributeSet"));
-    ComboComponent = CreateDefaultSubobject<UTronRpgComboComponent>(TEXT("ComboComponent"));
-    AnimationComponent = CreateDefaultSubobject<UAnimationComponent>(TEXT("AnimationComponent"));
-    DependencyInjector = CreateDefaultSubobject<UDependencyInjectorComponent>(TEXT("DependencyInjector"));
-    AbilityInputComponent = CreateDefaultSubobject<UAbilityInputComponent>(TEXT("AbilityInputComponent"));
-    WeaponComponent = CreateDefaultSubobject<UWeaponComponent>(TEXT("WeaponComponent"));
-    
-    // Создание компонентов оружия
-    WeaponComponent->MainHandMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MainHandMesh"));
-    WeaponComponent->OffHandMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("OffHandMesh"));
-    
-    // Конфигурация уже созданных компонентов может быть вынесена в отдельные методы
-    ConfigureAbilityComponents();
-    ConfigureWeaponComponents();
-    
-    // Привязка делегата
-    OnWeaponVisibilityChanged.AddDynamic(this, &ATronRpgBaseCharacter::UpdateWeaponVisibility);
-    
-    // Инициализация переменных состояния
-    bAbilitiesInitialized = false;
+	// Создание компонентов - все вызовы CreateDefaultSubobject должны быть здесь
+	AbilitySystemComponent = CreateDefaultSubobject<UTronRpgAbilitySystemComponent>(TEXT("AbilitySystemComponent"));
+	AttributeSet = CreateDefaultSubobject<UTronRpgAttributeSet>(TEXT("AttributeSet"));
+	AnimationComponent = CreateDefaultSubobject<UAnimationComponent>(TEXT("AnimationComponent"));
+	DependencyInjector = CreateDefaultSubobject<UDependencyInjectorComponent>(TEXT("DependencyInjector"));
+	AbilityInputComponent = CreateDefaultSubobject<UAbilityInputComponent>(TEXT("AbilityInputComponent"));
+	WeaponComponent = CreateDefaultSubobject<UWeaponComponent>(TEXT("WeaponComponent"));
+
+	// Создание компонентов оружия
+	WeaponComponent->MainHandMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MainHandMesh"));
+	WeaponComponent->OffHandMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("OffHandMesh"));
+
+	// Конфигурация уже созданных компонентов может быть вынесена в отдельные методы
+	ConfigureAbilityComponents();
+	ConfigureWeaponComponents();
+
+	// Привязка делегата
+	OnWeaponVisibilityChanged.AddDynamic(this, &ATronRpgBaseCharacter::UpdateWeaponVisibility);
+
+	// Инициализация переменных состояния
+	bAbilitiesInitialized = false;
 }
 
 void ATronRpgBaseCharacter::ConfigureAbilityComponents()
 {
-    AbilitySystemComponent->SetIsReplicated(true);
-    AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
+	AbilitySystemComponent->SetIsReplicated(true);
+	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
 }
 
 void ATronRpgBaseCharacter::ConfigureWeaponComponents()
 {
-    // Настройка компонентов оружия
-    ConfigureWeaponMesh(WeaponComponent->MainHandMeshComponent, TEXT("WeaponSocket_MainHand"));
-    ConfigureWeaponMesh(WeaponComponent->OffHandMeshComponent, TEXT("WeaponSocket_OffHand"));
+	// Настройка компонентов оружия
+	ConfigureWeaponMesh(WeaponComponent->MainHandMeshComponent, TEXT("WeaponSocket_MainHand"));
+	ConfigureWeaponMesh(WeaponComponent->OffHandMeshComponent, TEXT("WeaponSocket_OffHand"));
 }
 
 void ATronRpgBaseCharacter::ConfigureWeaponMesh(UStaticMeshComponent* MeshComponent, const FName& SocketName)
 {
-    MeshComponent->SetupAttachment(GetMesh(), SocketName);
-    MeshComponent->SetVisibility(false);
-    MeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-    MeshComponent->SetCanEverAffectNavigation(false);
-    MeshComponent->SetIsReplicated(true);
-}
-
-int32 ATronRpgBaseCharacter::GetComboCount_Implementation() const
-{
-	return ComboComponent ? ComboComponent->GetCurrentComboCount() : 0;
-}
-
-void ATronRpgBaseCharacter::IncrementCombo_Implementation(bool bResetTimer)
-{
-	if (ComboComponent)
-	{
-		ComboComponent->IncrementCombo();
-        
-		// Если нужно сбросить таймер окна комбо
-		if (bResetTimer)
-		{
-			ComboComponent->CloseComboWindow();
-			ComboComponent->OpenComboWindow();
-		}
-	}
-}
-
-void ATronRpgBaseCharacter::ResetCombo_Implementation(bool bFireEvent)
-{
-	if (ComboComponent)
-	{
-		ComboComponent->ResetCombo();
-	}
+	MeshComponent->SetupAttachment(GetMesh(), SocketName);
+	MeshComponent->SetVisibility(false);
+	MeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	MeshComponent->SetCanEverAffectNavigation(false);
+	MeshComponent->SetIsReplicated(true);
 }
 
 TArray<FName> ATronRpgBaseCharacter::GetWeaponTraceSocketNames_Implementation() const
@@ -276,7 +246,7 @@ bool ATronRpgBaseCharacter::EquipWeapon(UWeaponDataAsset* WeaponAsset, float Ble
 	}
 
 	bool success = WeaponComponent->EquipWeapon(WeaponAsset);
-    
+
 	// Если экипировка прошла успешно, настраиваем BlendSpace
 	if (success && AnimationComponent && WeaponAsset)
 	{
@@ -286,7 +256,7 @@ bool ATronRpgBaseCharacter::EquipWeapon(UWeaponDataAsset* WeaponAsset, float Ble
 			BlendSpaceTransitionDuration
 		);
 	}
-    
+
 	return success;
 }
 
@@ -318,7 +288,7 @@ bool ATronRpgBaseCharacter::UnequipWeapon()
 
 	// Вызов снятия оружия через компонент
 	bool success = WeaponComponent->UnequipWeapon();
-    
+
 	// Если снятие прошло успешно, настраиваем BlendSpace
 	if (success && AnimationComponent && DefaultWeaponAsset)
 	{
@@ -328,7 +298,7 @@ bool ATronRpgBaseCharacter::UnequipWeapon()
 			1.0f
 		);
 	}
-    
+
 	return success;
 }
 
@@ -351,7 +321,7 @@ void ATronRpgBaseCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>
 
 	// Добавляем репликацию флага
 	DOREPLIFETIME(ATronRpgBaseCharacter, bIsPlayingEquipAnimation);
-    
+
 	// Существующие репликации
 	DOREPLIFETIME(ATronRpgBaseCharacter, AbilitySystemComponent);
 }
