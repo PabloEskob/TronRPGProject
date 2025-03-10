@@ -6,14 +6,11 @@
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GAS/TronRpgAbilitySystemComponent.h"
-#include "Object/GameplayTagsLibrary.h"
 
 UCharacterAnimInstance::UCharacterAnimInstance()
 {
 	// Инициализация значений по умолчанию
 	MaxWalkSpeed = 600.f;
-	BreathingDecayRate = 1.0f;
-	BreathingBuildupRate = 2.0f;
 }
 
 void UCharacterAnimInstance::NativeInitializeAnimation()
@@ -27,7 +24,7 @@ void UCharacterAnimInstance::NativeInitializeAnimation()
 void UCharacterAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 {
 	Super::NativeUpdateAnimation(DeltaSeconds);
-    
+
 	// Кэширование компонентов только при необходимости
 	if (!CachedCharacter || !IsComponentValid())
 	{
@@ -37,25 +34,10 @@ void UCharacterAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 			return;
 		}
 	}
-    
-	// Используем тик-группы для распределения нагрузки
-	const uint8 FrameCounter = GFrameCounter & 0x03; // Модуль 4
-    
+
 	// Обновление каждый кадр
 	UpdateMovementParameters(DeltaSeconds);
-    
-	// Обновление каждый второй кадр
-	if (FrameCounter % 2 == 0)
-	{
-		UpdateBreathingParameters(DeltaSeconds);
-	}
-    
-	// Обновление каждый четвертый кадр
-	if (FrameCounter == 0)
-	{
-		UpdateStateTags();
-	}
-    
+
 	// Обновление при необходимости
 	if (TransitionTimeRemaining > 0.f)
 	{
@@ -88,7 +70,6 @@ void UCharacterAnimInstance::UpdateMovementParameters(float DeltaSeconds)
 
 	UpdateGroundSpeed();
 	UpdateDirectionAngle();
-	UpdateMovementState();
 }
 
 bool UCharacterAnimInstance::EnsureMovementComponentValid()
@@ -97,7 +78,7 @@ bool UCharacterAnimInstance::EnsureMovementComponentValid()
 	{
 		CachedMovementComponent = CachedCharacter->GetCharacterMovement();
 	}
-    
+
 	return CachedMovementComponent != nullptr;
 }
 
@@ -112,21 +93,21 @@ void UCharacterAnimInstance::UpdateDirectionAngle()
 {
 	static const float MinSpeedThreshold = 10.0f;
 	static const float MinInputThreshold = 0.1f;
-    
+
 	FVector ForwardVector = CachedCharacter->GetActorForwardVector();
 	FVector RightVector = CachedCharacter->GetActorRightVector();
-    
+
 	if (GroundSpeed > MinSpeedThreshold)
 	{
 		// Высокая скорость: используем фактический вектор скорости
 		FVector VelocityDirection = CachedMovementComponent->Velocity.GetSafeNormal2D();
 		CalculateMovementAngle(ForwardVector, RightVector, VelocityDirection);
 	}
-	else 
+	else
 	{
 		FVector LastInputVector = CachedMovementComponent->GetLastInputVector();
 		float LastInputMagnitude = LastInputVector.Size2D();
-        
+
 		if (LastInputMagnitude > MinInputThreshold)
 		{
 			// Низкая скорость, но есть ввод: используем вектор ввода
@@ -146,79 +127,11 @@ void UCharacterAnimInstance::CalculateMovementAngle(const FVector& ForwardVector
 {
 	float ForwardDot = FVector::DotProduct(ForwardVector, DirectionVector);
 	float RightDot = FVector::DotProduct(RightVector, DirectionVector);
-    
+
 	DirectionAngle = FMath::Atan2(RightDot, ForwardDot) * 180.0f / PI;
 	MovementDirection = ForwardDot;
 }
 
-void UCharacterAnimInstance::UpdateMovementState()
-{
-	if (CachedASC)
-	{
-		bIsJogging = GroundSpeed > MaxWalkSpeed * 0.5f;
-		bIsSprinting = CachedASC->HasMatchingGameplayTag(TAG_State_Sprinting);
-	}
-}
-
-void UCharacterAnimInstance::UpdateBreathingParameters(float DeltaSeconds)
-{
-	float targetIntensity = CalculateTargetBreathingIntensity();
-	SmoothlyUpdateBreathingIntensity(targetIntensity, DeltaSeconds);
-}
-
-float UCharacterAnimInstance::CalculateTargetBreathingIntensity() const
-{
-	if (bIsSprinting)
-	{
-		return 1.0f; // Максимальная интенсивность при спринте
-	}
-    
-	if (bIsJogging)
-	{
-		return 0.6f; // Средняя интенсивность при беге
-	}
-    
-	static const float MinMovementThreshold = 10.0f;
-	if (GroundSpeed > MinMovementThreshold)
-	{
-		return 0.3f; // Низкая интенсивность при ходьбе
-	}
-    
-	return 0.0f; // В состоянии покоя
-}
-
-void UCharacterAnimInstance::SmoothlyUpdateBreathingIntensity(float TargetIntensity, float DeltaSeconds)
-{
-	if (BreathingIntensity < TargetIntensity)
-	{
-		// Быстрое увеличение интенсивности при активности
-		BreathingIntensity = FMath::Min(BreathingIntensity + DeltaSeconds * BreathingBuildupRate, TargetIntensity);
-	}
-	else if (BreathingIntensity > TargetIntensity)
-	{
-		// Медленное снижение интенсивности при отдыхе
-		BreathingIntensity = FMath::Max(BreathingIntensity - DeltaSeconds * BreathingDecayRate, TargetIntensity);
-	}
-}
-
-void UCharacterAnimInstance::UpdateStateTags()
-{
-	// Обновляем теги состояния
-	if (CachedASC)
-	{
-		CurrentStateTags = CachedASC->GetOwnedGameplayTags();
-	}
-	else if (CachedCharacter)
-	{
-		// Если ASC не кэширован, пытаемся получить его
-		UTronRpgAbilitySystemComponent* ASC = Cast<UTronRpgAbilitySystemComponent>(CachedCharacter->GetAbilitySystemComponent());
-		if (ASC)
-		{
-			CurrentStateTags = ASC->GetOwnedGameplayTags();
-			CachedASC = ASC;
-		}
-	}
-}
 
 void UCharacterAnimInstance::UpdateBlendSpaceTransition(float DeltaSeconds)
 {
@@ -328,15 +241,4 @@ void UCharacterAnimInstance::TransitionToNewBlendSpace(UBlendSpace* NewWalkForwa
 		BlendSpaceTransitionWeight = 1.f;
 		bTransitionToPrimary = true;
 	}
-}
-
-bool UCharacterAnimInstance::HasStateTag(FGameplayTag StateTag) const
-{
-	return CurrentStateTags.HasTag(StateTag);
-}
-
-void UCharacterAnimInstance::HandleNotifyBegin(FName NotifyName)
-{
-	// Вызываем делегат для обработки уведомления
-	OnAnimNotifyBegin.Broadcast(NotifyName);
 }

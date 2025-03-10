@@ -18,9 +18,6 @@ void URpgTronWeaponAppearNotify::Notify(USkeletalMeshComponent* MeshComp, UAnimS
 		{
 			// Обновляем видимость напрямую через компонент
 			WeaponComp->UpdateWeaponVisuals(bShouldShowWeapon);
-
-			UE_LOG(LogWeaponSystem, Log, TEXT("Weapon appearance notify triggered. Show weapon: %s"),
-			       bShouldShowWeapon ? TEXT("true") : TEXT("false"));
 		}
 		else
 		{

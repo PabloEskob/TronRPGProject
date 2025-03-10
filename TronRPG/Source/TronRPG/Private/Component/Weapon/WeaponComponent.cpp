@@ -27,19 +27,6 @@ void UWeaponComponent::BeginPlay()
 	AbilitySystemComponent = GetOwner()->FindComponentByClass<UTronRpgAbilitySystemComponent>();
 	AnimationComponent = GetOwner()->FindComponentByClass<UAnimationComponent>();
 	
-	// Проверяем, что компоненты оружия правильно настроены
-	if (MainHandMeshComponent)
-	{
-		MainHandMeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-		MainHandMeshComponent->SetVisibility(false);
-	}
-
-	if (OffHandMeshComponent)
-	{
-		OffHandMeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-		OffHandMeshComponent->SetVisibility(false);
-	}
-
 	// Инициализация истории оружия
 	WeaponHistory.Empty(MaxWeaponHistorySize);
 }

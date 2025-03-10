@@ -4,15 +4,10 @@
 #include "GAS/TronRpgAbilitySystemComponent.h"
 #include "GAS/TronRpgAttributeSet.h"
 #include "Component/Animation/AnimationComponent.h"
-#include "Component/DI/DependencyInjectorComponent.h"
 #include "Component/Input/AbilityInputComponent.h"
 #include "Component/Weapon/WeaponComponent.h"
 #include "Data/Weapon/WeaponDataAsset.h"
 #include "Net/UnrealNetwork.h"
-#include "AbilitySystemGlobals.h"
-#include "GameplayEffect.h"
-#include "GameplayAbilitySpec.h"
-#include "Object/GameplayTagsLibrary.h"
 
 ATronRpgBaseCharacter::ATronRpgBaseCharacter()
 {
@@ -24,7 +19,6 @@ ATronRpgBaseCharacter::ATronRpgBaseCharacter()
 	AbilitySystemComponent = CreateDefaultSubobject<UTronRpgAbilitySystemComponent>(TEXT("AbilitySystemComponent"));
 	AttributeSet = CreateDefaultSubobject<UTronRpgAttributeSet>(TEXT("AttributeSet"));
 	AnimationComponent = CreateDefaultSubobject<UAnimationComponent>(TEXT("AnimationComponent"));
-	DependencyInjector = CreateDefaultSubobject<UDependencyInjectorComponent>(TEXT("DependencyInjector"));
 	AbilityInputComponent = CreateDefaultSubobject<UAbilityInputComponent>(TEXT("AbilityInputComponent"));
 	WeaponComponent = CreateDefaultSubobject<UWeaponComponent>(TEXT("WeaponComponent"));
 
@@ -65,42 +59,6 @@ void ATronRpgBaseCharacter::ConfigureWeaponMesh(UStaticMeshComponent* MeshCompon
 	MeshComponent->SetIsReplicated(true);
 }
 
-TArray<FName> ATronRpgBaseCharacter::GetWeaponTraceSocketNames_Implementation() const
-{
-	return {FName("Weapon_Tip"), FName("Weapon_Mid"), FName("Weapon_Root")};
-}
-
-bool ATronRpgBaseCharacter::HasWeaponWithTag_Implementation(const FGameplayTag& WeaponTag) const
-{
-	return WeaponComponent ? WeaponComponent->HasWeaponWithTag(WeaponTag) : false;
-}
-
-float ATronRpgBaseCharacter::PlayAttackAnimation_Implementation(UAnimMontage* Montage, float PlayRate, FName SectionName)
-{
-	return AnimationComponent ? AnimationComponent->PlayMontage(Montage, PlayRate, SectionName) : 0.0f;
-}
-
-void ATronRpgBaseCharacter::PostInitializeComponents()
-{
-	Super::PostInitializeComponents();
-	SetupComponents();
-}
-
-void ATronRpgBaseCharacter::SetupComponents()
-{
-	// Проверка валидности и настройка дополнительных параметров компонентов
-	if (AbilitySystemComponent)
-	{
-		// Настройка обработки тегов для ASC
-
-		AbilitySystemComponent->SetTagMapCount((TAG_State_Running), 0);
-		AbilitySystemComponent->SetTagMapCount((TAG_State_Sprinting), 0);
-	}
-
-	// Настройка отладочных сообщений для компонентов
-	UE_LOG(LogTemp, Log, TEXT("Components for %s have been set up"), *GetName());
-}
-
 void ATronRpgBaseCharacter::BeginPlay()
 {
 	Super::BeginPlay();
@@ -120,89 +78,17 @@ void ATronRpgBaseCharacter::InitializeDefaultWeapon()
 	{
 		if (!DefaultWeaponAsset->WalkForwardBlendSpace.IsValid())
 		{
-			DefaultWeaponAsset->WalkForwardBlendSpace.LoadSynchronous();
-			DefaultWeaponAsset->WalkBackwardBlendSpace.LoadSynchronous();
+			UBlendSpace* LoadSynchronous = DefaultWeaponAsset->WalkForwardBlendSpace.LoadSynchronous();
+			UBlendSpace* BlendSpace = DefaultWeaponAsset->WalkBackwardBlendSpace.LoadSynchronous();
 		}
 		// Установка начальных blend space для анимации движения
 		AnimationComponent->SetMovementBlendSpace(
 			DefaultWeaponAsset->WalkForwardBlendSpace.Get(),
 			DefaultWeaponAsset->WalkBackwardBlendSpace.Get()
 		);
-
-		// Автоматическая экипировка оружия по умолчанию, если нужно
-		// Раскомментировать при необходимости:
-		// EquipWeapon(DefaultWeaponAsset, 0.0f);
 	}
 }
 
-void ATronRpgBaseCharacter::PossessedBy(AController* NewController)
-{
-	Super::PossessedBy(NewController);
-
-	// Инициализация способностей при взятии персонажа под контроль
-	if (HasAuthority() && AbilitySystemComponent)
-	{
-		InitializeAbilities();
-		ApplyBaseEffects();
-	}
-}
-
-void ATronRpgBaseCharacter::OnRep_PlayerState()
-{
-	Super::OnRep_PlayerState();
-
-	// На клиенте тоже инициализируем способности после получения PlayerState
-	InitializeAbilities();
-}
-
-void ATronRpgBaseCharacter::InitializeAbilities()
-{
-	// Предотвращаем повторную инициализацию
-	if (bAbilitiesInitialized || !AbilitySystemComponent)
-		return;
-
-	// Выдаем базовые способности
-	for (TSubclassOf<UGameplayAbility>& AbilityClass : BaseAbilities)
-	{
-		if (AbilityClass)
-		{
-			FGameplayAbilitySpec AbilitySpec = FGameplayAbilitySpec(AbilityClass, 1);
-			AbilitySystemComponent->GiveAbility(AbilitySpec);
-		}
-	}
-
-	bAbilitiesInitialized = true;
-}
-
-void ATronRpgBaseCharacter::ApplyBaseEffects()
-{
-	if (!AbilitySystemComponent) return;
-
-	// Применяем постоянные эффекты
-	for (TSubclassOf<UGameplayEffect>& EffectClass : PersistentEffects)
-	{
-		if (EffectClass)
-		{
-			FGameplayEffectContextHandle EffectContext = AbilitySystemComponent->MakeEffectContext();
-			EffectContext.AddSourceObject(this);
-
-			FGameplayEffectSpecHandle SpecHandle = AbilitySystemComponent->MakeOutgoingSpec(
-				EffectClass, 1.0f, EffectContext);
-
-			if (SpecHandle.IsValid())
-			{
-				FActiveGameplayEffectHandle EffectHandle =
-					AbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
-
-				if (!EffectHandle.IsValid())
-				{
-					UE_LOG(LogTemp, Warning, TEXT("Failed to apply persistent effect %s to %s"),
-					       *EffectClass->GetName(), *GetName());
-				}
-			}
-		}
-	}
-}
 
 void ATronRpgBaseCharacter::UpdateWeaponVisibility(bool bIsVisible)
 {
@@ -324,9 +210,4 @@ void ATronRpgBaseCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>
 
 	// Существующие репликации
 	DOREPLIFETIME(ATronRpgBaseCharacter, AbilitySystemComponent);
-}
-
-bool ATronRpgBaseCharacter::GetCurrentWeaponTag()
-{
-	return true;
 }

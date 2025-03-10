@@ -1,7 +1,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameplayTagContainer.h"
 #include "Animation/AnimInstance.h"
 #include "CharacterAnimInstance.generated.h"
 
@@ -47,15 +46,7 @@ public:
 	 */
 	UFUNCTION(BlueprintCallable, Category = "Animation")
 	void TransitionToNewBlendSpace(UBlendSpace* NewWalkForwardBlendSpace, UBlendSpace* NewWalkBackwardBlendSpace, float InTransitionDuration);
-
-	/**
-	 * Проверяет наличие тега состояния у персонажа
-	 * @param StateTag Тег для проверки
-	 * @return true если тег присутствует
-	 */
-	UFUNCTION(BlueprintPure, Category = "Animation|State")
-	bool HasStateTag(FGameplayTag StateTag) const;
-
+	
 	/**
 	 * Получить текущую скорость персонажа
 	 * @return Скорость перемещения по земле в единицах мира/сек
@@ -68,14 +59,7 @@ public:
 	 */
 	UPROPERTY(BlueprintAssignable, Category = "Animation|Events")
 	FOnAnimNotifyBegin OnAnimNotifyBegin;
-
-	/**
-	 * Обработчик события Notify в анимации
-	 * @param NotifyName Имя Notify
-	 */
-	UFUNCTION(BlueprintCallable, Category = "Animation|Events")
-	void HandleNotifyBegin(FName NotifyName);
-
+	
 	/**
 	 * Получить текущий угол направления для BlendSpace
 	 * @return Угол в градусах от -180 до 180
@@ -100,21 +84,6 @@ protected:
 	UPROPERTY(BlueprintReadOnly, Category = "Movement")
 	float MovementDirection = 0.f;
 
-	/** Флаг бега трусцой */
-	UPROPERTY(BlueprintReadOnly, Category = "Movement")
-	bool bIsJogging = false;
-
-	/** Флаг бега (спринта) */
-	UPROPERTY(BlueprintReadOnly, Category = "Movement")
-	bool bIsSprinting = false;
-
-	/** Тяжесть дыхания (для анимаций дыхания) */
-	UPROPERTY(BlueprintReadOnly, Category = "Animation")
-	float BreathingIntensity = 0.f;
-
-	/** Теги состояния персонажа */
-	UPROPERTY(BlueprintReadOnly, Category = "Animation")
-	FGameplayTagContainer CurrentStateTags;
 
 	/** Первичные (текущие) blend space для движения вперед и назад */
 	UPROPERTY(BlueprintReadOnly, Category = "Animation")
@@ -163,14 +132,6 @@ protected:
 	UPROPERTY(Transient)
 	UTronRpgAbilitySystemComponent* CachedASC = nullptr;
 
-	/** Скорость затухания интенсивности дыхания */
-	UPROPERTY(EditDefaultsOnly, Category = "Animation", meta = (ClampMin = "0.1"))
-	float BreathingDecayRate = 1.0f;
-
-	/** Множитель увеличения интенсивности дыхания при движении */
-	UPROPERTY(EditDefaultsOnly, Category = "Animation", meta = (ClampMin = "0.1"))
-	float BreathingBuildupRate = 2.0f;
-
 	/** Вспомогательная функция для расчёта веса перехода */
 	float CalculateTransitionWeight(float StartWeight, float EndWeight) const;
 
@@ -183,15 +144,6 @@ protected:
 	void UpdateGroundSpeed();
 	void UpdateDirectionAngle();
 	void CalculateMovementAngle(const FVector& ForwardVector, const FVector& RightVector, const FVector& DirectionVector);
-	void UpdateMovementState();
-
-	/** Обновление параметров дыхания */
-	void UpdateBreathingParameters(float DeltaSeconds);
-	float CalculateTargetBreathingIntensity() const;
-	void SmoothlyUpdateBreathingIntensity(float TargetIntensity, float DeltaSeconds);
-
-	/** Обновление тегов состояния */
-	void UpdateStateTags();
 
 	/** Обновление переходов между blend space */
 	void UpdateBlendSpaceTransition(float DeltaSeconds);
