@@ -9,20 +9,9 @@
 
 void URpgTronWeaponAppearNotify::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation)
 {
-	// Проверяем, что владелец компонента — это ATronRpgBaseCharacter
-	if (ATronRpgBaseCharacter* Character = Cast<ATronRpgBaseCharacter>(MeshComp->GetOwner()))
+	if (MeshComp->GetOwner()->Implements<UCharacterComponentProvider>())
 	{
-		// Получаем компонент оружия
-		UWeaponComponent* WeaponComp = Character->GetWeaponComponent();
-		if (WeaponComp)
-		{
-			// Обновляем видимость напрямую через компонент
-			WeaponComp->UpdateWeaponVisuals(bShouldShowWeapon);
-		}
-		else
-		{
-			// Используем делегат, если компонент недоступен
-			Character->OnWeaponVisibilityChanged.Broadcast(bShouldShowWeapon);
-		}
+		UWeaponComponent* WeaponComp = ICharacterComponentProvider::Execute_GetWeaponComponent(MeshComp->GetOwner());
+		WeaponComp->UpdateWeaponVisuals(bShouldShowWeapon);
 	}
 }

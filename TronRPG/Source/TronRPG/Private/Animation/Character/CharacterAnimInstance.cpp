@@ -1,11 +1,9 @@
 // Tron
 
 #include "Animation/Character/CharacterAnimInstance.h"
-#include "AbilitySystemComponent.h"
 #include "Character/TronRpgBaseCharacter.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
-#include "GAS/TronRpgAbilitySystemComponent.h"
 
 UCharacterAnimInstance::UCharacterAnimInstance()
 {
@@ -57,7 +55,10 @@ void UCharacterAnimInstance::UpdateCachedReferences()
 	if (CachedCharacter)
 	{
 		CachedMovementComponent = CachedCharacter->GetCharacterMovement();
-		CachedASC = Cast<UTronRpgAbilitySystemComponent>(CachedCharacter->GetAbilitySystemComponent());
+		if (GetOwningActor()->Implements<UCharacterComponentProvider>())
+		{
+			CachedASC = ICharacterComponentProvider::Execute_GetAbilitySystemComponent(GetOwningActor());
+		}
 	}
 }
 

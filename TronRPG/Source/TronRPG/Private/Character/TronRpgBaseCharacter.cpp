@@ -1,6 +1,4 @@
 #include "Character/TronRpgBaseCharacter.h"
-
-#include "Animation/Character/CharacterAnimInstance.h"
 #include "GAS/TronRpgAbilitySystemComponent.h"
 #include "GAS/TronRpgAttributeSet.h"
 #include "Component/Animation/AnimationComponent.h"
@@ -30,9 +28,6 @@ ATronRpgBaseCharacter::ATronRpgBaseCharacter()
 	ConfigureAbilityComponents();
 	ConfigureWeaponComponents();
 
-	// Привязка делегата
-	OnWeaponVisibilityChanged.AddDynamic(this, &ATronRpgBaseCharacter::UpdateWeaponVisibility);
-
 	// Инициализация переменных состояния
 	bAbilitiesInitialized = false;
 }
@@ -57,6 +52,11 @@ void ATronRpgBaseCharacter::ConfigureWeaponMesh(UStaticMeshComponent* MeshCompon
 	MeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	MeshComponent->SetCanEverAffectNavigation(false);
 	MeshComponent->SetIsReplicated(true);
+}
+
+UAbilitySystemComponent* ATronRpgBaseCharacter::GetAbilitySystemComponent() const
+{
+	return AbilitySystemComponent;
 }
 
 void ATronRpgBaseCharacter::BeginPlay()
@@ -89,18 +89,19 @@ void ATronRpgBaseCharacter::InitializeDefaultWeapon()
 	}
 }
 
-
-void ATronRpgBaseCharacter::UpdateWeaponVisibility(bool bIsVisible)
-{
-	if (WeaponComponent)
-	{
-		WeaponComponent->UpdateWeaponVisuals(bIsVisible);
-	}
-}
-
-UAbilitySystemComponent* ATronRpgBaseCharacter::GetAbilitySystemComponent() const
+UTronRpgAbilitySystemComponent* ATronRpgBaseCharacter::GetAbilitySystemComponent_Implementation()
 {
 	return AbilitySystemComponent;
+}
+
+UAnimationComponent* ATronRpgBaseCharacter::GetAnimationComponent_Implementation()
+{
+	return AnimationComponent;
+}
+
+UWeaponComponent* ATronRpgBaseCharacter::GetWeaponComponent_Implementation()
+{
+	return WeaponComponent;
 }
 
 bool ATronRpgBaseCharacter::EquipWeapon(UWeaponDataAsset* WeaponAsset, float BlendSpaceTransitionDuration)

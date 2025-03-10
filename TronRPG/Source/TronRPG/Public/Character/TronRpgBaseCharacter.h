@@ -6,6 +6,7 @@
 #include "GameFramework/Character.h"
 #include "AbilitySystemInterface.h"
 #include "GameplayTagContainer.h"
+#include "Interface/Player/CharacterComponentProvider.h"
 #include "TronRpgBaseCharacter.generated.h"
 
 class UWeaponDataAsset;
@@ -14,31 +15,32 @@ class UAbilityInputComponent;
 class UAnimationComponent;
 class UTronRpgAttributeSet;
 class UTronRpgAbilitySystemComponent;
-/**
- * Делегат для обработки изменения видимости оружия
- */
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnWeaponVisibilityChanged, bool, bIsVisible);
 
 /**
  * Базовый класс персонажа в TronRPG
  * Содержит основные компоненты и функциональность для всех персонажей игры
  */
 UCLASS(Abstract)
-class TRONRPG_API ATronRpgBaseCharacter : public ACharacter, public IAbilitySystemInterface
+class TRONRPG_API ATronRpgBaseCharacter : public ACharacter, public IAbilitySystemInterface, public ICharacterComponentProvider
 {
 	GENERATED_BODY()
 
 public:
 	ATronRpgBaseCharacter();
+	
 	void ConfigureAbilityComponents();
 	void ConfigureWeaponComponents();
 	void ConfigureWeaponMesh(UStaticMeshComponent* MeshComponent, const FName& SocketName);
 
+	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
+
+	// Реализация ICharacterComponentProvider
+	virtual UTronRpgAbilitySystemComponent* GetAbilitySystemComponent_Implementation()  override;
+	virtual UAnimationComponent* GetAnimationComponent_Implementation()  override;
+	virtual UWeaponComponent* GetWeaponComponent_Implementation()  override;
+
 	// Методы жизненного цикла
 	virtual void BeginPlay() override;
-
-	UFUNCTION()
-	void UpdateWeaponVisibility(bool bIsVisible);
 
 	/**
 	 * Экипировать указанное оружие
@@ -64,22 +66,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Weapon")
 	bool EquipWeaponByTag(FGameplayTag WeaponTag);
 
-	/**
-	 * Получить компонент AbilitySystem (реализация интерфейса IAbilitySystemInterface)
-	 * @return Указатель на компонент AbilitySystem
-	 */
-	UFUNCTION(BlueprintPure, Category = "Abilities")
-	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
-
-
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
-
-	UFUNCTION()
-	UWeaponComponent* GetWeaponComponent() const { return WeaponComponent; }
-
-	// Делегат для обработки изменения видимости оружия
-	UPROPERTY(BlueprintAssignable, Category = "Weapon")
-	FOnWeaponVisibilityChanged OnWeaponVisibilityChanged;
 
 protected:
 	/** Компонент системы способностей (GAS) */
@@ -134,4 +121,5 @@ private:
 	 */
 	UFUNCTION(Server, Reliable)
 	void Server_UnequipWeapon();
+	
 };
