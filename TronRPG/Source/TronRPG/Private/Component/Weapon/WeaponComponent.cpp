@@ -264,7 +264,6 @@ void UWeaponComponent::UpdateGameplayTags(UWeaponDataAsset* WeaponAsset, bool bA
 		AbilitySystemComponent->AddLooseGameplayTags(WeaponAsset->WeaponTags);
 
 		// Добавляем тег состояния "оружие экипировано"
-		AbilitySystemComponent->AddLooseGameplayTag(TAG_Weapon_Equipped);
 		AbilitySystemComponent->AddLooseGameplayTag(TAG_State_Equipment_Equipped);
 	}
 	else
@@ -275,7 +274,6 @@ void UWeaponComponent::UpdateGameplayTags(UWeaponDataAsset* WeaponAsset, bool bA
 		// Удаляем тег состояния "оружие экипировано", если это было последнее оружие
 		if (!CurrentWeapon)
 		{
-			AbilitySystemComponent->RemoveLooseGameplayTag(TAG_Weapon_Equipped);
 			AbilitySystemComponent->RemoveLooseGameplayTag(TAG_State_Equipment_Equipped);
 		}
 	}
@@ -347,7 +345,7 @@ void UWeaponComponent::FinishEquipping()
 	// Удаляем тег состояния экипировки
 	if (AbilitySystemComponent)
 	{
-		AbilitySystemComponent->RemoveLooseGameplayTag(FGameplayTag::RequestGameplayTag("State.Equipment.Changing"));
+		AbilitySystemComponent->RemoveLooseGameplayTag(TAG_State_Equipment_Equipped);
 	}
     
 	UE_LOG(LogWeaponSystem, Log, TEXT("Weapon equip process completed for: %s"), 
@@ -372,7 +370,7 @@ void UWeaponComponent::FinishUnequipping()
 	// Удаляем тег состояния экипировки
 	if (AbilitySystemComponent)
 	{
-		AbilitySystemComponent->RemoveLooseGameplayTag(FGameplayTag::RequestGameplayTag("State.Equipment.Changing"));
+		AbilitySystemComponent->RemoveLooseGameplayTag(TAG_State_Equipment_Equipped);
 	}
     
 	UE_LOG(LogWeaponSystem, Log, TEXT("Weapon unequip process completed for: %s"), 
